@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Grandmaster | Social Chess</title>
     
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -26,9 +26,7 @@
             --danger: #c0392b;
         }
 
-        html, body {
-            height: 100%;
-        }
+        html, body { height: 100%; }
         body {
             background-color: var(--bg);
             color: var(--text);
@@ -42,20 +40,19 @@
             overflow: auto;
         }
 
-        /* --- PARTY MODE ANIMATION --- */
         @keyframes partyBackground {
-            0% { background-color: #7a2c2c; }
-            25% { background-color: #2c7a3a; }
-            50% { background-color: #2c3a7a; }
-            75% { background-color: #767a2c; }
+            0%   { background-color: #7a2c2c; }
+            25%  { background-color: #2c7a3a; }
+            50%  { background-color: #2c3a7a; }
+            75%  { background-color: #767a2c; }
             100% { background-color: #7a2c2c; }
         }
         body.party-active { animation: partyBackground 3s infinite alternate ease-in-out; }
-        body.sound-flash { outline: 3px solid var(--accent) !important; }
+        body.sound-flash  { outline: 3px solid var(--accent) !important; }
 
         * { border-radius: 0 !important; box-shadow: none !important; box-sizing: border-box; }
 
-        /* GLOBAL BROADCAST BANNER */
+        /* ── GLOBAL BROADCAST BANNER ── */
         #global-banner {
             position: fixed;
             top: 0; left: 0; width: 100%;
@@ -75,18 +72,18 @@
         #global-banner.show { transform: translateY(0); }
         #global-banner-sender { opacity: 0.7; margin-right: 4px; }
 
+        /* ── MASTER LAYOUT ── */
         .master-container {
             display: flex;
+            flex-direction: row;
             width: 100%;
             max-width: 1150px;
-            /* height scales with viewport, capped so board is always visible */
             height: min(650px, calc(100vh - 40px));
             background: var(--surface-strong);
             border: 4px solid var(--border);
         }
 
         #board-wrapper {
-            /* square: always as tall as the container */
             flex: 0 0 auto;
             width: min(610px, 58vw);
             background: #2b2927;
@@ -97,9 +94,7 @@
             padding: 20px;
             position: relative;
         }
-        #board {
-            width: min(560px, calc(58vw - 40px));
-        }
+        #board { width: min(560px, calc(58vw - 40px)); }
 
         #board-idle-msg {
             position: absolute;
@@ -119,18 +114,47 @@
         #board-idle-msg .idle-icon { font-size: 2.5rem; margin-bottom: 10px; opacity: 0.5; }
         #board-idle-msg.hidden { opacity: 0; }
 
+        /* ── MATCHMAKING LOCK OVERLAY on board ── */
+        #board-lock-overlay {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: rgba(33,31,28,0.72);
+            z-index: 40;
+            pointer-events: all;
+            transition: opacity 0.3s;
+        }
+        #board-lock-overlay.hidden { opacity: 0; pointer-events: none; }
+        #board-lock-overlay .lock-spinner {
+            font-size: 2rem;
+            animation: spinPulse 1.4s ease-in-out infinite;
+            margin-bottom: 10px;
+            opacity: 0.7;
+        }
+        #board-lock-overlay .lock-label {
+            font-size: 0.72rem;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+        }
+        @keyframes spinPulse { 0%,100%{transform:rotate(0deg) scale(1)} 50%{transform:rotate(180deg) scale(1.15)} }
+
         .sidebar {
             flex: 1;
             display: flex;
             flex-direction: column;
             background: var(--surface);
             overflow: hidden;
+            min-width: 0;
         }
 
         .tab-content { padding: 22px; flex-grow: 1; overflow-y: auto; }
         .hidden { display: none !important; }
 
-        /* USER BAR */
+        /* ── USER BAR ── */
         .user-bar {
             padding: 10px 16px;
             background: var(--surface-strong);
@@ -138,13 +162,13 @@
             display: flex;
             align-items: center;
             gap: 10px;
+            flex-shrink: 0;
         }
         .pfp { width: 34px; height: 34px; background: #444; border: 2px solid var(--accent); object-fit: cover; }
-        .user-bar-info { display: flex; flex-direction: column; flex: 1; }
-        .user-bar-name { font-weight: bold; font-size: 0.88rem; display: flex; align-items: center; gap: 6px; }
-        .user-bar-email { font-size: 0.65rem; color: var(--muted); }
+        .user-bar-info { display: flex; flex-direction: column; flex: 1; min-width: 0; }
+        .user-bar-name { font-weight: bold; font-size: 0.88rem; display: flex; align-items: center; gap: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .user-bar-email { font-size: 0.65rem; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-        /* ADMIN BADGE */
         .admin-badge {
             font-size: 0.58rem;
             background: #e6a817;
@@ -153,7 +177,7 @@
             padding: 1px 5px;
             letter-spacing: 0.08em;
             text-transform: uppercase;
-            vertical-align: middle;
+            flex-shrink: 0;
         }
 
         h2 {
@@ -181,6 +205,13 @@
         }
         input:focus { outline: none; border-color: var(--accent); }
 
+        /* Locked chat input style */
+        input:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            border-color: var(--border);
+        }
+
         button {
             background: var(--accent);
             color: white;
@@ -197,11 +228,11 @@
             transition: background 0.15s, opacity 0.15s;
         }
         button:hover { opacity: 0.85; }
-        .sec-btn { background: #3d3a37; border: 1px solid var(--border); }
+        .sec-btn    { background: #3d3a37; border: 1px solid var(--border); }
         .danger-btn { background: var(--danger); }
-        .admin-btn { background: #e6a817; color: #1a1917; }
+        .admin-btn  { background: #e6a817; color: #1a1917; }
 
-        /* STATUS CHIP */
+        /* ── STATUS CHIP ── */
         .status-chip {
             display: inline-flex;
             align-items: center;
@@ -215,16 +246,12 @@
             margin-bottom: 12px;
             color: var(--muted);
         }
-        .status-chip .dot {
-            width: 7px; height: 7px;
-            border-radius: 50% !important;
-            background: var(--muted);
-        }
+        .status-chip .dot { width: 7px; height: 7px; border-radius: 50% !important; background: var(--muted); }
         .status-chip.searching .dot { background: #e6a817; animation: blink 1s infinite; }
-        .status-chip.playing .dot { background: var(--accent); }
+        .status-chip.playing   .dot { background: var(--accent); }
         @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.2} }
 
-        /* OPP INFO */
+        /* ── OPP INFO ── */
         #opp-info-box {
             display: flex;
             align-items: center;
@@ -234,8 +261,8 @@
             border: 1px solid var(--border);
             margin-bottom: 10px;
         }
-        .opp-pfp { width: 26px; height: 26px; background: #333; border: 1px solid var(--border); object-fit: cover; }
-        .opp-name { font-size: 0.8rem; font-weight: bold; }
+        .opp-pfp  { width: 26px; height: 26px; background: #333; border: 1px solid var(--border); object-fit: cover; flex-shrink: 0; }
+        .opp-name { font-size: 0.8rem; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
         .history-box, .chat-box {
             background: #1a1917;
@@ -245,12 +272,27 @@
             overflow-y: auto;
             margin-bottom: 8px;
         }
-        .history-box { height: 100px; }
-        .chat-box { height: 110px; }
+        .history-box { height: 80px; }
+        .chat-box    { height: 90px; }
         .chat-box div { padding: 2px 0; border-bottom: 1px solid #2a2825; }
         .chat-box div:last-child { border-bottom: none; }
         .history-box .move-entry { color: var(--muted); }
         .history-box .move-entry span { color: white; margin-right: 6px; }
+
+        /* Searching state: muted/locked chat box */
+        .chat-box.locked { opacity: 0.4; pointer-events: none; }
+        .chat-hint {
+            font-size: 0.65rem;
+            color: var(--muted);
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .chat-hint::before { content: "🔒"; font-size: 0.7rem; }
+        .chat-hint.hidden { display: none !important; }
 
         #turn-display {
             font-size: 1rem;
@@ -261,7 +303,6 @@
             letter-spacing: 0.1em;
         }
 
-        /* INLINE MESSAGES */
         .inline-error {
             background: rgba(192,57,43,0.15);
             border: 1px solid var(--danger);
@@ -281,7 +322,7 @@
             margin-bottom: 8px;
         }
 
-        /* ADMIN PANEL */
+        /* ── ADMIN PANEL ── */
         #view-admin h2 { color: #e6a817; border-color: #e6a817; }
         .broadcast-preview {
             background: #1a1917;
@@ -299,21 +340,19 @@
         .your-turn-glow { animation: turnPulse 1.5s ease-in-out infinite; }
         @keyframes turnPulse { 0%,100% { color: var(--accent); } 50% { color: #b5d97a; } }
 
-        /* MOVE INDICATORS */
+        /* ── MOVE DOTS ── */
         .highlight-move, .highlight-capture { position: relative; }
-        /* empty square: small filled dot rendered behind piece image */
         .highlight-move::after {
             content: "";
             position: absolute;
             top: 50%; left: 50%;
             transform: translate(-50%, -50%);
             width: 28%; height: 28%;
-            background: rgba(0, 0, 0, 0.18);
+            background: rgba(0,0,0,0.18);
             border-radius: 50% !important;
             pointer-events: none;
             z-index: 0;
         }
-        /* occupied square: ring outline, slightly inset to stay within the square */
         .highlight-capture::after {
             content: "";
             position: absolute;
@@ -321,13 +360,13 @@
             transform: translate(-50%, -50%);
             width: 78%; height: 78%;
             background: transparent;
-            border: 6px solid rgba(0, 0, 0, 0.25);
+            border: 6px solid rgba(0,0,0,0.25);
             border-radius: 50% !important;
             pointer-events: none;
             z-index: 0;
         }
 
-        /* GAME RESULT OVERLAY */
+        /* ── GAME RESULT OVERLAY ── */
         #game-result-overlay {
             position: absolute;
             inset: 0;
@@ -335,33 +374,83 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            background: rgba(33, 31, 28, 0.88);
+            background: rgba(33,31,28,0.88);
             z-index: 50;
             animation: resultFadeIn 0.4s ease;
         }
-        @keyframes resultFadeIn { from { opacity: 0; transform: scale(0.96); } to { opacity: 1; transform: scale(1); } }
-        #result-icon { font-size: 3.5rem; margin-bottom: 10px; }
-        #result-title {
-            font-size: 1.5rem;
-            font-weight: bold;
-            letter-spacing: 0.12em;
-            text-transform: uppercase;
-            margin-bottom: 6px;
-        }
-        #result-sub {
-            font-size: 0.78rem;
-            color: var(--muted);
-            letter-spacing: 0.08em;
-            text-transform: uppercase;
-        }
+        @keyframes resultFadeIn { from{opacity:0;transform:scale(0.96)} to{opacity:1;transform:scale(1)} }
+        #result-icon  { font-size: 3.5rem; margin-bottom: 10px; }
+        #result-title { font-size: 1.5rem; font-weight: bold; letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 6px; }
+        #result-sub   { font-size: 0.78rem; color: var(--muted); letter-spacing: 0.08em; text-transform: uppercase; }
         #game-result-overlay.result-win  #result-title { color: var(--accent); }
         #game-result-overlay.result-lose #result-title { color: var(--danger); }
         #game-result-overlay.result-draw #result-title { color: #e6a817; }
+
+        /* ═══════════════════════════════════════
+           MOBILE RESPONSIVE
+        ═══════════════════════════════════════ */
+        @media (max-width: 700px) {
+            body {
+                padding: 0;
+                align-items: flex-start;
+            }
+
+            .master-container {
+                flex-direction: column;
+                height: auto;
+                min-height: 100dvh;
+                border: none;
+                border-top: 4px solid var(--border);
+                max-width: 100%;
+            }
+
+            #board-wrapper {
+                width: 100%;
+                border-right: none;
+                border-bottom: 4px solid var(--border);
+                padding: 14px;
+                /* square aspect ratio */
+                aspect-ratio: 1 / 1;
+                flex-shrink: 0;
+            }
+
+            #board {
+                width: 100% !important;
+                max-width: 100%;
+            }
+
+            .sidebar { flex: 1; }
+
+            .tab-content { padding: 16px; }
+
+            h2 { font-size: 0.95rem; }
+
+            #turn-display { font-size: 0.85rem; }
+
+            .history-box { height: 60px; }
+            .chat-box    { height: 70px; }
+
+            #result-title { font-size: 1.2rem; }
+            #result-icon  { font-size: 2.5rem; }
+
+            button { padding: 13px; font-size: 0.85rem; }
+
+            /* Tighter user bar on mobile */
+            .user-bar { padding: 8px 12px; }
+            .pfp { width: 28px; height: 28px; }
+            .user-bar-name { font-size: 0.8rem; }
+
+            /* Resign confirm: stack on very small screens */
+            #resign-confirm > div { flex-direction: column; }
+        }
+
+        @media (max-width: 400px) {
+            .user-bar-email { display: none; }
+        }
     </style>
 </head>
 <body>
 
-<!-- Global broadcast banner (visible to all) -->
 <div id="global-banner">
     <img id="global-banner-pfp" src="" style="width:20px;height:20px;object-fit:cover;border:1px solid rgba(0,0,0,0.3);vertical-align:middle;margin-right:6px;display:none;">
     <span id="global-banner-sender"></span><span id="global-banner-text"></span>
@@ -374,6 +463,11 @@
             <div class="idle-icon">♟</div>
             <div>Waiting for match</div>
         </div>
+        <!-- Shown while matchmaking is in progress (searching) -->
+        <div id="board-lock-overlay" class="hidden">
+            <div class="lock-spinner">⟳</div>
+            <div class="lock-label">Finding opponent…</div>
+        </div>
         <div id="game-result-overlay" class="hidden">
             <div id="result-icon"></div>
             <div id="result-title"></div>
@@ -381,7 +475,7 @@
             <button onclick="leaveGame()" style="margin-top:18px;width:180px;">Back to Lobby</button>
         </div>
     </div>
-    
+
     <div class="sidebar">
         <!-- USER BAR -->
         <div id="user-profile-bar" class="user-bar hidden">
@@ -400,15 +494,15 @@
             <h2>System Access</h2>
             <div id="auth-error" class="inline-error hidden"></div>
             <label>Email</label>
-            <input type="email" id="auth-email" placeholder="you@example.com">
+            <input type="email" id="auth-email" placeholder="you@example.com" autocomplete="email">
             <label>Password</label>
-            <input type="password" id="auth-pass" placeholder="••••••••">
+            <input type="password" id="auth-pass" placeholder="••••••••" autocomplete="current-password">
             <button style="margin-top:10px;" onclick="handleAuth('login')">Login</button>
             <button class="sec-btn" onclick="handleAuth('signup')">Register</button>
             <div id="forgot-wrap" style="margin-top:4px;">
                 <button class="sec-btn" style="font-size:0.65rem;border:none;opacity:0.7;margin-bottom:0;" onclick="toggleForgot()">Forgot Password?</button>
                 <div id="forgot-panel" class="hidden" style="margin-top:6px;">
-                    <input type="email" id="reset-email" placeholder="your@email.com" style="margin-bottom:4px;">
+                    <input type="email" id="reset-email" placeholder="your@email.com">
                     <div id="reset-msg" class="inline-success hidden"></div>
                     <button onclick="sendReset()" style="margin-bottom:0;">Send Reset Link</button>
                 </div>
@@ -433,10 +527,7 @@
             <div id="pfp-preview-wrap" style="margin-bottom:8px;">
                 <img id="pfp-preview" src="" style="width:60px;height:60px;object-fit:cover;border:2px solid var(--border);display:none;">
             </div>
-            <label id="pfp-upload-label" style="
-                display:block;width:100%;padding:9px;background:#1a1917;
-                border:2px dashed var(--border);cursor:pointer;text-align:center;
-                color:var(--muted);font-size:0.75rem;margin-bottom:8px;">
+            <label id="pfp-upload-label" style="display:block;width:100%;padding:9px;background:#1a1917;border:2px dashed var(--border);cursor:pointer;text-align:center;color:var(--muted);font-size:0.75rem;margin-bottom:8px;">
                 📁 Click to upload image
                 <input type="file" id="pfp-file" accept="image/*" style="display:none;" onchange="previewPfp(event)">
             </label>
@@ -451,16 +542,11 @@
             <h2>⚡ Admin Panel</h2>
             <label>Global Broadcast Message</label>
             <input type="text" id="admin-msg" placeholder="Message to all players..." oninput="updateBroadcastPreview()">
-            <div class="broadcast-preview">
-                Preview: <span class="preview-msg" id="broadcast-preview-text">—</span>
-            </div>
+            <div class="broadcast-preview">Preview: <span class="preview-msg" id="broadcast-preview-text">—</span></div>
             <button class="admin-btn" onclick="sendBroadcast()">📢 Broadcast Message</button>
-
             <hr style="border: 1px solid var(--border); margin: 15px 0;">
-
             <label>Party Mode</label>
             <button id="party-toggle-btn" class="sec-btn" onclick="togglePartyMode()">🎉 Enable Party Mode</button>
-
             <label>Sound Trigger</label>
             <select id="admin-sound-select" style="background:#1a1917;border:2px solid var(--border);color:white;padding:9px 10px;width:100%;font-family:'Courier New',monospace;font-size:0.82rem;margin-bottom:4px;">
                 <option value="">-- Select uploaded sound --</option>
@@ -470,7 +556,6 @@
             <div id="sound-upload-msg" class="hidden" style="font-size:0.72rem;margin-bottom:6px;padding:6px 8px;border:1px solid var(--border);"></div>
             <button class="admin-btn" onclick="broadcastSound()">🔊 Play Sound for All</button>
             <button class="danger-btn" onclick="stopAllSounds()">🛑 Stop All Sounds</button>
-
             <button class="sec-btn" style="margin-top:20px;" onclick="showView('view-lobby')">← Back</button>
         </div>
 
@@ -486,14 +571,16 @@
                 <div class="opp-name" id="opp-name-display">Waiting...</div>
             </div>
             <div class="history-box" id="move-history"></div>
-            <div class="chat-box" id="chat-logs"></div>
-            <input type="text" id="chat-input" placeholder="Message... (Enter to send)" onkeypress="if(event.key==='Enter') sendChat()">
+            <div class="chat-hint" id="chat-locked-hint">Chat unlocks when match starts</div>
+            <div class="chat-box locked" id="chat-logs"></div>
+            <input type="text" id="chat-input" placeholder="Match not started yet…" disabled
+                   onkeypress="if(event.key==='Enter') sendChat()">
             <div id="match-error" class="inline-error hidden" style="margin-bottom:6px;"></div>
             <div id="resign-confirm" class="hidden" style="background:#1a1917;border:1px solid var(--danger);padding:10px;margin-bottom:7px;">
                 <div style="font-size:0.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px;">Confirm resign?</div>
                 <div style="display:flex;gap:6px;">
                     <button class="danger-btn" style="margin-bottom:0;flex:1;" onclick="confirmResign()">Yes, Resign</button>
-                    <button class="sec-btn" style="margin-bottom:0;flex:1;" onclick="cancelResign()">Cancel</button>
+                    <button class="sec-btn"    style="margin-bottom:0;flex:1;" onclick="cancelResign()">Cancel</button>
                 </div>
             </div>
             <button class="sec-btn danger-btn" onclick="promptResign()">⚑ Resign</button>
@@ -506,35 +593,54 @@
     const SUPA_KEY = 'sb_publishable_HE2jpXo0QaT8Zz2OXWTrZw_cdKCPLpp';
     const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
 
-    // Default SVG avatar — chess pawn on dark background, no external dependency
     const DEFAULT_AVATAR = `data:image/svg+xml,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#2b2927"/><text x="50" y="74" font-size="64" text-anchor="middle" fill="#81b64c">♟</text></svg>')}`;
 
     let game = new Chess();
     let board = null;
-    let user = null;
+    let user  = null;
     let isAdmin = false;
     let currentMatchId = null;
     let myColor = 'w';
     let currentAudio = null;
     let isPartyModeActive = false;
+    let matchReady = false; // ← true only once an opponent is confirmed
+
     const pieceStyle = 'https://chessboardjs.com/img/chesspieces/wikipedia/{piece}.png';
 
-    function emailToName(email) {
-        return email ? email.split('@')[0] : 'Player';
-    }
+    function emailToName(email) { return email ? email.split('@')[0] : 'Player'; }
 
     $(document).ready(() => {
         board = Chessboard('board', { position: 'start', draggable: false, pieceTheme: pieceStyle });
-        subscribeGlobal(); // everyone listens for broadcast announcements
+        subscribeGlobal();
         checkSession();
     });
+
+    // ── LOCK / UNLOCK helpers ────────────────────────────────────────────────
+
+    function lockForMatchmaking() {
+        matchReady = false;
+        $('#board-lock-overlay').removeClass('hidden');
+        $('#chat-logs').addClass('locked');
+        $('#chat-input').prop('disabled', true).attr('placeholder', 'Match not started yet…');
+        $('#chat-locked-hint').removeClass('hidden');
+    }
+
+    function unlockAfterMatch() {
+        matchReady = true;
+        $('#board-lock-overlay').addClass('hidden');
+        $('#chat-logs').removeClass('locked');
+        $('#chat-input').prop('disabled', false).attr('placeholder', 'Message… (Enter to send)');
+        $('#chat-locked-hint').addClass('hidden');
+    }
+
+    // ── MOVE DOTS ────────────────────────────────────────────────────────────
 
     function removeGreyDots() {
         $('#board .square-55d63').removeClass('highlight-move highlight-capture');
     }
 
     function addGreyDots(square) {
-        const moves = game.moves({ square: square, verbose: true });
+        const moves = game.moves({ square, verbose: true });
         for (let i = 0; i < moves.length; i++) {
             const to = moves[i].to;
             const isCapture = game.get(to) !== null;
@@ -542,7 +648,8 @@
         }
     }
 
-    // --- GLOBAL BROADCAST (all users receive) ---
+    // ── GLOBAL BROADCAST ─────────────────────────────────────────────────────
+
     const globalChannel = sb.channel('global_main', { config: { broadcast: { self: true } } });
 
     function subscribeGlobal() {
@@ -558,7 +665,7 @@
             .on('broadcast', { event: 'play_sound' }, (p) => {
                 if (currentAudio) currentAudio.pause();
                 currentAudio = new Audio(p.payload.url);
-                currentAudio.play().catch(e => console.log("Audio blocked."));
+                currentAudio.play().catch(() => {});
                 $('body').addClass('sound-flash');
                 setTimeout(() => $('body').removeClass('sound-flash'), 600);
             })
@@ -570,11 +677,8 @@
 
     let bannerTimer = null;
     function showBanner(sender, msg, pfp) {
-        if (pfp) {
-            $('#global-banner-pfp').attr('src', pfp).show();
-        } else {
-            $('#global-banner-pfp').hide();
-        }
+        if (pfp) $('#global-banner-pfp').attr('src', pfp).show();
+        else      $('#global-banner-pfp').hide();
         $('#global-banner-sender').text(sender + ': ');
         $('#global-banner-text').text(msg);
         $('#global-banner').addClass('show');
@@ -582,7 +686,8 @@
         bannerTimer = setTimeout(() => $('#global-banner').removeClass('show'), 6000);
     }
 
-    // --- ADMIN ---
+    // ── ADMIN ────────────────────────────────────────────────────────────────
+
     function updateBroadcastPreview() {
         const msg  = $('#admin-msg').val().trim();
         const name = $('#my-display-name').text();
@@ -593,12 +698,8 @@
         const msg = $('#admin-msg').val().trim();
         if (!msg) return;
         const name = $('#my-display-name').text();
-        const pfp = $('#my-pfp').attr('src') || '';
-        await globalChannel.send({
-            type: 'broadcast',
-            event: 'announcement',
-            payload: { name, msg, pfp }
-        });
+        const pfp  = $('#my-pfp').attr('src') || '';
+        await globalChannel.send({ type: 'broadcast', event: 'announcement', payload: { name, msg, pfp } });
         $('#admin-msg').val('');
         $('#broadcast-preview-text').text('—');
     }
@@ -611,7 +712,7 @@
         const { data: files } = await sb.storage.from('avatars').list('global_sounds');
         const sel = $('#admin-sound-select');
         sel.find('option:not(:first)').remove();
-        if (files && files.length) {
+        if (files?.length) {
             files.forEach(f => {
                 const url = sb.storage.from('avatars').getPublicUrl('global_sounds/' + f.name).data.publicUrl;
                 sel.append(`<option value="${url}" data-name="${f.name}">${f.name}</option>`);
@@ -625,11 +726,9 @@
         let url = selectedUrl;
 
         if (file) {
-            // Check if a file with same name already exists
             const { data: existing } = await sb.storage.from('avatars').list('global_sounds');
-            const duplicate = existing && existing.find(f => f.name === file.name);
+            const duplicate = existing?.find(f => f.name === file.name);
             if (duplicate) {
-                // Reuse existing file instead of uploading duplicate
                 url = sb.storage.from('avatars').getPublicUrl('global_sounds/' + file.name).data.publicUrl;
                 showSoundMsg('Reusing existing: ' + file.name, true);
             } else {
@@ -647,16 +746,14 @@
     }
 
     function showSoundMsg(msg, success) {
-        $('#sound-upload-msg')
-            .text(msg)
-            .removeClass('hidden inline-error inline-success')
-            .addClass(success ? 'inline-success' : 'inline-error');
+        $('#sound-upload-msg').text(msg).removeClass('hidden inline-error inline-success').addClass(success ? 'inline-success' : 'inline-error');
         setTimeout(() => $('#sound-upload-msg').addClass('hidden'), 3000);
     }
 
     async function stopAllSounds() { await globalChannel.send({ type: 'broadcast', event: 'stop_sound' }); }
 
-    // --- AUTH & PROFILE ---
+    // ── AUTH & PROFILE ───────────────────────────────────────────────────────
+
     async function handleAuth(type) {
         const email = $('#auth-email').val().trim();
         const pass  = $('#auth-pass').val();
@@ -669,9 +766,7 @@
         else checkSession();
     }
 
-    function showAuthError(msg) {
-        $('#auth-error').text(msg).removeClass('hidden');
-    }
+    function showAuthError(msg) { $('#auth-error').text(msg).removeClass('hidden'); }
 
     function toggleForgot() {
         $('#forgot-panel').toggleClass('hidden');
@@ -692,7 +787,6 @@
         if (data?.user) {
             user = data.user;
             const { data: prof } = await sb.from('profiles').select('*').eq('id', user.id).maybeSingle();
-
             const displayName = prof?.display_name || emailToName(user.email);
             const pfpUrl      = prof?.pfp_url || DEFAULT_AVATAR;
             isAdmin           = prof?.is_admin === true;
@@ -701,21 +795,11 @@
             $('#my-email-sub').text(user.email);
             $('#my-pfp').attr('src', pfpUrl);
 
-            // Admin badge & panel button
-            if (isAdmin) {
-                $('#admin-badge').removeClass('hidden');
-                $('#admin-panel-btn').removeClass('hidden');
-            } else {
-                $('#admin-badge').addClass('hidden');
-                $('#admin-panel-btn').addClass('hidden');
-            }
+            if (isAdmin) { $('#admin-badge').removeClass('hidden'); $('#admin-panel-btn').removeClass('hidden'); }
+            else         { $('#admin-badge').addClass('hidden');    $('#admin-panel-btn').addClass('hidden');    }
 
-            // Pre-fill profile editor
             $('#set-name').val(displayName);
-            if (prof?.pfp_url) {
-                $('#pfp-preview').attr('src', prof.pfp_url).show();
-                $('#pfp-upload-label').css('border-color', 'var(--accent)');
-            }
+            if (prof?.pfp_url) { $('#pfp-preview').attr('src', prof.pfp_url).show(); $('#pfp-upload-label').css('border-color', 'var(--accent)'); }
 
             $('#user-profile-bar').removeClass('hidden');
             showView('view-lobby');
@@ -738,12 +822,11 @@
     async function updateProfile() {
         const name = $('#set-name').val().trim() || emailToName(user.email);
         const file = $('#pfp-file')[0].files[0];
-        // Start with whatever is currently saved (not the data: preview)
         let pfpUrl = (await sb.from('profiles').select('pfp_url').eq('id', user.id).maybeSingle())?.data?.pfp_url || '';
 
         if (file) {
             $('#pfp-upload-status').text('Uploading...');
-            const ext = file.name.split('.').pop();
+            const ext  = file.name.split('.').pop();
             const path = `${user.id}/avatar.${ext}`;
             const { error: upErr } = await sb.storage.from('avatars').upload(path, file, { upsert: true });
             if (upErr) { showProfileMsg('Upload failed: ' + upErr.message, false); $('#pfp-upload-status').text(''); return; }
@@ -759,16 +842,14 @@
     }
 
     function showProfileMsg(msg, success) {
-        $('#profile-msg')
-            .text(msg)
-            .removeClass('hidden inline-error inline-success')
-            .addClass(success ? 'inline-success' : 'inline-error');
+        $('#profile-msg').text(msg).removeClass('hidden inline-error inline-success').addClass(success ? 'inline-success' : 'inline-error');
         setTimeout(() => $('#profile-msg').addClass('hidden'), 4000);
     }
 
     async function signOut() { await sb.auth.signOut(); location.reload(); }
 
-    // --- MATCHMAKING & GAME ---
+    // ── MATCHMAKING & GAME ───────────────────────────────────────────────────
+
     function setOpponent(name, pfp) {
         $('#opp-name-display').text(name || 'Opponent');
         $('#opp-pfp').attr('src', pfp || DEFAULT_AVATAR);
@@ -784,14 +865,13 @@
         setMatchStatus('searching', 'Searching for opponent...');
         $('#board-idle-msg').addClass('hidden');
         $('#opp-pfp').attr('src', DEFAULT_AVATAR);
+        lockForMatchmaking(); // ← lock board + chat immediately
 
         const myName = $('#my-display-name').text();
         const myPfp  = $('#my-pfp').attr('src') || DEFAULT_AVATAR;
 
-        // Clean up any stale waiting rows left by this player from previous sessions
         await sb.from('matches').delete().eq('status', 'waiting').eq('white_player', user.email);
 
-        // Only match against rows created in the last 2 minutes to avoid stale leftovers
         const cutoff = new Date(Date.now() - 2 * 60 * 1000).toISOString();
         const { data: open } = await sb.from('matches').select('*')
             .eq('status', 'waiting')
@@ -816,7 +896,8 @@
             const oppName = open[0].white_display || emailToName(open[0].white_player);
             const oppPfp  = open[0].white_pfp  || DEFAULT_AVATAR;
             setOpponent(oppName, oppPfp);
-            setMatchStatus('playing', 'Match found!');
+            setMatchStatus('playing', 'Match in progress');
+            unlockAfterMatch(); // ← unlock immediately for the joining player
 
             subscribe(currentMatchId);
             initGame('black');
@@ -843,21 +924,26 @@
 
             subscribe(currentMatchId);
             initGame('white');
+            // White stays locked until subscribe() receives the opponent joining
         }
     }
 
     function initGame(orient) {
         board = Chessboard('board', {
             draggable: true,
-            position: game.fen(),
+            position:  game.fen(),
             orientation: orient,
             pieceTheme: pieceStyle,
             onDragStart: (source, piece) => {
+                // Block moves if matchmaking isn't done yet
+                if (!matchReady) return false;
                 if (game.game_over() || game.turn() !== myColor || piece.charAt(0) !== myColor) return false;
                 addGreyDots(source);
             },
             onDrop: (source, target) => {
                 removeGreyDots();
+                // Extra safety: reject drops while still searching
+                if (!matchReady) return 'snapback';
                 return handleMove(source, target);
             },
             onSnapEnd: () => { removeGreyDots(); board.position(game.fen()); }
@@ -876,24 +962,22 @@
             .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'matches', filter: `id=eq.${id}` }, (payload) => {
                 const data = payload.new;
 
+                // White receives this when black joins — now unlock both sides
                 if (myColor === 'w' && data.status === 'playing' && data.black_player && $('#opp-name-display').text() === 'Waiting...') {
                     const oppName = data.black_display || emailToName(data.black_player);
                     const oppPfp  = data.black_pfp  || DEFAULT_AVATAR;
                     setOpponent(oppName, oppPfp);
                     setMatchStatus('playing', 'Match in progress');
+                    unlockAfterMatch(); // ← white unlocks here
                 }
 
                 if (data.status === 'resigned') {
-                    // Only show win screen to the opponent, not the player who resigned
                     if (!$('#game-result-overlay').is(':visible') || $('#game-result-overlay').hasClass('hidden')) {
                         showResult('win', '🏆', 'You Win!', 'Opponent resigned');
                     }
                     return;
                 }
-                if (data.status === 'finished') {
-                    // Opponent triggered game end (checkmate/draw) - overlay already shown for local player
-                    return;
-                }
+                if (data.status === 'finished') return;
 
                 if (data.fen && data.fen !== game.fen()) {
                     try { game.load(data.fen); } catch(e) { return; }
@@ -917,6 +1001,7 @@
     }
 
     async function sendChat() {
+        if (!matchReady) return; // extra guard
         const text = $('#chat-input').val().trim();
         if (!text) return;
         const name = $('#my-display-name').text();
@@ -925,13 +1010,8 @@
         $('#chat-input').val('');
     }
 
-    function promptResign() {
-        $('#resign-confirm').removeClass('hidden');
-    }
-
-    function cancelResign() {
-        $('#resign-confirm').addClass('hidden');
-    }
+    function promptResign()  { $('#resign-confirm').removeClass('hidden'); }
+    function cancelResign()  { $('#resign-confirm').addClass('hidden'); }
 
     async function confirmResign() {
         $('#resign-confirm').addClass('hidden');
@@ -941,7 +1021,6 @@
 
     window.addEventListener('beforeunload', () => {
         if (currentMatchId) sb.from('matches').update({ status: 'resigned' }).eq('id', currentMatchId);
-        // currentMatchId is cleared by leaveGame() when game ends cleanly, so this only fires on tab close mid-game
     });
 
     function updateUI() {
@@ -951,7 +1030,7 @@
 
         if (game.in_checkmate()) {
             const winner = isWhiteTurn ? 'Black' : 'White';
-            const iWon = (winner === 'White' && myColor === 'w') || (winner === 'Black' && myColor === 'b');
+            const iWon   = (winner === 'White' && myColor === 'w') || (winner === 'Black' && myColor === 'b');
             $('#turn-display').text(`☠ Checkmate — ${winner} wins!`);
             endMatch('checkmate', iWon);
             return;
@@ -964,7 +1043,7 @@
         if (game.in_check()) turnText += ' ⚠ CHECK';
         $('#turn-display').text(turnText).toggleClass('your-turn-glow', isMyTurn);
 
-        const hist = document.getElementById('move-history');
+        const hist  = document.getElementById('move-history');
         hist.innerHTML = '';
         const moves = game.history();
         for (let i = 0; i < moves.length; i += 2) {
@@ -973,8 +1052,7 @@
             const black   = moves[i + 1] || '';
             const entry   = document.createElement('div');
             entry.className = 'move-entry';
-            entry.innerHTML = `<span>${moveNum}.</span>${white}` +
-                (black ? ` <span style="color:var(--muted)">${black}</span>` : '');
+            entry.innerHTML = `<span>${moveNum}.</span>${white}` + (black ? ` <span style="color:var(--muted)">${black}</span>` : '');
             hist.appendChild(entry);
         }
         hist.scrollTop = hist.scrollHeight;
@@ -990,21 +1068,15 @@
     }
 
     async function endMatch(reason, iWon) {
-        // Mark finished in DB so opponent also gets notified
-        if (currentMatchId) {
-            await sb.from('matches').update({ status: 'finished', result: reason }).eq('id', currentMatchId);
-        }
-        if (reason === 'draw') {
-            showResult('draw', '½', 'Draw', 'The game is a draw');
-        } else if (iWon) {
-            showResult('win', '🏆', 'You Win!', 'Checkmate');
-        } else {
-            showResult('lose', '☠', 'You Lose', 'Checkmate');
-        }
+        if (currentMatchId) await sb.from('matches').update({ status: 'finished', result: reason }).eq('id', currentMatchId);
+        if (reason === 'draw')      showResult('draw', '½', 'Draw',      'The game is a draw');
+        else if (iWon)              showResult('win',  '🏆', 'You Win!', 'Checkmate');
+        else                        showResult('lose', '☠',  'You Lose', 'Checkmate');
     }
 
     function leaveGame() {
         currentMatchId = null;
+        matchReady     = false;
         game = new Chess();
         board.position('start');
         $('#game-result-overlay').addClass('hidden');
@@ -1015,7 +1087,6 @@
     function showView(id) {
         $('.tab-content').addClass('hidden');
         $('#' + id).removeClass('hidden');
-        // Update broadcast preview when entering admin panel
         if (id === 'view-admin') { updateBroadcastPreview(); loadSoundList(); }
     }
 </script>
