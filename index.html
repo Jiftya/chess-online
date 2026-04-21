@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Grandmaster | Social Chess</title>
-    
+
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <link rel="stylesheet" href="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.css">
     <script src="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.js"></script>
@@ -24,6 +24,7 @@
             --white-sq: #ebecd0;
             --black-sq: #779556;
             --danger: #c0392b;
+            --gold: #ffd700;
         }
 
         html, body { height: 100%; }
@@ -52,7 +53,7 @@
 
         * { border-radius: 0 !important; box-shadow: none !important; box-sizing: border-box; }
 
-        /* ── GLOBAL BROADCAST BANNER ── */
+        /* ── GLOBAL BANNER ── */
         #global-banner {
             position: fixed;
             top: 0; left: 0; width: 100%;
@@ -97,154 +98,123 @@
         #board { width: min(560px, calc(58vw - 40px)); }
 
         #board-idle-msg {
-            position: absolute;
-            inset: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
+            position: absolute; inset: 0;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
             background: rgba(33,31,28,0.82);
             color: var(--muted);
-            font-size: 0.85rem;
-            letter-spacing: 0.08em;
-            text-transform: uppercase;
-            pointer-events: none;
-            transition: opacity 0.3s;
+            font-size: 0.85rem; letter-spacing: 0.08em; text-transform: uppercase;
+            pointer-events: none; transition: opacity 0.3s;
         }
         #board-idle-msg .idle-icon { font-size: 2.5rem; margin-bottom: 10px; opacity: 0.5; }
         #board-idle-msg.hidden { opacity: 0; }
 
-        /* ── MATCHMAKING LOCK OVERLAY on board ── */
+        /* ── MATCHMAKING LOCK ── */
         #board-lock-overlay {
-            position: absolute;
-            inset: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
+            position: absolute; inset: 0;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
             background: rgba(33,31,28,0.72);
-            z-index: 40;
-            pointer-events: all;
-            transition: opacity 0.3s;
+            z-index: 40; pointer-events: all; transition: opacity 0.3s;
         }
         #board-lock-overlay.hidden { opacity: 0; pointer-events: none; }
         #board-lock-overlay .lock-spinner {
-            font-size: 2rem;
-            animation: spinPulse 1.4s ease-in-out infinite;
-            margin-bottom: 10px;
-            opacity: 0.7;
+            font-size: 2rem; animation: spinPulse 1.4s ease-in-out infinite;
+            margin-bottom: 10px; opacity: 0.7;
         }
         #board-lock-overlay .lock-label {
-            font-size: 0.72rem;
-            color: var(--muted);
-            text-transform: uppercase;
-            letter-spacing: 0.12em;
+            font-size: 0.72rem; color: var(--muted);
+            text-transform: uppercase; letter-spacing: 0.12em;
         }
         @keyframes spinPulse { 0%,100%{transform:rotate(0deg) scale(1)} 50%{transform:rotate(180deg) scale(1.15)} }
 
-        .sidebar {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            background: var(--surface);
-            overflow: hidden;
-            min-width: 0;
+        /* ── COIN FLOATER ── */
+        .coin-floater {
+            position: absolute;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            font-size: 1rem;
+            color: var(--gold);
+            text-shadow: 0 1px 4px rgba(0,0,0,0.9), 0 0 8px rgba(255,215,0,0.4);
+            pointer-events: none;
+            z-index: 100;
+            transform: translateX(-50%);
+            animation: coinFloat 1.1s ease-out forwards;
+            white-space: nowrap;
+            letter-spacing: 0.04em;
+        }
+        @keyframes coinFloat {
+            0%   { opacity: 1; transform: translateX(-50%) translateY(0)     scale(1); }
+            20%  { opacity: 1; transform: translateX(-50%) translateY(-10px)  scale(1.15); }
+            100% { opacity: 0; transform: translateX(-50%) translateY(-68px)  scale(0.9); }
         }
 
+        /* ── SIDEBAR ── */
+        .sidebar {
+            flex: 1; display: flex; flex-direction: column;
+            background: var(--surface); overflow: hidden; min-width: 0;
+        }
         .tab-content { padding: 22px; flex-grow: 1; overflow-y: auto; }
         .hidden { display: none !important; }
 
         /* ── USER BAR ── */
         .user-bar {
-            padding: 10px 16px;
-            background: var(--surface-strong);
+            padding: 10px 16px; background: var(--surface-strong);
             border-bottom: 2px solid var(--border);
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            flex-shrink: 0;
+            display: flex; align-items: center; gap: 10px; flex-shrink: 0;
         }
         .pfp { width: 34px; height: 34px; background: #444; border: 2px solid var(--accent); object-fit: cover; }
         .user-bar-info { display: flex; flex-direction: column; flex: 1; min-width: 0; }
         .user-bar-name { font-weight: bold; font-size: 0.88rem; display: flex; align-items: center; gap: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .user-bar-email { font-size: 0.65rem; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .user-bar-coins {
+            display: flex; align-items: center; gap: 4px;
+            font-size: 0.78rem; font-weight: bold; color: var(--gold);
+            background: #1a1917; border: 1px solid #5a4e10;
+            padding: 3px 9px; flex-shrink: 0; letter-spacing: 0.04em;
+        }
 
         .admin-badge {
-            font-size: 0.58rem;
-            background: #e6a817;
-            color: #1a1917;
-            font-weight: bold;
-            padding: 1px 5px;
-            letter-spacing: 0.08em;
-            text-transform: uppercase;
-            flex-shrink: 0;
+            font-size: 0.58rem; background: #e6a817; color: #1a1917;
+            font-weight: bold; padding: 1px 5px; letter-spacing: 0.08em;
+            text-transform: uppercase; flex-shrink: 0;
         }
 
         h2 {
-            font-size: 1.1rem;
-            text-transform: uppercase;
-            color: var(--accent);
-            margin: 0 0 16px 0;
-            border-bottom: 2px solid var(--border);
-            padding-bottom: 8px;
-            letter-spacing: 0.1em;
+            font-size: 1.1rem; text-transform: uppercase; color: var(--accent);
+            margin: 0 0 16px 0; border-bottom: 2px solid var(--border);
+            padding-bottom: 8px; letter-spacing: 0.1em;
         }
-
         label { font-size: 0.7rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; display: block; margin-bottom: 3px; margin-top: 8px; }
 
         input {
-            background: #1a1917;
-            border: 2px solid var(--border);
-            color: white;
-            padding: 9px 10px;
-            margin-bottom: 4px;
-            width: 100%;
-            font-family: 'Courier New', monospace;
-            font-size: 0.85rem;
-            transition: border-color 0.15s;
+            background: #1a1917; border: 2px solid var(--border); color: white;
+            padding: 9px 10px; margin-bottom: 4px; width: 100%;
+            font-family: 'Courier New', monospace; font-size: 0.85rem; transition: border-color 0.15s;
         }
         input:focus { outline: none; border-color: var(--accent); }
-
-        /* Locked chat input style */
-        input:disabled {
-            opacity: 0.4;
-            cursor: not-allowed;
-            border-color: var(--border);
-        }
+        input:disabled { opacity: 0.4; cursor: not-allowed; }
 
         button {
-            background: var(--accent);
-            color: white;
-            border: none;
-            padding: 11px;
-            width: 100%;
-            cursor: pointer;
-            font-family: 'Courier New', monospace;
-            font-weight: bold;
-            text-transform: uppercase;
-            margin-bottom: 7px;
-            font-size: 0.82rem;
-            letter-spacing: 0.07em;
+            background: var(--accent); color: white; border: none;
+            padding: 11px; width: 100%; cursor: pointer;
+            font-family: 'Courier New', monospace; font-weight: bold;
+            text-transform: uppercase; margin-bottom: 7px;
+            font-size: 0.82rem; letter-spacing: 0.07em;
             transition: background 0.15s, opacity 0.15s;
         }
-        button:hover { opacity: 0.85; }
+        button:hover:not(:disabled) { opacity: 0.85; }
+        button:disabled { opacity: 0.35; cursor: not-allowed; background: #3d3a37; color: var(--muted); }
         .sec-btn    { background: #3d3a37; border: 1px solid var(--border); }
         .danger-btn { background: var(--danger); }
         .admin-btn  { background: #e6a817; color: #1a1917; }
 
         /* ── STATUS CHIP ── */
         .status-chip {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            font-size: 0.72rem;
-            text-transform: uppercase;
-            letter-spacing: 0.1em;
-            padding: 4px 8px;
-            background: #1a1917;
-            border: 1px solid var(--border);
-            margin-bottom: 12px;
-            color: var(--muted);
+            display: inline-flex; align-items: center; gap: 6px;
+            font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.1em;
+            padding: 4px 8px; background: #1a1917; border: 1px solid var(--border);
+            margin-bottom: 12px; color: var(--muted);
         }
         .status-chip .dot { width: 7px; height: 7px; border-radius: 50% !important; background: var(--muted); }
         .status-chip.searching .dot { background: #e6a817; animation: blink 1s infinite; }
@@ -253,24 +223,15 @@
 
         /* ── OPP INFO ── */
         #opp-info-box {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 8px 10px;
-            background: #1a1917;
-            border: 1px solid var(--border);
-            margin-bottom: 10px;
+            display: flex; align-items: center; gap: 8px;
+            padding: 8px 10px; background: #1a1917; border: 1px solid var(--border); margin-bottom: 10px;
         }
         .opp-pfp  { width: 26px; height: 26px; background: #333; border: 1px solid var(--border); object-fit: cover; flex-shrink: 0; }
         .opp-name { font-size: 0.8rem; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
         .history-box, .chat-box {
-            background: #1a1917;
-            border: 2px solid var(--border);
-            padding: 8px 10px;
-            font-size: 0.76rem;
-            overflow-y: auto;
-            margin-bottom: 8px;
+            background: #1a1917; border: 2px solid var(--border);
+            padding: 8px 10px; font-size: 0.76rem; overflow-y: auto; margin-bottom: 8px;
         }
         .history-box { height: 80px; }
         .chat-box    { height: 90px; }
@@ -278,104 +239,103 @@
         .chat-box div:last-child { border-bottom: none; }
         .history-box .move-entry { color: var(--muted); }
         .history-box .move-entry span { color: white; margin-right: 6px; }
-
-        /* Searching state: muted/locked chat box */
         .chat-box.locked { opacity: 0.4; pointer-events: none; }
-        .chat-hint {
-            font-size: 0.65rem;
-            color: var(--muted);
-            letter-spacing: 0.06em;
-            text-transform: uppercase;
-            margin-bottom: 6px;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
+        .chat-hint { font-size: 0.65rem; color: var(--muted); letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 6px; display: flex; align-items: center; gap: 5px; }
         .chat-hint::before { content: "🔒"; font-size: 0.7rem; }
-        .chat-hint.hidden { display: none !important; }
 
         #turn-display {
-            font-size: 1rem;
-            margin: 0 0 10px 0;
-            border-bottom: 2px solid var(--border);
-            padding-bottom: 8px;
-            color: var(--accent);
-            letter-spacing: 0.1em;
+            font-size: 1rem; margin: 0 0 10px 0;
+            border-bottom: 2px solid var(--border); padding-bottom: 8px;
+            color: var(--accent); letter-spacing: 0.1em;
         }
+        .inline-error   { background: rgba(192,57,43,0.15); border: 1px solid var(--danger); color: #e8776c; padding: 7px 10px; font-size: 0.72rem; letter-spacing: 0.04em; margin-bottom: 8px; }
+        .inline-success { background: rgba(129,182,76,0.12); border: 1px solid var(--accent); color: var(--accent); padding: 7px 10px; font-size: 0.72rem; letter-spacing: 0.04em; margin-bottom: 8px; }
 
-        .inline-error {
-            background: rgba(192,57,43,0.15);
-            border: 1px solid var(--danger);
-            color: #e8776c;
-            padding: 7px 10px;
-            font-size: 0.72rem;
-            letter-spacing: 0.04em;
-            margin-bottom: 8px;
-        }
-        .inline-success {
-            background: rgba(129,182,76,0.12);
-            border: 1px solid var(--accent);
-            color: var(--accent);
-            padding: 7px 10px;
-            font-size: 0.72rem;
-            letter-spacing: 0.04em;
-            margin-bottom: 8px;
-        }
-
-        /* ── ADMIN PANEL ── */
+        /* ── ADMIN ── */
         #view-admin h2 { color: #e6a817; border-color: #e6a817; }
-        .broadcast-preview {
-            background: #1a1917;
-            border: 1px solid var(--border);
-            padding: 8px 10px;
-            font-size: 0.78rem;
-            color: var(--muted);
-            margin-bottom: 10px;
-            min-height: 32px;
-        }
+        .broadcast-preview { background: #1a1917; border: 1px solid var(--border); padding: 8px 10px; font-size: 0.78rem; color: var(--muted); margin-bottom: 10px; min-height: 32px; }
         .broadcast-preview .preview-msg { color: white; }
 
-        .white-1e1d7 { background-color: var(--white-sq) !important; }
-        .black-3c85d { background-color: var(--black-sq) !important; }
-        .your-turn-glow { animation: turnPulse 1.5s ease-in-out infinite; }
-        @keyframes turnPulse { 0%,100% { color: var(--accent); } 50% { color: #b5d97a; } }
+        /* ── ADMIN COIN GIFT ── */
+        .gift-row { display: flex; gap: 6px; align-items: flex-end; margin-bottom: 4px; }
+        .gift-row input { margin-bottom: 0; flex: 1; }
+        .gift-row input.gift-amount { flex: 0 0 90px; }
+        #gift-msg { font-size: 0.72rem; margin-bottom: 6px; padding: 6px 8px; border: 1px solid var(--border); }
+        #gift-hint { font-size: 0.65rem; color: var(--muted); letter-spacing: 0.06em; margin-bottom: 8px; line-height: 1.5; }
 
-        /* ── MOVE DOTS ── */
+        /* ════════════════════════════════
+           CRATE SHOP STYLES
+        ════════════════════════════════ */
+        #view-shop h2, #view-collection h2 { color: var(--gold); border-color: #5a4e10; }
+
+        /* Crate result banner (inline, top of shop) */
+        #crate-result-banner {
+            display: flex; align-items: center; gap: 12px;
+            background: #1a1917; border: 2px solid var(--accent);
+            padding: 12px; margin-bottom: 12px;
+            animation: crateSlideIn 0.3s ease;
+        }
+        #crate-result-banner.dupe { border-color: var(--muted); }
+        @keyframes crateSlideIn { from{opacity:0;transform:translateY(-8px)} to{opacity:1;transform:translateY(0)} }
+        .crb-piece-img { width: 52px; height: 52px; object-fit: contain; flex-shrink: 0; image-rendering: auto; }
+        .crb-info {}
+        .crb-set-name { font-weight: bold; font-size: 0.9rem; letter-spacing: 0.06em; }
+        .crb-rarity   { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.1em; }
+        .crb-msg      { font-size: 0.7rem; color: var(--muted); margin-top: 3px; }
+
+        /* Crate card (horizontal flex) — no image wrap */
+        .crate-card {
+            display: flex; gap: 14px; align-items: center;
+            background: #1a1917; border: 2px solid var(--border);
+            padding: 12px 14px; margin-bottom: 10px;
+            transition: border-color 0.2s;
+        }
+        .crate-card:hover { border-color: #5a5550; }
+        .crate-card-body { flex: 1; min-width: 0; }
+        .crate-card-name { font-weight: bold; font-size: 0.88rem; margin-bottom: 2px; letter-spacing: 0.06em; }
+        .crate-card-pool { font-size: 0.66rem; color: var(--muted); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.06em; }
+        .crate-card-price { font-size: 0.82rem; font-weight: bold; color: var(--gold); margin-bottom: 6px; }
+        .crate-card-btn { margin-bottom: 0; padding: 8px; font-size: 0.75rem; }
+
+        /* ════════════════════════════════
+           COLLECTION / EQUIP STYLES — no images
+        ════════════════════════════════ */
+        #collection-content {
+            display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px;
+        }
+        .set-card {
+            background: #1a1917; border: 2px solid var(--border);
+            padding: 12px 10px; display: flex; flex-direction: column;
+            align-items: center; text-align: center; gap: 4px;
+            transition: border-color 0.2s;
+        }
+        .set-card.equipped { border-color: var(--accent); }
+        .set-card-name   { font-weight: bold; font-size: 0.82rem; letter-spacing: 0.05em; }
+        .set-card-rarity { font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.1em; }
+        .set-card-btn    { margin-bottom: 0; margin-top: 6px; padding: 7px; font-size: 0.7rem; width: 100%; }
+        .set-card-btn.sec-btn:disabled { background: #2a2825; color: var(--accent); opacity: 1; border-color: var(--accent); cursor: default; }
+
+        /* ── MOVE INDICATORS ── */
         .highlight-move, .highlight-capture { position: relative; }
         .highlight-move::after {
-            content: "";
-            position: absolute;
-            top: 50%; left: 50%;
-            transform: translate(-50%, -50%);
-            width: 28%; height: 28%;
-            background: rgba(0,0,0,0.18);
-            border-radius: 50% !important;
-            pointer-events: none;
-            z-index: 0;
+            content: ""; position: absolute; top: 50%; left: 50%;
+            transform: translate(-50%,-50%); width: 28%; height: 28%;
+            background: rgba(0,0,0,0.18); border-radius: 50% !important;
+            pointer-events: none; z-index: 0;
         }
         .highlight-capture::after {
-            content: "";
-            position: absolute;
-            top: 50%; left: 50%;
-            transform: translate(-50%, -50%);
-            width: 78%; height: 78%;
-            background: transparent;
-            border: 6px solid rgba(0,0,0,0.25);
-            border-radius: 50% !important;
-            pointer-events: none;
-            z-index: 0;
+            content: ""; position: absolute; top: 50%; left: 50%;
+            transform: translate(-50%,-50%); width: 78%; height: 78%;
+            background: transparent; border: 6px solid rgba(0,0,0,0.25);
+            border-radius: 50% !important; pointer-events: none; z-index: 0;
         }
 
         /* ── GAME RESULT OVERLAY ── */
         #game-result-overlay {
-            position: absolute;
-            inset: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            background: rgba(33,31,28,0.88);
-            z-index: 50;
+            position: absolute; inset: 0;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            background: rgba(33,31,28,0.88); z-index: 50;
             animation: resultFadeIn 0.4s ease;
         }
         @keyframes resultFadeIn { from{opacity:0;transform:scale(0.96)} to{opacity:1;transform:scale(1)} }
@@ -386,84 +346,59 @@
         #game-result-overlay.result-lose #result-title { color: var(--danger); }
         #game-result-overlay.result-draw #result-title { color: #e6a817; }
 
-        /* ═══════════════════════════════════════
+        /* ── BOARD COLOURS ── */
+        .white-1e1d7 { background-color: var(--white-sq) !important; }
+        .black-3c85d { background-color: var(--black-sq) !important; }
+        .your-turn-glow { animation: turnPulse 1.5s ease-in-out infinite; }
+        @keyframes turnPulse { 0%,100% { color: var(--accent); } 50% { color: #b5d97a; } }
+
+        /* ════════════════════════════════
            MOBILE RESPONSIVE
-        ═══════════════════════════════════════ */
+        ════════════════════════════════ */
         @media (max-width: 700px) {
-            body {
-                padding: 0;
-                align-items: flex-start;
-            }
-
-            .master-container {
-                flex-direction: column;
-                height: auto;
-                min-height: 100dvh;
-                border: none;
-                border-top: 4px solid var(--border);
-                max-width: 100%;
-            }
-
-            #board-wrapper {
-                width: 100%;
-                border-right: none;
-                border-bottom: 4px solid var(--border);
-                padding: 14px;
-                /* square aspect ratio */
-                aspect-ratio: 1 / 1;
-                flex-shrink: 0;
-            }
-
-            #board {
-                width: 100% !important;
-                max-width: 100%;
-            }
-
+            body { padding: 0; align-items: flex-start; }
+            .master-container { flex-direction: column; height: auto; min-height: 100dvh; border: none; border-top: 4px solid var(--border); max-width: 100%; }
+            #board-wrapper { width: 100%; border-right: none; border-bottom: 4px solid var(--border); padding: 14px; aspect-ratio: 1/1; flex-shrink: 0; }
+            #board { width: 100% !important; max-width: 100%; }
             .sidebar { flex: 1; }
-
             .tab-content { padding: 16px; }
-
             h2 { font-size: 0.95rem; }
-
             #turn-display { font-size: 0.85rem; }
-
             .history-box { height: 60px; }
             .chat-box    { height: 70px; }
-
             #result-title { font-size: 1.2rem; }
             #result-icon  { font-size: 2.5rem; }
-
             button { padding: 13px; font-size: 0.85rem; }
-
-            /* Tighter user bar on mobile */
             .user-bar { padding: 8px 12px; }
             .pfp { width: 28px; height: 28px; }
             .user-bar-name { font-size: 0.8rem; }
-
-            /* Resign confirm: stack on very small screens */
             #resign-confirm > div { flex-direction: column; }
+            #collection-content { grid-template-columns: repeat(2, 1fr); }
+            .gift-row { flex-direction: column; }
+            .gift-row input.gift-amount { flex: 1; width: 100%; }
         }
-
         @media (max-width: 400px) {
             .user-bar-email { display: none; }
+            #collection-content { grid-template-columns: repeat(2, 1fr); }
         }
     </style>
 </head>
 <body>
 
+<!-- Global broadcast banner -->
 <div id="global-banner">
     <img id="global-banner-pfp" src="" style="width:20px;height:20px;object-fit:cover;border:1px solid rgba(0,0,0,0.3);vertical-align:middle;margin-right:6px;display:none;">
     <span id="global-banner-sender"></span><span id="global-banner-text"></span>
 </div>
 
 <div class="master-container">
+    <!-- ── BOARD ── -->
     <div id="board-wrapper">
         <div id="board"></div>
         <div id="board-idle-msg">
             <div class="idle-icon">♟</div>
             <div>Waiting for match</div>
         </div>
-        <!-- Shown while matchmaking is in progress (searching) -->
         <div id="board-lock-overlay" class="hidden">
             <div class="lock-spinner">⟳</div>
             <div class="lock-label">Finding opponent…</div>
@@ -476,7 +411,9 @@
         </div>
     </div>
 
+    <!-- ── SIDEBAR ── -->
     <div class="sidebar">
+
         <!-- USER BAR -->
         <div id="user-profile-bar" class="user-bar hidden">
             <img src="" id="my-pfp" class="pfp">
@@ -487,6 +424,7 @@
                 </div>
                 <div id="my-email-sub" class="user-bar-email"></div>
             </div>
+            <div class="user-bar-coins">🪙&nbsp;<span id="coin-display">0</span></div>
         </div>
 
         <!-- AUTH VIEW -->
@@ -513,6 +451,8 @@
         <div id="view-lobby" class="tab-content hidden">
             <h2>Lobby</h2>
             <button onclick="findMatch()">▶ Play Online</button>
+            <button style="background:#2e4a1e;border:1px solid var(--accent-dim);" onclick="showView('view-shop')">Shop</button>
+            <button style="background:#2e3a4a;border:1px solid #3a5570;" onclick="showView('view-collection')">My Pieces</button>
             <button class="sec-btn" onclick="showView('view-profile')">Edit Profile</button>
             <button id="admin-panel-btn" class="admin-btn hidden" onclick="showView('view-admin')">⚡ Admin Panel</button>
             <button class="sec-btn danger-btn" style="margin-top:6px;" onclick="signOut()">Logout</button>
@@ -540,13 +480,32 @@
         <!-- ADMIN PANEL VIEW -->
         <div id="view-admin" class="tab-content hidden">
             <h2>⚡ Admin Panel</h2>
+
+            <!-- BROADCAST -->
             <label>Global Broadcast Message</label>
             <input type="text" id="admin-msg" placeholder="Message to all players..." oninput="updateBroadcastPreview()">
             <div class="broadcast-preview">Preview: <span class="preview-msg" id="broadcast-preview-text">—</span></div>
             <button class="admin-btn" onclick="sendBroadcast()">📢 Broadcast Message</button>
-            <hr style="border: 1px solid var(--border); margin: 15px 0;">
+
+            <hr style="border:1px solid var(--border);margin:15px 0;">
+
+            <!-- COIN GIFTING -->
+            <label>Give Coins to Player</label>
+            <div id="gift-hint">Enter a Supabase profile ID or type <b style="color:white">all</b> to give coins to every registered player.</div>
+            <div class="gift-row">
+                <input type="text" id="gift-user-id" placeholder="Profile ID or 'all'">
+                <input type="number" id="gift-amount" class="gift-amount" placeholder="Amount" min="1">
+            </div>
+            <div id="gift-msg" class="hidden"></div>
+            <button class="admin-btn" onclick="giveCoins()" style="margin-bottom:0;">🪙 Give Coins</button>
+
+            <hr style="border:1px solid var(--border);margin:15px 0;">
+
+            <!-- PARTY MODE -->
             <label>Party Mode</label>
             <button id="party-toggle-btn" class="sec-btn" onclick="togglePartyMode()">🎉 Enable Party Mode</button>
+
+            <!-- SOUND -->
             <label>Sound Trigger</label>
             <select id="admin-sound-select" style="background:#1a1917;border:2px solid var(--border);color:white;padding:9px 10px;width:100%;font-family:'Courier New',monospace;font-size:0.82rem;margin-bottom:4px;">
                 <option value="">-- Select uploaded sound --</option>
@@ -556,6 +515,7 @@
             <div id="sound-upload-msg" class="hidden" style="font-size:0.72rem;margin-bottom:6px;padding:6px 8px;border:1px solid var(--border);"></div>
             <button class="admin-btn" onclick="broadcastSound()">🔊 Play Sound for All</button>
             <button class="danger-btn" onclick="stopAllSounds()">🛑 Stop All Sounds</button>
+
             <button class="sec-btn" style="margin-top:20px;" onclick="showView('view-lobby')">← Back</button>
         </div>
 
@@ -585,510 +545,827 @@
             </div>
             <button class="sec-btn danger-btn" onclick="promptResign()">⚑ Resign</button>
         </div>
-    </div>
-</div>
+
+        <!-- SHOP VIEW -->
+        <div id="view-shop" class="tab-content hidden">
+            <h2>Shop</h2>
+            <div id="crate-result-banner" class="hidden"></div>
+            <div id="shop-content"></div>
+            <button class="sec-btn" style="margin-top:4px;" onclick="showView('view-lobby')">← Back to Lobby</button>
+        </div>
+
+        <!-- COLLECTION / EQUIP VIEW -->
+        <div id="view-collection" class="tab-content hidden">
+            <h2>My Pieces</h2>
+            <div style="font-size:0.7rem;color:var(--muted);margin-bottom:14px;text-transform:uppercase;letter-spacing:0.07em;">
+                Equip a piece set to use it in your next match.
+            </div>
+            <div id="collection-content"></div>
+            <button class="sec-btn" style="margin-top:12px;" onclick="showView('view-lobby')">← Back to Lobby</button>
+        </div>
+
+    </div><!-- /sidebar -->
+</div><!-- /master-container -->
 
 <script>
-    const SUPA_URL = 'https://psxwatcuxalaizjsysdc.supabase.co';
-    const SUPA_KEY = 'sb_publishable_HE2jpXo0QaT8Zz2OXWTrZw_cdKCPLpp';
-    const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
+/* ═══════════════════════════════════════════════════════
+   SUPABASE + INIT
+═══════════════════════════════════════════════════════ */
+const SUPA_URL = 'https://psxwatcuxalaizjsysdc.supabase.co';
+const SUPA_KEY = 'sb_publishable_HE2jpXo0QaT8Zz2OXWTrZw_cdKCPLpp';
+const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
 
-    const DEFAULT_AVATAR = `data:image/svg+xml,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#2b2927"/><text x="50" y="74" font-size="64" text-anchor="middle" fill="#81b64c">♟</text></svg>')}`;
+const DEFAULT_AVATAR = `data:image/svg+xml,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#2b2927"/><text x="50" y="74" font-size="64" text-anchor="middle" fill="#81b64c">♟</text></svg>')}`;
 
-    let game = new Chess();
-    let board = null;
-    let user  = null;
-    let isAdmin = false;
-    let currentMatchId = null;
-    let myColor = 'w';
-    let currentAudio = null;
-    let isPartyModeActive = false;
-    let matchReady = false; // ← true only once an opponent is confirmed
+/* ═══════════════════════════════════════════════════════
+   CRATE / PIECE SET CONSTANTS
+═══════════════════════════════════════════════════════ */
+const PIECE_SETS = {
+    wikipedia:  { name: 'Classic',    url: 'https://chessboardjs.com/img/chesspieces/wikipedia/{piece}.png', rarity: 'Default',  rarityColor: '#989795' },
+    cburnett:   { name: 'Burnett',    url: 'https://lichess1.org/assets/piece/cburnett/{piece}.svg',          rarity: 'Common',   rarityColor: '#81b64c' },
+    alpha:      { name: 'Alpha',      url: 'https://lichess1.org/assets/piece/alpha/{piece}.svg',             rarity: 'Common',   rarityColor: '#81b64c' },
+    merida:     { name: 'Merida',     url: 'https://lichess1.org/assets/piece/merida/{piece}.svg',            rarity: 'Common',   rarityColor: '#81b64c' },
+    pixel:      { name: 'Pixel',      url: 'https://lichess1.org/assets/piece/pixel/{piece}.svg',             rarity: 'Uncommon', rarityColor: '#4fc3f7' },
+    maestro:    { name: 'Maestro',    url: 'https://lichess1.org/assets/piece/maestro/{piece}.svg',           rarity: 'Uncommon', rarityColor: '#4fc3f7' },
+    fantasy:    { name: 'Fantasy',    url: 'https://lichess1.org/assets/piece/fantasy/{piece}.svg',           rarity: 'Uncommon', rarityColor: '#4fc3f7' },
+    california: { name: 'California', url: 'https://lichess1.org/assets/piece/california/{piece}.svg',        rarity: 'Rare',     rarityColor: '#e6a817' },
+    tatiana:    { name: 'Tatiana',    url: 'https://lichess1.org/assets/piece/tatiana/{piece}.svg',           rarity: 'Rare',     rarityColor: '#e6a817' },
+    governor:   { name: 'Governor',   url: 'https://lichess1.org/assets/piece/governor/{piece}.svg',          rarity: 'Rare',     rarityColor: '#e6a817' },
+    gioco:      { name: 'Gioco',      url: 'https://lichess1.org/assets/piece/gioco/{piece}.svg',             rarity: 'Rare',     rarityColor: '#e6a817' },
+};
 
-    const pieceStyle = 'https://chessboardjs.com/img/chesspieces/wikipedia/{piece}.png';
+const CRATES = {
+    bronze: { name: 'Bronze Crate', cost: 50,  color: '#cd7f32', pool: ['cburnett','alpha','merida'],              desc: 'Common Pieces' },
+    silver: { name: 'Silver Crate', cost: 150, color: '#a8a9ad', pool: ['pixel','maestro','fantasy'],              desc: 'Uncommon Pieces' },
+    gold:   { name: 'Gold Crate',   cost: 300, color: '#ffd700', pool: ['california','tatiana','governor','gioco'], desc: 'Rare Pieces' },
+};
 
-    function emailToName(email) { return email ? email.split('@')[0] : 'Player'; }
+const COIN_VALUES = { p: 1, n: 3, b: 3, r: 5, q: 9 };
+const WIN_COINS = 15;
 
-    $(document).ready(() => {
-        board = Chessboard('board', { position: 'start', draggable: false, pieceTheme: pieceStyle });
-        subscribeGlobal();
-        checkSession();
+/* ═══════════════════════════════════════════════════════
+   GAME STATE
+═══════════════════════════════════════════════════════ */
+let game = new Chess();
+let board = null;
+let user  = null;
+let isAdmin = false;
+let currentMatchId = null;
+let myColor = 'w';
+let currentAudio = null;
+let isPartyModeActive = false;
+let matchReady = false;
+let winCoinAwarded = false;
+let currentOrient = 'white';
+let pieceStyle = PIECE_SETS.wikipedia.url;
+
+/* ═══════════════════════════════════════════════════════
+   PLAYER DATA (localStorage, keyed by user.id)
+═══════════════════════════════════════════════════════ */
+let playerData = { coins: 0, ownedSets: ['wikipedia'], equippedSet: 'wikipedia' };
+
+function getDataKey() { return `gm_data_${user?.id || 'guest'}`; }
+
+function loadPlayerData() {
+    try {
+        const raw = localStorage.getItem(getDataKey());
+        if (raw) {
+            const d = JSON.parse(raw);
+            playerData = {
+                coins:       typeof d.coins === 'number' ? d.coins : 0,
+                ownedSets:   Array.isArray(d.ownedSets) ? d.ownedSets : ['wikipedia'],
+                equippedSet: d.equippedSet || 'wikipedia',
+            };
+            if (!playerData.ownedSets.includes('wikipedia')) playerData.ownedSets.unshift('wikipedia');
+        }
+    } catch(e) {}
+    pieceStyle = (PIECE_SETS[playerData.equippedSet] || PIECE_SETS.wikipedia).url;
+    updateCoinDisplay();
+}
+
+function savePlayerData() {
+    localStorage.setItem(getDataKey(), JSON.stringify(playerData));
+}
+
+function addCoins(amount) {
+    playerData.coins += amount;
+    savePlayerData();
+    updateCoinDisplay();
+}
+
+function updateCoinDisplay() {
+    $('#coin-display').text(playerData.coins);
+}
+
+/* ═══════════════════════════════════════════════════════
+   COIN FLOATER
+═══════════════════════════════════════════════════════ */
+function showCoinFloater(targetSquare, amount) {
+    const $sq = $(`#board .square-${targetSquare}`);
+    if (!$sq.length) return;
+    const sqPos    = $sq.position();
+    const boardPos = $('#board').position();
+    const x = boardPos.left + sqPos.left + $sq.outerWidth()  / 2;
+    const y = boardPos.top  + sqPos.top  + $sq.outerHeight() / 2;
+    const $f = $(`<div class="coin-floater">+${amount} 🪙</div>`).css({ left: x + 'px', top: y + 'px' });
+    $('#board-wrapper').append($f);
+    setTimeout(() => $f.remove(), 1300);
+}
+
+/* ═══════════════════════════════════════════════════════
+   SHOP RENDERING (no images)
+═══════════════════════════════════════════════════════ */
+function renderShop() {
+    const $c = $('#shop-content').empty();
+
+    $c.append(`
+        <div style="font-size:0.68rem;color:var(--muted);margin-bottom:14px;text-transform:uppercase;letter-spacing:0.07em;border:1px solid var(--border);padding:8px 10px;background:#1a1917;">
+            Earn 🪙 by capturing pieces&nbsp;
+            <span style="color:white">(p=1&nbsp;·&nbsp;n/b=3&nbsp;·&nbsp;r=5&nbsp;·&nbsp;q=9)</span>
+            &nbsp;and winning matches <span style="color:var(--gold)">(+15)</span>
+        </div>
+    `);
+
+    Object.entries(CRATES).forEach(([crateId, crate]) => {
+        const canAfford = playerData.coins >= crate.cost;
+        const poolNames = crate.pool.map(s => PIECE_SETS[s].name).join(' · ');
+        const btnStyle  = canAfford
+            ? `background:${crate.color};color:#1a1917;border:none;`
+            : '';
+
+        $c.append(`
+            <div class="crate-card">
+                <div class="crate-card-body">
+                    <div class="crate-card-name" style="color:${crate.color}">${crate.name}</div>
+                    <div class="crate-card-pool">${poolNames}</div>
+                    <div class="crate-card-price">${crate.cost} 🪙</div>
+                    <button class="crate-card-btn" style="${btnStyle}"
+                            onclick="buyCrate('${crateId}')"
+                            ${canAfford ? '' : 'disabled'}>
+                        ${canAfford ? 'Open Crate' : 'Not enough coins'}
+                    </button>
+                </div>
+            </div>
+        `);
+    });
+}
+
+/* ═══════════════════════════════════════════════════════
+   COLLECTION RENDERING (no images)
+═══════════════════════════════════════════════════════ */
+function renderCollection() {
+    const $c = $('#collection-content').empty();
+
+    playerData.ownedSets.forEach(setId => {
+        const set        = PIECE_SETS[setId];
+        if (!set) return;
+        const isEquipped = playerData.equippedSet === setId;
+
+        $c.append(`
+            <div class="set-card ${isEquipped ? 'equipped' : ''}">
+                <div class="set-card-name">${set.name}</div>
+                <div class="set-card-rarity" style="color:${set.rarityColor}">${set.rarity}</div>
+                <button class="set-card-btn ${isEquipped ? 'sec-btn' : ''}"
+                        onclick="equipSet('${setId}')"
+                        ${isEquipped ? 'disabled' : ''}>
+                    ${isEquipped ? '✓ Equipped' : 'Equip'}
+                </button>
+            </div>
+        `);
+    });
+}
+
+/* ═══════════════════════════════════════════════════════
+   BUY CRATE
+═══════════════════════════════════════════════════════ */
+function buyCrate(crateId) {
+    const crate = CRATES[crateId];
+    if (!crate || playerData.coins < crate.cost) return;
+
+    playerData.coins -= crate.cost;
+
+    const pool   = crate.pool;
+    const picked = pool[Math.floor(Math.random() * pool.length)];
+    const set    = PIECE_SETS[picked];
+
+    let isDupe = false, resultMsg = '';
+
+    if (playerData.ownedSets.includes(picked)) {
+        const refund = Math.floor(crate.cost * 0.5);
+        playerData.coins += refund;
+        isDupe    = true;
+        resultMsg = `Already owned — +${refund} 🪙 refund`;
+    } else {
+        playerData.ownedSets.push(picked);
+        resultMsg = `New piece set unlocked!`;
+    }
+
+    savePlayerData();
+    updateCoinDisplay();
+    showCrateResult(picked, isDupe, resultMsg);
+    renderShop();
+}
+
+function showCrateResult(setId, isDupe, msg) {
+    const set     = PIECE_SETS[setId];
+    const $banner = $('#crate-result-banner');
+
+    $banner.html(`
+        <div class="crb-info">
+            <div class="crb-set-name">${set.name}</div>
+            <div class="crb-rarity" style="color:${set.rarityColor}">${set.rarity}</div>
+            <div class="crb-msg">${msg}</div>
+        </div>
+    `).removeClass('hidden dupe');
+
+    if (isDupe) $banner.addClass('dupe');
+
+    setTimeout(() => $banner.addClass('hidden'), 4000);
+}
+
+/* ═══════════════════════════════════════════════════════
+   EQUIP PIECE SET
+═══════════════════════════════════════════════════════ */
+function equipSet(setId) {
+    if (!playerData.ownedSets.includes(setId)) return;
+    playerData.equippedSet = setId;
+    pieceStyle = (PIECE_SETS[setId] || PIECE_SETS.wikipedia).url;
+    savePlayerData();
+    renderCollection();
+}
+
+/* ═══════════════════════════════════════════════════════
+   ADMIN — GIVE COINS
+═══════════════════════════════════════════════════════ */
+function showGiftMsg(msg, success) {
+    $('#gift-msg')
+        .text(msg)
+        .removeClass('hidden inline-error inline-success')
+        .addClass(success ? 'inline-success' : 'inline-error');
+    setTimeout(() => $('#gift-msg').addClass('hidden'), 5000);
+}
+
+async function giveCoins() {
+    const targetRaw = $('#gift-user-id').val().trim();
+    const amount    = parseInt($('#gift-amount').val(), 10);
+
+    if (!targetRaw)          { showGiftMsg('Enter a profile ID or "all".', false); return; }
+    if (!amount || amount < 1) { showGiftMsg('Enter a valid coin amount (min 1).', false); return; }
+
+    // ── GIVE TO ALL ──
+    if (targetRaw.toLowerCase() === 'all') {
+        const { data: profiles, error } = await sb.from('profiles').select('id');
+        if (error || !profiles?.length) {
+            showGiftMsg('Failed to fetch profiles: ' + (error?.message || 'None found'), false);
+            return;
+        }
+
+        // Broadcast so all currently-loaded tabs pick it up in real time
+        await globalChannel.send({
+            type: 'broadcast', event: 'coin_grant',
+            payload: { target: 'all', amount }
+        });
+
+        // Persist to each profile's localStorage key (best-effort server record)
+        // Since coins are localStorage-only, we use the broadcast to credit live players.
+        // For offline players we'd need a DB column; here we note it in the broadcast.
+        showGiftMsg(`Broadcast +${amount} coins to all ${profiles.length} players.`, true);
+        $('#gift-user-id').val('');
+        $('#gift-amount').val('');
+        return;
+    }
+
+    // ── GIVE TO SPECIFIC PLAYER ──
+    const { data: profile, error: profErr } = await sb.from('profiles')
+        .select('id, display_name')
+        .eq('id', targetRaw)
+        .maybeSingle();
+
+    if (profErr || !profile) {
+        showGiftMsg('Profile not found. Check the ID.', false);
+        return;
+    }
+
+    // Broadcast targeted grant so recipient's open tab credits immediately
+    await globalChannel.send({
+        type: 'broadcast', event: 'coin_grant',
+        payload: { target: profile.id, amount }
     });
 
-    // ── LOCK / UNLOCK helpers ────────────────────────────────────────────────
+    showGiftMsg(`Sent +${amount} coins to ${profile.display_name || profile.id}.`, true);
+    $('#gift-user-id').val('');
+    $('#gift-amount').val('');
+}
 
-    function lockForMatchmaking() {
-        matchReady = false;
-        $('#board-lock-overlay').removeClass('hidden');
-        $('#chat-logs').addClass('locked');
-        $('#chat-input').prop('disabled', true).attr('placeholder', 'Match not started yet…');
-        $('#chat-locked-hint').removeClass('hidden');
-    }
+/* ═══════════════════════════════════════════════════════
+   GLOBAL BROADCAST
+═══════════════════════════════════════════════════════ */
+const globalChannel = sb.channel('global_main', { config: { broadcast: { self: true } } });
 
-    function unlockAfterMatch() {
-        matchReady = true;
-        $('#board-lock-overlay').addClass('hidden');
-        $('#chat-logs').removeClass('locked');
-        $('#chat-input').prop('disabled', false).attr('placeholder', 'Message… (Enter to send)');
-        $('#chat-locked-hint').addClass('hidden');
-    }
-
-    // ── MOVE DOTS ────────────────────────────────────────────────────────────
-
-    function removeGreyDots() {
-        $('#board .square-55d63').removeClass('highlight-move highlight-capture');
-    }
-
-    function addGreyDots(square) {
-        const moves = game.moves({ square, verbose: true });
-        for (let i = 0; i < moves.length; i++) {
-            const to = moves[i].to;
-            const isCapture = game.get(to) !== null;
-            $(`#board .square-${to}`).addClass(isCapture ? 'highlight-capture' : 'highlight-move');
-        }
-    }
-
-    // ── GLOBAL BROADCAST ─────────────────────────────────────────────────────
-
-    const globalChannel = sb.channel('global_main', { config: { broadcast: { self: true } } });
-
-    function subscribeGlobal() {
-        globalChannel
-            .on('broadcast', { event: 'announcement' }, (p) => {
-                showBanner(p.payload.name, p.payload.msg, p.payload.pfp);
-            })
-            .on('broadcast', { event: 'party_mode' }, (p) => {
-                isPartyModeActive = p.payload.active;
-                $('body').toggleClass('party-active', isPartyModeActive);
-                $('#party-toggle-btn').text(isPartyModeActive ? "🎉 Disable Party Mode" : "🎉 Enable Party Mode");
-            })
-            .on('broadcast', { event: 'play_sound' }, (p) => {
-                if (currentAudio) currentAudio.pause();
-                currentAudio = new Audio(p.payload.url);
-                currentAudio.play().catch(() => {});
-                $('body').addClass('sound-flash');
-                setTimeout(() => $('body').removeClass('sound-flash'), 600);
-            })
-            .on('broadcast', { event: 'stop_sound' }, () => {
-                if (currentAudio) { currentAudio.pause(); currentAudio.currentTime = 0; }
-            })
-            .subscribe();
-    }
-
-    let bannerTimer = null;
-    function showBanner(sender, msg, pfp) {
-        if (pfp) $('#global-banner-pfp').attr('src', pfp).show();
-        else      $('#global-banner-pfp').hide();
-        $('#global-banner-sender').text(sender + ': ');
-        $('#global-banner-text').text(msg);
-        $('#global-banner').addClass('show');
-        if (bannerTimer) clearTimeout(bannerTimer);
-        bannerTimer = setTimeout(() => $('#global-banner').removeClass('show'), 6000);
-    }
-
-    // ── ADMIN ────────────────────────────────────────────────────────────────
-
-    function updateBroadcastPreview() {
-        const msg  = $('#admin-msg').val().trim();
-        const name = $('#my-display-name').text();
-        $('#broadcast-preview-text').text(msg ? `${name}: ${msg}` : '—');
-    }
-
-    async function sendBroadcast() {
-        const msg = $('#admin-msg').val().trim();
-        if (!msg) return;
-        const name = $('#my-display-name').text();
-        const pfp  = $('#my-pfp').attr('src') || '';
-        await globalChannel.send({ type: 'broadcast', event: 'announcement', payload: { name, msg, pfp } });
-        $('#admin-msg').val('');
-        $('#broadcast-preview-text').text('—');
-    }
-
-    async function togglePartyMode() {
-        await globalChannel.send({ type: 'broadcast', event: 'party_mode', payload: { active: !isPartyModeActive } });
-    }
-
-    async function loadSoundList() {
-        const { data: files } = await sb.storage.from('avatars').list('global_sounds');
-        const sel = $('#admin-sound-select');
-        sel.find('option:not(:first)').remove();
-        if (files?.length) {
-            files.forEach(f => {
-                const url = sb.storage.from('avatars').getPublicUrl('global_sounds/' + f.name).data.publicUrl;
-                sel.append(`<option value="${url}" data-name="${f.name}">${f.name}</option>`);
-            });
-        }
-    }
-
-    async function broadcastSound() {
-        const file = $('#admin-sound-file')[0].files[0];
-        const selectedUrl = $('#admin-sound-select').val();
-        let url = selectedUrl;
-
-        if (file) {
-            const { data: existing } = await sb.storage.from('avatars').list('global_sounds');
-            const duplicate = existing?.find(f => f.name === file.name);
-            if (duplicate) {
-                url = sb.storage.from('avatars').getPublicUrl('global_sounds/' + file.name).data.publicUrl;
-                showSoundMsg('Reusing existing: ' + file.name, true);
-            } else {
-                const path = 'global_sounds/' + file.name;
-                await sb.storage.from('avatars').upload(path, file);
-                url = sb.storage.from('avatars').getPublicUrl(path).data.publicUrl;
-                showSoundMsg('Uploaded: ' + file.name, true);
-                await loadSoundList();
+function subscribeGlobal() {
+    globalChannel
+        .on('broadcast', { event: 'announcement' }, (p) => {
+            showBanner(p.payload.name, p.payload.msg, p.payload.pfp);
+        })
+        .on('broadcast', { event: 'party_mode' }, (p) => {
+            isPartyModeActive = p.payload.active;
+            $('body').toggleClass('party-active', isPartyModeActive);
+            $('#party-toggle-btn').text(isPartyModeActive ? "🎉 Disable Party Mode" : "🎉 Enable Party Mode");
+        })
+        .on('broadcast', { event: 'play_sound' }, (p) => {
+            if (currentAudio) currentAudio.pause();
+            currentAudio = new Audio(p.payload.url);
+            currentAudio.play().catch(() => {});
+            $('body').addClass('sound-flash');
+            setTimeout(() => $('body').removeClass('sound-flash'), 600);
+        })
+        .on('broadcast', { event: 'stop_sound' }, () => {
+            if (currentAudio) { currentAudio.pause(); currentAudio.currentTime = 0; }
+        })
+        .on('broadcast', { event: 'coin_grant' }, (p) => {
+            // Only credit if this is a broadcast to all, or targeted at this user
+            if (!user) return;
+            if (p.payload.target === 'all' || p.payload.target === user.id) {
+                addCoins(p.payload.amount);
+                showBanner('Admin', `+${p.payload.amount} coins granted to you!`, '');
             }
-            $('#admin-sound-file').val('');
-        }
+        })
+        .subscribe();
+}
 
-        if (!url) { showSoundMsg('Select or upload a sound first.', false); return; }
-        await globalChannel.send({ type: 'broadcast', event: 'play_sound', payload: { url } });
-    }
+let bannerTimer = null;
+function showBanner(sender, msg, pfp) {
+    if (pfp) $('#global-banner-pfp').attr('src', pfp).show();
+    else     $('#global-banner-pfp').hide();
+    $('#global-banner-sender').text(sender + ': ');
+    $('#global-banner-text').text(msg);
+    $('#global-banner').addClass('show');
+    if (bannerTimer) clearTimeout(bannerTimer);
+    bannerTimer = setTimeout(() => $('#global-banner').removeClass('show'), 6000);
+}
 
-    function showSoundMsg(msg, success) {
-        $('#sound-upload-msg').text(msg).removeClass('hidden inline-error inline-success').addClass(success ? 'inline-success' : 'inline-error');
-        setTimeout(() => $('#sound-upload-msg').addClass('hidden'), 3000);
-    }
+/* ═══════════════════════════════════════════════════════
+   ADMIN — BROADCAST / PARTY / SOUND
+═══════════════════════════════════════════════════════ */
+function updateBroadcastPreview() {
+    const msg  = $('#admin-msg').val().trim();
+    const name = $('#my-display-name').text();
+    $('#broadcast-preview-text').text(msg ? `${name}: ${msg}` : '—');
+}
 
-    async function stopAllSounds() { await globalChannel.send({ type: 'broadcast', event: 'stop_sound' }); }
+async function sendBroadcast() {
+    const msg = $('#admin-msg').val().trim();
+    if (!msg) return;
+    const name = $('#my-display-name').text();
+    const pfp  = $('#my-pfp').attr('src') || '';
+    await globalChannel.send({ type: 'broadcast', event: 'announcement', payload: { name, msg, pfp } });
+    $('#admin-msg').val('');
+    $('#broadcast-preview-text').text('—');
+}
 
-    // ── AUTH & PROFILE ───────────────────────────────────────────────────────
+async function togglePartyMode() {
+    await globalChannel.send({ type: 'broadcast', event: 'party_mode', payload: { active: !isPartyModeActive } });
+}
 
-    async function handleAuth(type) {
-        const email = $('#auth-email').val().trim();
-        const pass  = $('#auth-pass').val();
-        $('#auth-error').addClass('hidden').text('');
-        if (!email || !pass) { showAuthError('Please fill in both fields.'); return; }
-        const { data, error } = type === 'login'
-            ? await sb.auth.signInWithPassword({ email, password: pass })
-            : await sb.auth.signUp({ email, password: pass });
-        if (error) showAuthError(error.message);
-        else checkSession();
-    }
-
-    function showAuthError(msg) { $('#auth-error').text(msg).removeClass('hidden'); }
-
-    function toggleForgot() {
-        $('#forgot-panel').toggleClass('hidden');
-        $('#reset-msg').addClass('hidden').text('');
-        $('#reset-email').val('');
-    }
-
-    async function sendReset() {
-        const email = $('#reset-email').val().trim();
-        if (!email) { $('#reset-msg').text('Enter your email first.').removeClass('hidden inline-success').addClass('inline-error'); return; }
-        await sb.auth.resetPasswordForEmail(email);
-        $('#reset-msg').text('Reset link sent!').removeClass('hidden inline-error').addClass('inline-success');
-        setTimeout(() => $('#forgot-panel').addClass('hidden'), 3000);
-    }
-
-    async function checkSession() {
-        const { data } = await sb.auth.getUser();
-        if (data?.user) {
-            user = data.user;
-            const { data: prof } = await sb.from('profiles').select('*').eq('id', user.id).maybeSingle();
-            const displayName = prof?.display_name || emailToName(user.email);
-            const pfpUrl      = prof?.pfp_url || DEFAULT_AVATAR;
-            isAdmin           = prof?.is_admin === true;
-
-            $('#my-display-name').text(displayName);
-            $('#my-email-sub').text(user.email);
-            $('#my-pfp').attr('src', pfpUrl);
-
-            if (isAdmin) { $('#admin-badge').removeClass('hidden'); $('#admin-panel-btn').removeClass('hidden'); }
-            else         { $('#admin-badge').addClass('hidden');    $('#admin-panel-btn').addClass('hidden');    }
-
-            $('#set-name').val(displayName);
-            if (prof?.pfp_url) { $('#pfp-preview').attr('src', prof.pfp_url).show(); $('#pfp-upload-label').css('border-color', 'var(--accent)'); }
-
-            $('#user-profile-bar').removeClass('hidden');
-            showView('view-lobby');
-        } else {
-            showView('view-auth');
-        }
-    }
-
-    function previewPfp(event) {
-        const file = event.target.files[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = e => {
-            $('#pfp-preview').attr('src', e.target.result).show();
-            $('#pfp-upload-label').css('border-color', 'var(--accent)');
-        };
-        reader.readAsDataURL(file);
-    }
-
-    async function updateProfile() {
-        const name = $('#set-name').val().trim() || emailToName(user.email);
-        const file = $('#pfp-file')[0].files[0];
-        let pfpUrl = (await sb.from('profiles').select('pfp_url').eq('id', user.id).maybeSingle())?.data?.pfp_url || '';
-
-        if (file) {
-            $('#pfp-upload-status').text('Uploading...');
-            const ext  = file.name.split('.').pop();
-            const path = `${user.id}/avatar.${ext}`;
-            const { error: upErr } = await sb.storage.from('avatars').upload(path, file, { upsert: true });
-            if (upErr) { showProfileMsg('Upload failed: ' + upErr.message, false); $('#pfp-upload-status').text(''); return; }
-            const { data: urlData } = sb.storage.from('avatars').getPublicUrl(path);
-            pfpUrl = urlData.publicUrl + '?t=' + Date.now();
-            $('#pfp-upload-status').text('Uploaded ✓');
-        }
-
-        const { error } = await sb.from('profiles').upsert({ id: user.id, display_name: name, pfp_url: pfpUrl });
-        if (error) { showProfileMsg('Save failed: ' + error.message, false); return; }
-        showProfileMsg('Profile saved!', true);
-        await checkSession();
-    }
-
-    function showProfileMsg(msg, success) {
-        $('#profile-msg').text(msg).removeClass('hidden inline-error inline-success').addClass(success ? 'inline-success' : 'inline-error');
-        setTimeout(() => $('#profile-msg').addClass('hidden'), 4000);
-    }
-
-    async function signOut() { await sb.auth.signOut(); location.reload(); }
-
-    // ── MATCHMAKING & GAME ───────────────────────────────────────────────────
-
-    function setOpponent(name, pfp) {
-        $('#opp-name-display').text(name || 'Opponent');
-        $('#opp-pfp').attr('src', pfp || DEFAULT_AVATAR);
-    }
-
-    function setMatchStatus(state, text) {
-        $('#match-status').removeClass('searching playing').addClass(state);
-        $('#match-status-text').text(text);
-    }
-
-    async function findMatch() {
-        showView('view-game');
-        setMatchStatus('searching', 'Searching for opponent...');
-        $('#board-idle-msg').addClass('hidden');
-        $('#opp-pfp').attr('src', DEFAULT_AVATAR);
-        lockForMatchmaking(); // ← lock board + chat immediately
-
-        const myName = $('#my-display-name').text();
-        const myPfp  = $('#my-pfp').attr('src') || DEFAULT_AVATAR;
-
-        await sb.from('matches').delete().eq('status', 'waiting').eq('white_player', user.email);
-
-        const cutoff = new Date(Date.now() - 2 * 60 * 1000).toISOString();
-        const { data: open } = await sb.from('matches').select('*')
-            .eq('status', 'waiting')
-            .neq('white_player', user.email)
-            .gte('created_at', cutoff)
-            .limit(1);
-
-        if (open?.length > 0) {
-            currentMatchId = open[0].id;
-            myColor = 'b';
-
-            await sb.from('matches').update({
-                black_player:  user.email,
-                black_display: myName,
-                black_pfp:     myPfp,
-                status:        'playing'
-            }).eq('id', currentMatchId);
-
-            const savedFen = open[0].fen;
-            if (savedFen) { try { game.load(savedFen); } catch(e) {} }
-
-            const oppName = open[0].white_display || emailToName(open[0].white_player);
-            const oppPfp  = open[0].white_pfp  || DEFAULT_AVATAR;
-            setOpponent(oppName, oppPfp);
-            setMatchStatus('playing', 'Match in progress');
-            unlockAfterMatch(); // ← unlock immediately for the joining player
-
-            subscribe(currentMatchId);
-            initGame('black');
-            updateUI();
-
-        } else {
-            const startFen = new Chess().fen();
-            const { data: created, error: insertErr } = await sb.from('matches').insert([{
-                white_player:  user.email,
-                white_display: myName,
-                white_pfp:     myPfp,
-                status:        'waiting',
-                fen:           startFen
-            }]).select();
-
-            if (insertErr || !created?.length) {
-                $('#match-error').text('Could not create match: ' + (insertErr?.message || 'Unknown error')).removeClass('hidden');
-                showView('view-lobby');
-                return;
-            }
-
-            currentMatchId = created[0].id;
-            myColor = 'w';
-
-            subscribe(currentMatchId);
-            initGame('white');
-            // White stays locked until subscribe() receives the opponent joining
-        }
-    }
-
-    function initGame(orient) {
-        board = Chessboard('board', {
-            draggable: true,
-            position:  game.fen(),
-            orientation: orient,
-            pieceTheme: pieceStyle,
-            onDragStart: (source, piece) => {
-                // Block moves if matchmaking isn't done yet
-                if (!matchReady) return false;
-                if (game.game_over() || game.turn() !== myColor || piece.charAt(0) !== myColor) return false;
-                addGreyDots(source);
-            },
-            onDrop: (source, target) => {
-                removeGreyDots();
-                // Extra safety: reject drops while still searching
-                if (!matchReady) return 'snapback';
-                return handleMove(source, target);
-            },
-            onSnapEnd: () => { removeGreyDots(); board.position(game.fen()); }
+async function loadSoundList() {
+    const { data: files } = await sb.storage.from('avatars').list('global_sounds');
+    const sel = $('#admin-sound-select');
+    sel.find('option:not(:first)').remove();
+    if (files?.length) {
+        files.forEach(f => {
+            const url = sb.storage.from('avatars').getPublicUrl('global_sounds/' + f.name).data.publicUrl;
+            sel.append(`<option value="${url}" data-name="${f.name}">${f.name}</option>`);
         });
     }
+}
 
-    async function handleMove(source, target) {
-        const move = game.move({ from: source, to: target, promotion: 'q' });
-        if (!move) return 'snapback';
-        updateUI();
-        await sb.from('matches').update({ fen: game.fen() }).eq('id', currentMatchId);
-    }
+async function broadcastSound() {
+    const file = $('#admin-sound-file')[0].files[0];
+    let url = $('#admin-sound-select').val();
 
-    function subscribe(id) {
-        sb.channel(`match_${id}`)
-            .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'matches', filter: `id=eq.${id}` }, (payload) => {
-                const data = payload.new;
-
-                // White receives this when black joins — now unlock both sides
-                if (myColor === 'w' && data.status === 'playing' && data.black_player && $('#opp-name-display').text() === 'Waiting...') {
-                    const oppName = data.black_display || emailToName(data.black_player);
-                    const oppPfp  = data.black_pfp  || DEFAULT_AVATAR;
-                    setOpponent(oppName, oppPfp);
-                    setMatchStatus('playing', 'Match in progress');
-                    unlockAfterMatch(); // ← white unlocks here
-                }
-
-                if (data.status === 'resigned') {
-                    if (!$('#game-result-overlay').is(':visible') || $('#game-result-overlay').hasClass('hidden')) {
-                        showResult('win', '🏆', 'You Win!', 'Opponent resigned');
-                    }
-                    return;
-                }
-                if (data.status === 'finished') return;
-
-                if (data.fen && data.fen !== game.fen()) {
-                    try { game.load(data.fen); } catch(e) { return; }
-                    board.position(game.fen());
-                    updateUI();
-                }
-            }).subscribe();
-
-        sb.channel(`chat_${id}`)
-            .on('broadcast', { event: 'msg' }, (p) => {
-                appendChat(p.payload.user, p.payload.text, false);
-            }).subscribe();
-    }
-
-    function appendChat(name, text, isMe) {
-        const label = isMe ? 'Me' : name;
-        const color = isMe ? '#b5d97a' : '#81b64c';
-        $('#chat-logs').append(`<div><b style="color:${color}">${label}:</b> ${$('<span>').text(text).html()}</div>`);
-        const box = document.getElementById('chat-logs');
-        box.scrollTop = box.scrollHeight;
-    }
-
-    async function sendChat() {
-        if (!matchReady) return; // extra guard
-        const text = $('#chat-input').val().trim();
-        if (!text) return;
-        const name = $('#my-display-name').text();
-        sb.channel(`chat_${currentMatchId}`).send({ type: 'broadcast', event: 'msg', payload: { user: name, text } });
-        appendChat(name, text, true);
-        $('#chat-input').val('');
-    }
-
-    function promptResign()  { $('#resign-confirm').removeClass('hidden'); }
-    function cancelResign()  { $('#resign-confirm').addClass('hidden'); }
-
-    async function confirmResign() {
-        $('#resign-confirm').addClass('hidden');
-        await sb.from('matches').update({ status: 'resigned' }).eq('id', currentMatchId);
-        showResult('lose', '☠', 'You Resigned', 'Better luck next time');
-    }
-
-    window.addEventListener('beforeunload', () => {
-        if (currentMatchId) sb.from('matches').update({ status: 'resigned' }).eq('id', currentMatchId);
-    });
-
-    function updateUI() {
-        const isWhiteTurn = game.turn() === 'w';
-        const isMyTurn    = game.turn() === myColor;
-        let turnText = isWhiteTurn ? '♔ Turn: White' : '♚ Turn: Black';
-
-        if (game.in_checkmate()) {
-            const winner = isWhiteTurn ? 'Black' : 'White';
-            const iWon   = (winner === 'White' && myColor === 'w') || (winner === 'Black' && myColor === 'b');
-            $('#turn-display').text(`☠ Checkmate — ${winner} wins!`);
-            endMatch('checkmate', iWon);
-            return;
+    if (file) {
+        const { data: existing } = await sb.storage.from('avatars').list('global_sounds');
+        const duplicate = existing?.find(f => f.name === file.name);
+        if (duplicate) {
+            url = sb.storage.from('avatars').getPublicUrl('global_sounds/' + file.name).data.publicUrl;
+            showSoundMsg('Reusing existing: ' + file.name, true);
+        } else {
+            const path = 'global_sounds/' + file.name;
+            await sb.storage.from('avatars').upload(path, file);
+            url = sb.storage.from('avatars').getPublicUrl(path).data.publicUrl;
+            showSoundMsg('Uploaded: ' + file.name, true);
+            await loadSoundList();
         }
-        if (game.in_draw()) {
-            $('#turn-display').text('½ Draw');
-            endMatch('draw', null);
-            return;
-        }
-        if (game.in_check()) turnText += ' ⚠ CHECK';
-        $('#turn-display').text(turnText).toggleClass('your-turn-glow', isMyTurn);
-
-        const hist  = document.getElementById('move-history');
-        hist.innerHTML = '';
-        const moves = game.history();
-        for (let i = 0; i < moves.length; i += 2) {
-            const moveNum = Math.floor(i / 2) + 1;
-            const white   = moves[i];
-            const black   = moves[i + 1] || '';
-            const entry   = document.createElement('div');
-            entry.className = 'move-entry';
-            entry.innerHTML = `<span>${moveNum}.</span>${white}` + (black ? ` <span style="color:var(--muted)">${black}</span>` : '');
-            hist.appendChild(entry);
-        }
-        hist.scrollTop = hist.scrollHeight;
+        $('#admin-sound-file').val('');
     }
 
-    function showResult(type, icon, title, sub) {
-        const el = $('#game-result-overlay');
-        el.removeClass('hidden result-win result-lose result-draw').addClass('result-' + type);
-        $('#result-icon').text(icon);
-        $('#result-title').text(title);
-        $('#result-sub').text(sub);
-        board.draggable = false;
-    }
+    if (!url) { showSoundMsg('Select or upload a sound first.', false); return; }
+    await globalChannel.send({ type: 'broadcast', event: 'play_sound', payload: { url } });
+}
 
-    async function endMatch(reason, iWon) {
-        if (currentMatchId) await sb.from('matches').update({ status: 'finished', result: reason }).eq('id', currentMatchId);
-        if (reason === 'draw')      showResult('draw', '½', 'Draw',      'The game is a draw');
-        else if (iWon)              showResult('win',  '🏆', 'You Win!', 'Checkmate');
-        else                        showResult('lose', '☠',  'You Lose', 'Checkmate');
-    }
+function showSoundMsg(msg, success) {
+    $('#sound-upload-msg').text(msg).removeClass('hidden inline-error inline-success').addClass(success ? 'inline-success' : 'inline-error');
+    setTimeout(() => $('#sound-upload-msg').addClass('hidden'), 3000);
+}
 
-    function leaveGame() {
-        currentMatchId = null;
-        matchReady     = false;
-        game = new Chess();
-        board.position('start');
-        $('#game-result-overlay').addClass('hidden');
-        $('#board-idle-msg').removeClass('hidden');
+async function stopAllSounds() { await globalChannel.send({ type: 'broadcast', event: 'stop_sound' }); }
+
+/* ═══════════════════════════════════════════════════════
+   AUTH & PROFILE
+═══════════════════════════════════════════════════════ */
+async function handleAuth(type) {
+    const email = $('#auth-email').val().trim();
+    const pass  = $('#auth-pass').val();
+    $('#auth-error').addClass('hidden').text('');
+    if (!email || !pass) { showAuthError('Please fill in both fields.'); return; }
+    const { data, error } = type === 'login'
+        ? await sb.auth.signInWithPassword({ email, password: pass })
+        : await sb.auth.signUp({ email, password: pass });
+    if (error) showAuthError(error.message);
+    else checkSession();
+}
+
+function showAuthError(msg) { $('#auth-error').text(msg).removeClass('hidden'); }
+
+function toggleForgot() {
+    $('#forgot-panel').toggleClass('hidden');
+    $('#reset-msg').addClass('hidden').text('');
+    $('#reset-email').val('');
+}
+
+async function sendReset() {
+    const email = $('#reset-email').val().trim();
+    if (!email) { $('#reset-msg').text('Enter your email first.').removeClass('hidden inline-success').addClass('inline-error'); return; }
+    await sb.auth.resetPasswordForEmail(email);
+    $('#reset-msg').text('Reset link sent!').removeClass('hidden inline-error').addClass('inline-success');
+    setTimeout(() => $('#forgot-panel').addClass('hidden'), 3000);
+}
+
+async function checkSession() {
+    const { data } = await sb.auth.getUser();
+    if (data?.user) {
+        user = data.user;
+        const { data: prof } = await sb.from('profiles').select('*').eq('id', user.id).maybeSingle();
+        const displayName = prof?.display_name || emailToName(user.email);
+        const pfpUrl      = prof?.pfp_url || DEFAULT_AVATAR;
+        isAdmin           = prof?.is_admin === true;
+
+        $('#my-display-name').text(displayName);
+        $('#my-email-sub').text(user.email);
+        $('#my-pfp').attr('src', pfpUrl);
+
+        if (isAdmin) { $('#admin-badge').removeClass('hidden'); $('#admin-panel-btn').removeClass('hidden'); }
+        else         { $('#admin-badge').addClass('hidden');    $('#admin-panel-btn').addClass('hidden');    }
+
+        $('#set-name').val(displayName);
+        if (prof?.pfp_url) { $('#pfp-preview').attr('src', prof.pfp_url).show(); $('#pfp-upload-label').css('border-color', 'var(--accent)'); }
+
+        loadPlayerData();
+
+        $('#user-profile-bar').removeClass('hidden');
         showView('view-lobby');
+    } else {
+        showView('view-auth');
+    }
+}
+
+function previewPfp(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = e => {
+        $('#pfp-preview').attr('src', e.target.result).show();
+        $('#pfp-upload-label').css('border-color', 'var(--accent)');
+    };
+    reader.readAsDataURL(file);
+}
+
+async function updateProfile() {
+    const name = $('#set-name').val().trim() || emailToName(user.email);
+    const file = $('#pfp-file')[0].files[0];
+    let pfpUrl = (await sb.from('profiles').select('pfp_url').eq('id', user.id).maybeSingle())?.data?.pfp_url || '';
+
+    if (file) {
+        $('#pfp-upload-status').text('Uploading...');
+        const ext  = file.name.split('.').pop();
+        const path = `${user.id}/avatar.${ext}`;
+        const { error: upErr } = await sb.storage.from('avatars').upload(path, file, { upsert: true });
+        if (upErr) { showProfileMsg('Upload failed: ' + upErr.message, false); $('#pfp-upload-status').text(''); return; }
+        const { data: urlData } = sb.storage.from('avatars').getPublicUrl(path);
+        pfpUrl = urlData.publicUrl + '?t=' + Date.now();
+        $('#pfp-upload-status').text('Uploaded ✓');
     }
 
-    function showView(id) {
-        $('.tab-content').addClass('hidden');
-        $('#' + id).removeClass('hidden');
-        if (id === 'view-admin') { updateBroadcastPreview(); loadSoundList(); }
+    const { error } = await sb.from('profiles').upsert({ id: user.id, display_name: name, pfp_url: pfpUrl });
+    if (error) { showProfileMsg('Save failed: ' + error.message, false); return; }
+    showProfileMsg('Profile saved!', true);
+    await checkSession();
+}
+
+function showProfileMsg(msg, success) {
+    $('#profile-msg').text(msg).removeClass('hidden inline-error inline-success').addClass(success ? 'inline-success' : 'inline-error');
+    setTimeout(() => $('#profile-msg').addClass('hidden'), 4000);
+}
+
+async function signOut() { await sb.auth.signOut(); location.reload(); }
+
+/* ═══════════════════════════════════════════════════════
+   MATCHMAKING LOCK / UNLOCK
+═══════════════════════════════════════════════════════ */
+function lockForMatchmaking() {
+    matchReady = false;
+    $('#board-lock-overlay').removeClass('hidden');
+    $('#chat-logs').addClass('locked');
+    $('#chat-input').prop('disabled', true).attr('placeholder', 'Match not started yet…');
+    $('#chat-locked-hint').removeClass('hidden');
+}
+
+function unlockAfterMatch() {
+    matchReady = true;
+    $('#board-lock-overlay').addClass('hidden');
+    $('#chat-logs').removeClass('locked');
+    $('#chat-input').prop('disabled', false).attr('placeholder', 'Message… (Enter to send)');
+    $('#chat-locked-hint').addClass('hidden');
+}
+
+/* ═══════════════════════════════════════════════════════
+   MOVE DOTS
+═══════════════════════════════════════════════════════ */
+function removeGreyDots() {
+    $('#board .square-55d63').removeClass('highlight-move highlight-capture');
+}
+function addGreyDots(square) {
+    const moves = game.moves({ square, verbose: true });
+    for (let i = 0; i < moves.length; i++) {
+        const to = moves[i].to;
+        $(`#board .square-${to}`).addClass(game.get(to) ? 'highlight-capture' : 'highlight-move');
     }
+}
+
+/* ═══════════════════════════════════════════════════════
+   MATCHMAKING & GAME
+═══════════════════════════════════════════════════════ */
+function setOpponent(name, pfp) {
+    $('#opp-name-display').text(name || 'Opponent');
+    $('#opp-pfp').attr('src', pfp || DEFAULT_AVATAR);
+}
+function setMatchStatus(state, text) {
+    $('#match-status').removeClass('searching playing').addClass(state);
+    $('#match-status-text').text(text);
+}
+
+async function findMatch() {
+    showView('view-game');
+    setMatchStatus('searching', 'Searching for opponent...');
+    $('#board-idle-msg').addClass('hidden');
+    $('#opp-pfp').attr('src', DEFAULT_AVATAR);
+    lockForMatchmaking();
+    winCoinAwarded = false;
+
+    const myName = $('#my-display-name').text();
+    const myPfp  = $('#my-pfp').attr('src') || DEFAULT_AVATAR;
+
+    await sb.from('matches').delete().eq('status', 'waiting').eq('white_player', user.email);
+
+    const cutoff = new Date(Date.now() - 2 * 60 * 1000).toISOString();
+    const { data: open } = await sb.from('matches').select('*')
+        .eq('status', 'waiting')
+        .neq('white_player', user.email)
+        .gte('created_at', cutoff)
+        .limit(1);
+
+    if (open?.length > 0) {
+        currentMatchId = open[0].id;
+        myColor = 'b';
+        await sb.from('matches').update({ black_player: user.email, black_display: myName, black_pfp: myPfp, status: 'playing' }).eq('id', currentMatchId);
+
+        const savedFen = open[0].fen;
+        if (savedFen) { try { game.load(savedFen); } catch(e) {} }
+
+        const oppName = open[0].white_display || emailToName(open[0].white_player);
+        const oppPfp  = open[0].white_pfp  || DEFAULT_AVATAR;
+        setOpponent(oppName, oppPfp);
+        setMatchStatus('playing', 'Match in progress');
+        unlockAfterMatch();
+
+        subscribe(currentMatchId);
+        initGame('black');
+        updateUI();
+
+    } else {
+        const startFen = new Chess().fen();
+        const { data: created, error: insertErr } = await sb.from('matches').insert([{
+            white_player: user.email, white_display: myName, white_pfp: myPfp,
+            status: 'waiting', fen: startFen
+        }]).select();
+
+        if (insertErr || !created?.length) {
+            $('#match-error').text('Could not create match: ' + (insertErr?.message || 'Unknown error')).removeClass('hidden');
+            showView('view-lobby');
+            return;
+        }
+
+        currentMatchId = created[0].id;
+        myColor = 'w';
+        subscribe(currentMatchId);
+        initGame('white');
+    }
+}
+
+function initGame(orient) {
+    currentOrient = orient;
+    board = Chessboard('board', {
+        draggable:   true,
+        position:    game.fen(),
+        orientation: orient,
+        pieceTheme:  pieceStyle,
+        onDragStart: (source, piece) => {
+            if (!matchReady) return false;
+            if (game.game_over() || game.turn() !== myColor || piece.charAt(0) !== myColor) return false;
+            addGreyDots(source);
+        },
+        onDrop: (source, target) => {
+            removeGreyDots();
+            if (!matchReady) return 'snapback';
+            return handleMove(source, target);
+        },
+        onSnapEnd: () => { removeGreyDots(); board.position(game.fen()); }
+    });
+}
+
+async function handleMove(source, target) {
+    const move = game.move({ from: source, to: target, promotion: 'q' });
+    if (!move) return 'snapback';
+
+    if (move.captured) {
+        const coins = COIN_VALUES[move.captured] || 0;
+        if (coins > 0) {
+            addCoins(coins);
+            showCoinFloater(move.to, coins);
+        }
+    }
+
+    updateUI();
+    await sb.from('matches').update({ fen: game.fen() }).eq('id', currentMatchId);
+}
+
+function subscribe(id) {
+    sb.channel(`match_${id}`)
+        .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'matches', filter: `id=eq.${id}` }, (payload) => {
+            const data = payload.new;
+
+            if (myColor === 'w' && data.status === 'playing' && data.black_player && $('#opp-name-display').text() === 'Waiting...') {
+                const oppName = data.black_display || emailToName(data.black_player);
+                const oppPfp  = data.black_pfp  || DEFAULT_AVATAR;
+                setOpponent(oppName, oppPfp);
+                setMatchStatus('playing', 'Match in progress');
+                unlockAfterMatch();
+            }
+
+            if (data.status === 'resigned') {
+                if ($('#game-result-overlay').hasClass('hidden')) {
+                    if (!winCoinAwarded) { winCoinAwarded = true; addCoins(WIN_COINS); }
+                    showResult('win', '🏆', 'You Win!', `Opponent resigned  •  +${WIN_COINS} 🪙`);
+                }
+                return;
+            }
+            if (data.status === 'finished') return;
+
+            if (data.fen && data.fen !== game.fen()) {
+                try { game.load(data.fen); } catch(e) { return; }
+                board.position(game.fen());
+                updateUI();
+            }
+        }).subscribe();
+
+    sb.channel(`chat_${id}`)
+        .on('broadcast', { event: 'msg' }, (p) => {
+            appendChat(p.payload.user, p.payload.text, false);
+        }).subscribe();
+}
+
+function appendChat(name, text, isMe) {
+    const label = isMe ? 'Me' : name;
+    const color = isMe ? '#b5d97a' : '#81b64c';
+    $('#chat-logs').append(`<div><b style="color:${color}">${label}:</b> ${$('<span>').text(text).html()}</div>`);
+    const box = document.getElementById('chat-logs');
+    box.scrollTop = box.scrollHeight;
+}
+
+async function sendChat() {
+    if (!matchReady) return;
+    const text = $('#chat-input').val().trim();
+    if (!text) return;
+    const name = $('#my-display-name').text();
+    sb.channel(`chat_${currentMatchId}`).send({ type: 'broadcast', event: 'msg', payload: { user: name, text } });
+    appendChat(name, text, true);
+    $('#chat-input').val('');
+}
+
+function promptResign()  { $('#resign-confirm').removeClass('hidden'); }
+function cancelResign()  { $('#resign-confirm').addClass('hidden'); }
+
+async function confirmResign() {
+    $('#resign-confirm').addClass('hidden');
+    await sb.from('matches').update({ status: 'resigned' }).eq('id', currentMatchId);
+    showResult('lose', '☠', 'You Resigned', 'Better luck next time');
+}
+
+window.addEventListener('beforeunload', () => {
+    if (currentMatchId) sb.from('matches').update({ status: 'resigned' }).eq('id', currentMatchId);
+});
+
+/* ═══════════════════════════════════════════════════════
+   UI UPDATES
+═══════════════════════════════════════════════════════ */
+function updateUI() {
+    const isWhiteTurn = game.turn() === 'w';
+    const isMyTurn    = game.turn() === myColor;
+    let turnText = isWhiteTurn ? '♔ Turn: White' : '♚ Turn: Black';
+
+    if (game.in_checkmate()) {
+        const winner = isWhiteTurn ? 'Black' : 'White';
+        const iWon   = (winner === 'White' && myColor === 'w') || (winner === 'Black' && myColor === 'b');
+        $('#turn-display').text(`☠ Checkmate — ${winner} wins!`);
+        endMatch('checkmate', iWon);
+        return;
+    }
+    if (game.in_draw()) {
+        $('#turn-display').text('½ Draw');
+        endMatch('draw', null);
+        return;
+    }
+    if (game.in_check()) turnText += ' ⚠ CHECK';
+    $('#turn-display').text(turnText).toggleClass('your-turn-glow', isMyTurn);
+
+    const hist  = document.getElementById('move-history');
+    hist.innerHTML = '';
+    const moves = game.history();
+    for (let i = 0; i < moves.length; i += 2) {
+        const moveNum = Math.floor(i / 2) + 1;
+        const white   = moves[i];
+        const black   = moves[i + 1] || '';
+        const entry   = document.createElement('div');
+        entry.className = 'move-entry';
+        entry.innerHTML = `<span>${moveNum}.</span>${white}` + (black ? ` <span style="color:var(--muted)">${black}</span>` : '');
+        hist.appendChild(entry);
+    }
+    hist.scrollTop = hist.scrollHeight;
+}
+
+function showResult(type, icon, title, sub) {
+    const el = $('#game-result-overlay');
+    el.removeClass('hidden result-win result-lose result-draw').addClass('result-' + type);
+    $('#result-icon').text(icon);
+    $('#result-title').text(title);
+    $('#result-sub').text(sub);
+    if (board) board.draggable = false;
+}
+
+async function endMatch(reason, iWon) {
+    if (currentMatchId) await sb.from('matches').update({ status: 'finished', result: reason }).eq('id', currentMatchId);
+    if (reason === 'draw') {
+        showResult('draw', '½', 'Draw', 'The game is a draw');
+    } else if (iWon) {
+        if (!winCoinAwarded) { winCoinAwarded = true; addCoins(WIN_COINS); }
+        showResult('win', '🏆', 'You Win!', `Checkmate  •  +${WIN_COINS} 🪙`);
+    } else {
+        showResult('lose', '☠', 'You Lose', 'Checkmate');
+    }
+}
+
+function leaveGame() {
+    currentMatchId = null;
+    matchReady     = false;
+    winCoinAwarded = false;
+    game = new Chess();
+    board.position('start');
+    $('#game-result-overlay').addClass('hidden');
+    $('#board-idle-msg').removeClass('hidden');
+    showView('view-lobby');
+}
+
+/* ═══════════════════════════════════════════════════════
+   VIEW MANAGER
+═══════════════════════════════════════════════════════ */
+function showView(id) {
+    $('.tab-content').addClass('hidden');
+    $('#' + id).removeClass('hidden');
+    if (id === 'view-admin')      { updateBroadcastPreview(); loadSoundList(); }
+    if (id === 'view-shop')       { renderShop(); }
+    if (id === 'view-collection') { renderCollection(); }
+}
+
+function emailToName(email) { return email ? email.split('@')[0] : 'Player'; }
+
+/* ═══════════════════════════════════════════════════════
+   STARTUP
+═══════════════════════════════════════════════════════ */
+$(document).ready(() => {
+    board = Chessboard('board', { position: 'start', draggable: false, pieceTheme: pieceStyle });
+    subscribeGlobal();
+    checkSession();
+});
 </script>
 </body>
 </html>
