@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Grandmaster | Social Chess</title>
+    <title>Grandmaster | Suocial Chess</title>
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <link rel="stylesheet" href="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.css">
@@ -53,7 +53,6 @@
 
         * { border-radius: 0 !important; box-shadow: none !important; box-sizing: border-box; }
 
-        /* prevent pull-to-refresh / scroll during drag on mobile */
         #board-wrapper { touch-action: none; }
         #board .square-55d63 { touch-action: none; }
 
@@ -80,12 +79,10 @@
             flex: 0 0 auto; width: min(610px, 58vw); background: #2b2927;
             display: flex; justify-content: center; align-items: center;
             border-right: 4px solid var(--border); padding: 20px; position: relative;
-            /* Critical: block ALL scrolling/panning while a finger is on the board */
             touch-action: none; overflow: hidden;
         }
         #board { width: min(560px, calc(58vw - 40px)); touch-action: none; }
 
-        /* make every chessboard square ignore touch scroll */
         .square-55d63 { touch-action: none !important; }
 
         #board-idle-msg {
@@ -217,7 +214,6 @@
         ════════════════════════════════ */
         #view-shop h2, #view-collection h2 { color:var(--gold); border-color:#5a4e10; }
 
-        /* Inline result banner */
         #crate-result-banner {
             display:flex; align-items:center; gap:12px;
             background:#1a1917; border:2px solid var(--accent);
@@ -226,12 +222,10 @@
         }
         #crate-result-banner.dupe { border-color:var(--muted); }
         @keyframes crateSlideIn { from{opacity:0;transform:translateY(-8px)} to{opacity:1;transform:translateY(0)} }
-        .crb-info {}
         .crb-set-name { font-weight:bold; font-size:0.9rem; letter-spacing:0.06em; }
         .crb-rarity   { font-size:0.65rem; text-transform:uppercase; letter-spacing:0.1em; }
         .crb-msg      { font-size:0.7rem; color:var(--muted); margin-top:3px; }
 
-        /* Crate card */
         .crate-card {
             display:flex; gap:14px; align-items:center;
             background:#1a1917; border:2px solid var(--border);
@@ -243,6 +237,13 @@
         .crate-card-pool  { font-size:0.66rem; color:var(--muted); margin-bottom:6px; text-transform:uppercase; letter-spacing:0.06em; }
         .crate-card-price { font-size:0.82rem; font-weight:bold; color:var(--gold); margin-bottom:6px; }
         .crate-card-btn   { margin-bottom:0; padding:8px; font-size:0.75rem; }
+        .crate-card-btn.free-crate {
+            background: #1a3a1a; border: 2px solid var(--accent);
+            color: var(--accent); letter-spacing: 0.06em;
+            animation: freePulse 2s ease-in-out infinite;
+        }
+        .crate-card-btn.free-crate:hover:not(:disabled) { background: #243f24; opacity: 1; }
+        @keyframes freePulse { 0%,100%{border-color:var(--accent)} 50%{border-color:#b5d97a} }
 
         /* ════════════════════════════════
            CRATE OPENING ANIMATION OVERLAY
@@ -257,32 +258,26 @@
 
         #crate-opening-box {
             display: flex; flex-direction: column; align-items: center;
-            gap: 0;
-            position: relative;
+            gap: 0; position: relative;
         }
 
-        /* Animated light rays behind the crate */
         .crate-rays {
             position: absolute; top: 50%; left: 50%;
             transform: translate(-50%, -50%);
             width: 340px; height: 340px;
-            pointer-events: none;
-            opacity: 0;
+            pointer-events: none; opacity: 0;
         }
         .crate-rays.visible { animation: raysRotate 3s linear infinite, raysFadeIn 0.4s ease 0.3s forwards; }
         @keyframes raysFadeIn { from{opacity:0} to{opacity:0.55} }
         @keyframes raysRotate { from{transform:translate(-50%,-50%) rotate(0deg)} to{transform:translate(-50%,-50%) rotate(360deg)} }
 
-        /* SVG rays rendered inline */
         .ray {
             position: absolute; top: 50%; left: 50%;
             width: 2px; height: 160px;
             background: linear-gradient(to top, transparent, var(--ray-color, #ffd700), transparent);
-            transform-origin: bottom center;
-            opacity: 0.7;
+            transform-origin: bottom center; opacity: 0.7;
         }
 
-        /* The crate icon itself */
         #crate-icon-wrap {
             font-size: 5rem;
             animation: crateShake 0.35s ease 0.1s;
@@ -297,30 +292,23 @@
             80%{transform:rotate(4deg) scale(1.02)}
         }
 
-        /* Opening burst */
         #crate-burst {
             position: absolute; top: 50%; left: 50%;
             transform: translate(-50%, -50%) scale(0);
             width: 180px; height: 180px;
             background: radial-gradient(circle, var(--crate-glow, #cd7f32) 0%, transparent 70%);
-            border-radius: 50% !important;
-            pointer-events: none; z-index: 1;
-            opacity: 0;
+            border-radius: 50% !important; pointer-events: none; z-index: 1; opacity: 0;
         }
-        #crate-burst.pop {
-            animation: burstPop 0.5s ease forwards;
-        }
+        #crate-burst.pop { animation: burstPop 0.5s ease forwards; }
         @keyframes burstPop {
             0%  { transform:translate(-50%,-50%) scale(0); opacity:0.9; }
             60% { transform:translate(-50%,-50%) scale(1.6); opacity:0.5; }
             100%{ transform:translate(-50%,-50%) scale(2.5); opacity:0; }
         }
 
-        /* Sparkle particles */
         .crate-spark {
             position: absolute; width: 8px; height: 8px;
-            background: var(--spark-color, #ffd700);
-            pointer-events: none; z-index: 3;
+            background: var(--spark-color, #ffd700); pointer-events: none; z-index: 3;
             animation: sparkFly var(--spark-dur, 0.7s) ease-out var(--spark-delay, 0s) forwards;
             opacity: 0;
             clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
@@ -330,33 +318,22 @@
             100% { opacity: 0; transform: translate(var(--tx,40px), var(--ty,-60px)) scale(0.3) rotate(360deg); }
         }
 
-        /* Revealed set info below crate */
         #crate-reveal-info {
             text-align: center; position: relative; z-index: 2;
-            animation: revealInfoDrop 0.4s cubic-bezier(.2,1.4,.5,1) forwards;
-            opacity: 0;
+            animation: revealInfoDrop 0.4s cubic-bezier(.2,1.4,.5,1) forwards; opacity: 0;
         }
         @keyframes revealInfoDrop { from{opacity:0;transform:translateY(-16px)} to{opacity:1;transform:translateY(0)} }
-        #crate-reveal-set-name {
-            font-size: 1.4rem; font-weight: bold; letter-spacing: 0.14em;
-            text-transform: uppercase; margin-bottom: 4px;
-        }
+        #crate-reveal-set-name { font-size: 1.4rem; font-weight: bold; letter-spacing: 0.14em; text-transform: uppercase; margin-bottom: 4px; }
         #crate-reveal-rarity   { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.2em; margin-bottom: 8px; }
         #crate-reveal-msg      { font-size: 0.72rem; color: var(--muted); letter-spacing: 0.06em; }
-        #crate-reveal-dismiss  {
-            margin-top: 20px; padding: 10px 36px; width: auto;
-            font-size: 0.8rem; letter-spacing: 0.1em;
-        }
+        #crate-reveal-dismiss  { margin-top: 20px; padding: 10px 36px; width: auto; font-size: 0.8rem; letter-spacing: 0.1em; }
 
         /* ════════════════════════════════
            COLLECTION
         ════════════════════════════════ */
-
-        /* Synchronized piece type bar at the top */
         #collection-piece-bar {
             display: flex; align-items: center; justify-content: center;
-            gap: 6px; margin-bottom: 14px;
-            padding: 8px 0 6px;
+            gap: 6px; margin-bottom: 14px; padding: 8px 0 6px;
             border-bottom: 1px solid var(--border);
         }
         .piece-bar-cell {
@@ -365,42 +342,24 @@
             background: #1a1917; border: 1px solid var(--border);
             font-size: 1.5rem; position: relative; overflow: hidden;
         }
-        /* img inside each cell */
-        .piece-bar-cell img {
-            width: 36px; height: 36px; object-fit: contain;
-            transition: opacity 0.15s;
-            image-rendering: auto;
-        }
-        .piece-bar-label {
-            font-size: 0.5rem; text-transform: uppercase; letter-spacing: 0.1em;
-            color: var(--muted); text-align: center; margin-top: 2px;
-        }
+        .piece-bar-cell img { width: 36px; height: 36px; object-fit: contain; transition: opacity 0.15s; image-rendering: auto; }
+        .piece-bar-label { font-size: 0.5rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); text-align: center; margin-top: 2px; }
         .piece-bar-col { display: flex; flex-direction: column; align-items: center; }
 
-        #collection-content {
-            display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px;
-        }
+        #collection-content { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
         .set-card {
             background: #1a1917; border: 2px solid var(--border);
             padding: 12px 10px; display: flex; flex-direction: column;
             align-items: center; text-align: center; gap: 4px; transition: border-color 0.2s;
         }
         .set-card.equipped { border-color: var(--accent); }
-
-        /* Per-card piece preview inside collection cards */
-        .set-card-piece-img {
-            width: 48px; height: 48px; object-fit: contain;
-            image-rendering: auto; margin-bottom: 2px;
-            transition: opacity 0.12s;
-        }
-
+        .set-card-piece-img { width: 48px; height: 48px; object-fit: contain; image-rendering: auto; margin-bottom: 2px; transition: opacity 0.12s; }
         .set-card-name   { font-weight:bold; font-size:0.82rem; letter-spacing:0.05em; }
         .set-card-rarity { font-size:0.62rem; text-transform:uppercase; letter-spacing:0.1em; }
         .set-card-btn    { margin-bottom:0; margin-top:6px; padding:7px; font-size:0.7rem; width:100%; }
         .set-card-btn.sec-btn:disabled { background:#2a2825; color:var(--accent); opacity:1; border-color:var(--accent); cursor:default; }
 
         /* ── MOVE INDICATORS ── */
-        .highlight-move, .highlight-capture { position:relative; }
         .highlight-move::after    { content:""; position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:28%; height:28%; background:rgba(0,0,0,0.18); border-radius:50%!important; pointer-events:none; z-index:0; }
         .highlight-capture::after { content:""; position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:78%; height:78%; background:transparent; border:6px solid rgba(0,0,0,0.25); border-radius:50%!important; pointer-events:none; z-index:0; }
 
@@ -421,6 +380,17 @@
         .black-3c85d { background-color:var(--black-sq) !important; }
         .your-turn-glow { animation:turnPulse 1.5s ease-in-out infinite; }
         @keyframes turnPulse { 0%,100%{color:var(--accent)} 50%{color:#b5d97a} }
+
+        /* ── SAVING INDICATOR ── */
+        #save-indicator {
+            position: fixed; bottom: 12px; right: 12px; z-index: 9000;
+            background: #1a1917; border: 1px solid var(--border);
+            color: var(--muted); font-size: 0.62rem; text-transform: uppercase;
+            letter-spacing: 0.1em; padding: 5px 10px;
+            opacity: 0; transition: opacity 0.3s; pointer-events: none;
+        }
+        #save-indicator.show { opacity: 1; }
+        #save-indicator.error { border-color: var(--danger); color: #e8776c; }
 
         /* ══ MOBILE ══ */
         @media (max-width: 700px) {
@@ -453,7 +423,10 @@
 </head>
 <body>
 
-<!-- ── CRATE OPENING OVERLAY (hidden by default) ── -->
+<!-- ── SAVE INDICATOR ── -->
+<div id="save-indicator">Saving…</div>
+
+<!-- ── CRATE OPENING OVERLAY ── -->
 <div id="crate-opening-overlay" style="display:none;">
     <div id="crate-opening-box">
         <div class="crate-rays" id="crate-rays"></div>
@@ -577,6 +550,22 @@
             <div id="gift-msg" class="hidden"></div>
             <button class="admin-btn" onclick="giveCoins()" style="margin-bottom:0;">🪙 Give Coins</button>
             <hr style="border:1px solid var(--border);margin:15px 0;">
+            <label>Give Free Crates to Player</label>
+            <div id="gift-crate-hint" style="font-size:0.65rem;color:var(--muted);letter-spacing:0.06em;margin-bottom:8px;line-height:1.5;">
+                Enter a profile ID or <b style="color:white">all</b>. Select crate type and quantity.
+            </div>
+            <div class="gift-row">
+                <input type="text" id="gift-crate-user-id" placeholder="Profile ID or 'all'">
+                <input type="number" id="gift-crate-amount" class="gift-amount" placeholder="Qty" min="1" value="1">
+            </div>
+            <select id="gift-crate-type" style="background:#1a1917;border:2px solid var(--border);color:white;padding:9px 10px;width:100%;font-family:'Courier New',monospace;font-size:0.82rem;margin-bottom:6px;">
+                <option value="bronze">📦 Bronze Crate (Common)</option>
+                <option value="silver">🎁 Silver Crate (Uncommon)</option>
+                <option value="gold">👑 Gold Crate (Rare)</option>
+            </select>
+            <div id="gift-crate-msg" class="hidden" style="font-size:0.72rem;margin-bottom:6px;padding:6px 8px;border:1px solid var(--border);"></div>
+            <button class="admin-btn" onclick="giveCrates()" style="margin-bottom:0;">📦 Give Crates</button>
+            <hr style="border:1px solid var(--border);margin:15px 0;">
             <label>Party Mode</label>
             <button id="party-toggle-btn" class="sec-btn" onclick="togglePartyMode()">🎉 Enable Party Mode</button>
             <label>Sound Trigger</label>
@@ -614,7 +603,6 @@
                     <button class="sec-btn"    style="margin-bottom:0;flex:1;" onclick="cancelResign()">Cancel</button>
                 </div>
             </div>
-            <!-- Resign shown only when playing; Cancel Matchmaking shown when searching -->
             <button id="resign-btn"  class="sec-btn danger-btn hidden" onclick="promptResign()">⚑ Resign</button>
             <button id="cancel-mm-btn" class="sec-btn" onclick="cancelMatchmaking()" style="background:#3d3a37;border:1px solid var(--danger);color:#e8776c;">✕ Cancel Matchmaking</button>
         </div>
@@ -633,10 +621,7 @@
             <div style="font-size:0.7rem;color:var(--muted);margin-bottom:10px;text-transform:uppercase;letter-spacing:0.07em;">
                 Equip a piece set to use it immediately.
             </div>
-            <!-- Synchronized piece-type preview bar -->
-            <div id="collection-piece-bar">
-                <!-- 6 columns: K Q R B N P -->
-            </div>
+            <div id="collection-piece-bar"></div>
             <div id="collection-content"></div>
             <button class="sec-btn" style="margin-top:12px;" onclick="showView('view-lobby')">← Back to Lobby</button>
         </div>
@@ -657,7 +642,6 @@ const DEFAULT_AVATAR = `data:image/svg+xml,${encodeURIComponent('<svg xmlns="htt
 /* ═══════════════════════════════════════════════════════
    PIECE SETS & CRATE DATA
 ═══════════════════════════════════════════════════════ */
-// Piece code order for preview cycling: King, Queen, Rook, Bishop, Knight, Pawn
 const PIECE_TYPES  = ['K','Q','R','B','N','P'];
 const PIECE_LABELS = ['King','Queen','Rook','Bishop','Knight','Pawn'];
 
@@ -699,47 +683,107 @@ let matchReady = false;
 let winCoinAwarded = false;
 let pieceStyle = PIECE_SETS.wikipedia.url;
 
-// Collection preview cycling state
 let collectionPieceIdx = 0;
 let collectionCycleTimer = null;
 
 /* ═══════════════════════════════════════════════════════
-   PLAYER DATA (localStorage)
+   PLAYER DATA — Supabase-backed
+   Table: player_inventory
+   Columns: id (uuid FK → auth.users), coins (int4), owned_sets (text[]),
+            equipped_set (text), free_crates (jsonb)
 ═══════════════════════════════════════════════════════ */
-let playerData = { coins:0, ownedSets:['wikipedia'], equippedSet:'wikipedia' };
+let playerData = { coins:0, ownedSets:['wikipedia'], equippedSet:'wikipedia', freeCrates:{bronze:0,silver:0,gold:0} };
 
-function getDataKey() { return `gm_data_${user?.id||'guest'}`; }
+// Debounce timer for saves
+let _saveTimer = null;
 
-function loadPlayerData() {
-    try {
-        const raw = localStorage.getItem(getDataKey());
-        if (raw) {
-            const d = JSON.parse(raw);
-            playerData = {
-                coins:       typeof d.coins === 'number' ? d.coins : 0,
-                ownedSets:   Array.isArray(d.ownedSets) ? d.ownedSets : ['wikipedia'],
-                equippedSet: d.equippedSet || 'wikipedia',
-            };
-            if (!playerData.ownedSets.includes('wikipedia')) playerData.ownedSets.unshift('wikipedia');
-        }
-    } catch(e) {}
+function showSaveIndicator(msg, isError) {
+    const el = document.getElementById('save-indicator');
+    el.textContent = msg || 'Saving…';
+    el.classList.toggle('error', !!isError);
+    el.classList.add('show');
+    clearTimeout(el._hideTimer);
+    el._hideTimer = setTimeout(() => el.classList.remove('show'), 2000);
+}
+
+/**
+ * Load inventory from Supabase.  Falls back to defaults if row doesn't exist yet.
+ */
+async function loadPlayerData() {
+    if (!user) return;
+    const { data, error } = await sb
+        .from('player_inventory')
+        .select('coins, owned_sets, equipped_set, free_crates')
+        .eq('id', user.id)
+        .maybeSingle();
+
+    if (error) {
+        console.warn('loadPlayerData error:', error.message);
+    }
+
+    if (data) {
+        const fc = data.free_crates || {};
+        playerData = {
+            coins:       typeof data.coins === 'number' ? data.coins : 0,
+            ownedSets:   Array.isArray(data.owned_sets) ? data.owned_sets : ['wikipedia'],
+            equippedSet: data.equipped_set || 'wikipedia',
+            freeCrates:  {
+                bronze: fc.bronze || 0,
+                silver: fc.silver || 0,
+                gold:   fc.gold   || 0,
+            },
+        };
+    } else {
+        playerData = { coins: 0, ownedSets: ['wikipedia'], equippedSet: 'wikipedia', freeCrates: {bronze:0,silver:0,gold:0} };
+    }
+
+    // Always guarantee wikipedia is in the set
+    if (!playerData.ownedSets.includes('wikipedia')) playerData.ownedSets.unshift('wikipedia');
     pieceStyle = (PIECE_SETS[playerData.equippedSet] || PIECE_SETS.wikipedia).url;
     updateCoinDisplay();
 }
 
-function savePlayerData() { localStorage.setItem(getDataKey(), JSON.stringify(playerData)); }
+/**
+ * Persist current playerData to Supabase (debounced 400 ms so rapid coin gains
+ * don't spam the DB — e.g. capturing multiple pieces quickly).
+ */
+function savePlayerData(immediate) {
+    if (!user) return;
+    clearTimeout(_saveTimer);
+    const doSave = async () => {
+        showSaveIndicator('Saving…', false);
+        const { error } = await sb.from('player_inventory').upsert({
+            id:           user.id,
+            coins:        playerData.coins,
+            owned_sets:   playerData.ownedSets,
+            equipped_set: playerData.equippedSet,
+            free_crates:  playerData.freeCrates,
+        });
+        if (error) {
+            console.error('savePlayerData error:', error.message);
+            showSaveIndicator('Save failed', true);
+        } else {
+            showSaveIndicator('Saved ✓', false);
+        }
+    };
+    if (immediate) { doSave(); }
+    else { _saveTimer = setTimeout(doSave, 400); }
+}
 
-function addCoins(amount) { playerData.coins += amount; savePlayerData(); updateCoinDisplay(); }
+function addCoins(amount) {
+    playerData.coins += amount;
+    savePlayerData();
+    updateCoinDisplay();
+}
+
 function updateCoinDisplay() { $('#coin-display').text(playerData.coins); }
 
 /* ═══════════════════════════════════════════════════════
    PIECE URL HELPER
 ═══════════════════════════════════════════════════════ */
 function pieceUrl(setId, colorPrefix, type) {
-    // colorPrefix: 'w' or 'b'
     const set = PIECE_SETS[setId] || PIECE_SETS.wikipedia;
-    const code = colorPrefix + type; // e.g. 'w' + 'K' = 'wK'
-    return set.url.replace('{piece}', code);
+    return set.url.replace('{piece}', colorPrefix + type);
 }
 
 /* ═══════════════════════════════════════════════════════
@@ -769,33 +813,20 @@ function startCollectionCycle() {
         updateCollectionPreviews();
     }, 900);
 }
-
 function stopCollectionCycle() {
     if (collectionCycleTimer) { clearInterval(collectionCycleTimer); collectionCycleTimer = null; }
 }
-
 function updateCollectionPreviews() {
-    const type = PIECE_TYPES[collectionPieceIdx]; // K Q R B N P
-
-    // Update top bar (always shows white pieces of current equipped set)
-    // Bar cells are identified by data-piece-idx
+    const type = PIECE_TYPES[collectionPieceIdx];
     $('#collection-piece-bar .piece-bar-cell img').each(function() {
-        const t = $(this).data('type');
-        const url = pieceUrl(playerData.equippedSet, 'w', t);
-        $(this).attr('src', url);
+        $(this).attr('src', pieceUrl(playerData.equippedSet, 'w', $(this).data('type')));
     });
-    // Highlight current type in bar
     $('#collection-piece-bar .piece-bar-col').each(function(i) {
         $(this).css('opacity', i === collectionPieceIdx ? '1' : '0.45');
     });
-
-    // Update every set card's preview image
     $('#collection-content .set-card').each(function() {
-        const setId = $(this).data('set-id');
-        const img   = $(this).find('.set-card-piece-img')[0];
-        if (img && setId) {
-            img.src = pieceUrl(setId, 'w', type);
-        }
+        const img = $(this).find('.set-card-piece-img')[0];
+        if (img) img.src = pieceUrl($(this).data('set-id'), 'w', type);
     });
 }
 
@@ -803,22 +834,20 @@ function updateCollectionPreviews() {
    COLLECTION RENDER
 ═══════════════════════════════════════════════════════ */
 function renderCollection() {
-    // Build top bar with 6 piece types
     const $bar = $('#collection-piece-bar').empty();
     PIECE_TYPES.forEach((type, i) => {
-        const col = $(`<div class="piece-bar-col" style="opacity:${i===0?1:0.45}"></div>`);
+        const col  = $(`<div class="piece-bar-col" style="opacity:${i===0?1:0.45}"></div>`);
         const cell = $(`<div class="piece-bar-cell"><img data-type="${type}" src="" alt="${PIECE_LABELS[i]}"></div>`);
         const lbl  = $(`<div class="piece-bar-label">${PIECE_LABELS[i]}</div>`);
         col.append(cell).append(lbl);
         $bar.append(col);
     });
 
-    // Build set cards
     const $c = $('#collection-content').empty();
     playerData.ownedSets.forEach(setId => {
         const set = PIECE_SETS[setId]; if (!set) return;
         const isEquipped = playerData.equippedSet === setId;
-        const card = $(`<div class="set-card ${isEquipped?'equipped':''}" data-set-id="${setId}">
+        $c.append($(`<div class="set-card ${isEquipped?'equipped':''}" data-set-id="${setId}">
             <img class="set-card-piece-img" src="" alt="${set.name}">
             <div class="set-card-name">${set.name}</div>
             <div class="set-card-rarity" style="color:${set.rarityColor}">${set.rarity}</div>
@@ -827,59 +856,47 @@ function renderCollection() {
                     ${isEquipped?'disabled':''}>
                 ${isEquipped ? '✓ Equipped' : 'Equip'}
             </button>
-        </div>`);
-        $c.append(card);
+        </div>`));
     });
-
-    // Start / restart the cycle (this will immediately set images)
     startCollectionCycle();
 }
 
 /* ═══════════════════════════════════════════════════════
-   EQUIP PIECE SET  — updates board live
+   EQUIP PIECE SET
 ═══════════════════════════════════════════════════════ */
 function equipSet(setId) {
     if (!playerData.ownedSets.includes(setId)) return;
     playerData.equippedSet = setId;
     pieceStyle = (PIECE_SETS[setId] || PIECE_SETS.wikipedia).url;
-    savePlayerData();
+    savePlayerData(true); // immediate — user explicitly chose this
 
-    // Live-update the board if it exists
     if (board) {
-        const cfg = board.cfg || {};
-        // Re-create the board with new theme to refresh pieces
         const pos    = game.fen();
         const orient = (myColor === 'b') ? 'black' : 'white';
-        // Only reinit if a game is active, otherwise just update pieceTheme
         if (currentMatchId) {
             board = Chessboard('board', {
                 draggable: true, position: pos, orientation: orient, pieceTheme: pieceStyle,
-                onDragStart: onDragStart, onDrop: onDrop, onSnapEnd: onSnapEnd
+                onDragStart, onDrop, onSnapEnd
             });
         } else {
             board = Chessboard('board', { position: 'start', draggable: false, pieceTheme: pieceStyle });
         }
     }
-
     renderCollection();
 }
 
 /* ═══════════════════════════════════════════════════════
    CRATE OPENING ANIMATION
 ═══════════════════════════════════════════════════════ */
-let crateOpenCallback = null;
-
 function openCrateAnimation(crateId, onDone) {
     const crate = CRATES[crateId];
-    crateOpenCallback = onDone;
 
-    const overlay = document.getElementById('crate-opening-overlay');
+    const overlay  = document.getElementById('crate-opening-overlay');
     const iconWrap = document.getElementById('crate-icon-wrap');
     const burst    = document.getElementById('crate-burst');
     const raysEl   = document.getElementById('crate-rays');
     const revInfo  = document.getElementById('crate-reveal-info');
 
-    // Reset state
     iconWrap.textContent = crate.icon;
     iconWrap.style.filter = `drop-shadow(0 0 28px ${crate.rayColor})`;
     iconWrap.style.animation = 'none';
@@ -890,56 +907,40 @@ function openCrateAnimation(crateId, onDone) {
     revInfo.style.display = 'none';
     revInfo.style.animation = 'none';
 
-    // Build SVG rays
-    const numRays = 12;
-    for (let i = 0; i < numRays; i++) {
+    for (let i = 0; i < 12; i++) {
         const ray = document.createElement('div');
         ray.className = 'ray';
         ray.style.setProperty('--ray-color', crate.rayColor);
-        ray.style.transform = `translateX(-50%) rotate(${i * (360/numRays)}deg)`;
-        ray.style.bottom = '50%';
-        ray.style.left = '50%';
+        ray.style.transform = `translateX(-50%) rotate(${i * 30}deg)`;
+        ray.style.bottom = '50%'; ray.style.left = '50%';
         raysEl.appendChild(ray);
     }
 
     overlay.style.display = 'flex';
-
-    // Phase 1: shake (already keyframed via CSS, just re-trigger)
     void iconWrap.offsetWidth;
     iconWrap.style.animation = 'crateShake 0.35s ease 0.1s';
+    setTimeout(() => raysEl.classList.add('visible'), 200);
 
-    // Phase 2: rays appear after short delay
-    setTimeout(() => {
-        raysEl.classList.add('visible');
-    }, 200);
-
-    // Phase 3: burst + sparks
     setTimeout(() => {
         burst.classList.add('pop');
-
-        // Spawn sparks
         const box = document.getElementById('crate-opening-box');
         const sparkColors = [crate.rayColor, '#ffffff', '#fffacd'];
         for (let i = 0; i < 18; i++) {
             const spark = document.createElement('div');
             spark.className = 'crate-spark';
-            const angle = (i / 18) * Math.PI * 2;
-            const dist  = 60 + Math.random() * 80;
+            const angle = (i / 18) * Math.PI * 2, dist = 60 + Math.random() * 80;
             spark.style.setProperty('--tx', Math.cos(angle)*dist + 'px');
             spark.style.setProperty('--ty', Math.sin(angle)*dist - 40 + 'px');
             spark.style.setProperty('--spark-color', sparkColors[i % sparkColors.length]);
             spark.style.setProperty('--spark-dur', (0.5 + Math.random()*0.5) + 's');
             spark.style.setProperty('--spark-delay', (Math.random()*0.15) + 's');
-            spark.style.left = '50%';
-            spark.style.top  = '42%';
+            spark.style.left = '50%'; spark.style.top = '42%';
             box.appendChild(spark);
             setTimeout(() => spark.remove(), 1200);
         }
 
-        // Execute the actual buy logic and get result
-        const result = onDone();   // { setId, isDupe, msg }
+        const result = onDone(); // { setId, isDupe, msg }
 
-        // Phase 4: show result text
         setTimeout(() => {
             raysEl.classList.remove('visible');
             const set = PIECE_SETS[result.setId];
@@ -952,13 +953,11 @@ function openCrateAnimation(crateId, onDone) {
             void revInfo.offsetWidth;
             revInfo.style.animation = 'revealInfoDrop 0.4s cubic-bezier(.2,1.4,.5,1) forwards';
         }, 700);
-
     }, 700);
 }
 
 function dismissCrateOverlay() {
     document.getElementById('crate-opening-overlay').style.display = 'none';
-    // Refresh shop after dismiss so coin counts and buttons update
     renderShop();
 }
 
@@ -967,7 +966,6 @@ function dismissCrateOverlay() {
 ═══════════════════════════════════════════════════════ */
 function renderShop() {
     const $c = $('#shop-content').empty();
-
     $c.append(`
         <div style="font-size:0.68rem;color:var(--muted);margin-bottom:14px;text-transform:uppercase;letter-spacing:0.07em;border:1px solid var(--border);padding:8px 10px;background:#1a1917;">
             Earn 🪙 by capturing pieces&nbsp;
@@ -975,22 +973,41 @@ function renderShop() {
             &nbsp;and winning matches <span style="color:var(--gold)">(+15)</span>
         </div>
     `);
-
     Object.entries(CRATES).forEach(([crateId, crate]) => {
+        const freeCount = playerData.freeCrates[crateId] || 0;
         const canAfford = playerData.coins >= crate.cost;
+        const hasFree   = freeCount > 0;
+        const canOpen   = hasFree || canAfford;
         const poolNames = crate.pool.map(s => PIECE_SETS[s].name).join(' · ');
-        const btnStyle  = canAfford ? `background:${crate.color};color:#1a1917;border:none;` : '';
+
+        let btnClass, btnStyle, btnLabel, priceHtml;
+        if (hasFree) {
+            btnClass  = 'crate-card-btn free-crate';
+            btnStyle  = '';
+            btnLabel  = '★ FREE (' + freeCount + ' left)';
+            priceHtml = '<span style="color:var(--accent);text-decoration:line-through;opacity:0.5;">' + crate.cost + ' \uD83E\uDE99</span> <span style="color:var(--accent);font-size:0.72rem;">FREE</span>';
+        } else if (canAfford) {
+            btnClass  = 'crate-card-btn';
+            btnStyle  = 'background:' + crate.color + ';color:#1a1917;border:none;';
+            btnLabel  = 'Open Crate';
+            priceHtml = crate.cost + ' \uD83E\uDE99';
+        } else {
+            btnClass  = 'crate-card-btn';
+            btnStyle  = '';
+            btnLabel  = 'Not enough coins';
+            priceHtml = crate.cost + ' \uD83E\uDE99';
+        }
 
         $c.append(`
             <div class="crate-card">
                 <div class="crate-card-body">
                     <div class="crate-card-name" style="color:${crate.color}">${crate.name}</div>
                     <div class="crate-card-pool">${poolNames}</div>
-                    <div class="crate-card-price">${crate.cost} 🪙</div>
-                    <button class="crate-card-btn" style="${btnStyle}"
+                    <div class="crate-card-price">${priceHtml}</div>
+                    <button class="${btnClass}" style="${btnStyle}"
                             onclick="buyCrate('${crateId}')"
-                            ${canAfford ? '' : 'disabled'}>
-                        ${canAfford ? 'Open Crate' : 'Not enough coins'}
+                            ${canOpen ? '' : 'disabled'}>
+                        ${btnLabel}
                     </button>
                 </div>
             </div>
@@ -999,31 +1016,35 @@ function renderShop() {
 }
 
 /* ═══════════════════════════════════════════════════════
-   BUY CRATE  (triggers animation, deducts coins inside callback)
+   BUY CRATE
 ═══════════════════════════════════════════════════════ */
 function buyCrate(crateId) {
     const crate = CRATES[crateId];
-    if (!crate || playerData.coins < crate.cost) return;
+    if (!crate) return;
+    const freeCount = playerData.freeCrates[crateId] || 0;
+    const useFree   = freeCount > 0;
+    if (!useFree && playerData.coins < crate.cost) return;
 
     openCrateAnimation(crateId, () => {
-        // This runs at the "burst" moment — deduct coins + pick reward
-        playerData.coins -= crate.cost;
+        if (useFree) {
+            playerData.freeCrates[crateId] = freeCount - 1;
+        } else {
+            playerData.coins -= crate.cost;
+        }
 
         const pool   = crate.pool;
         const picked = pool[Math.floor(Math.random() * pool.length)];
-
         let isDupe = false, msg = '';
         if (playerData.ownedSets.includes(picked)) {
-            const refund = Math.floor(crate.cost * 0.5);
-            playerData.coins += refund;
+            const refund = useFree ? 0 : Math.floor(crate.cost * 0.5);
+            if (refund > 0) playerData.coins += refund;
             isDupe = true;
-            msg = `Already owned — +${refund} 🪙 refunded`;
+            msg = refund > 0 ? `Already owned — +${refund} 🪙 refunded` : `Already owned — no refund on free crates`;
         } else {
             playerData.ownedSets.push(picked);
             msg = `New piece set unlocked!`;
         }
-
-        savePlayerData();
+        savePlayerData(true);
         updateCoinDisplay();
         return { setId: picked, isDupe, msg };
     });
@@ -1032,16 +1053,42 @@ function buyCrate(crateId) {
 /* ═══════════════════════════════════════════════════════
    ADMIN — GIVE COINS
 ═══════════════════════════════════════════════════════ */
+function showGiftCrateMsg(msg, success) {
+    $('#gift-crate-msg').text(msg).removeClass('hidden inline-error inline-success').addClass(success ? 'inline-success' : 'inline-error');
+    setTimeout(() => $('#gift-crate-msg').addClass('hidden'), 5000);
+}
+async function giveCrates() {
+    const targetRaw = $('#gift-crate-user-id').val().trim();
+    const amount    = parseInt($('#gift-crate-amount').val(), 10);
+    const crateType = $('#gift-crate-type').val();
+    if (!targetRaw)            { showGiftCrateMsg('Enter a profile ID or "all".', false); return; }
+    if (!amount || amount < 1) { showGiftCrateMsg('Enter a valid quantity (min 1).', false); return; }
+    if (!CRATES[crateType])    { showGiftCrateMsg('Select a valid crate type.', false); return; }
+
+    if (targetRaw.toLowerCase() === 'all') {
+        const { data:profiles, error } = await sb.from('profiles').select('id');
+        if (error || !profiles?.length) { showGiftCrateMsg('Failed to fetch profiles: '+(error?.message||'None found'), false); return; }
+        await globalChannel.send({ type:'broadcast', event:'crate_grant', payload:{ target:'all', crateType, amount } });
+        showGiftCrateMsg(`Sent ${amount}× ${CRATES[crateType].name} to all ${profiles.length} players.`, true);
+        $('#gift-crate-user-id').val(''); $('#gift-crate-amount').val('1');
+        return;
+    }
+    const { data:profile, error:profErr } = await sb.from('profiles').select('id,display_name').eq('id', targetRaw).maybeSingle();
+    if (profErr || !profile) { showGiftCrateMsg('Profile not found. Check the ID.', false); return; }
+    await globalChannel.send({ type:'broadcast', event:'crate_grant', payload:{ target:profile.id, crateType, amount } });
+    showGiftCrateMsg(`Sent ${amount}× ${CRATES[crateType].name} to ${profile.display_name||profile.id}.`, true);
+    $('#gift-crate-user-id').val(''); $('#gift-crate-amount').val('1');
+}
+
 function showGiftMsg(msg, success) {
     $('#gift-msg').text(msg).removeClass('hidden inline-error inline-success').addClass(success ? 'inline-success' : 'inline-error');
     setTimeout(() => $('#gift-msg').addClass('hidden'), 5000);
 }
-
 async function giveCoins() {
     const targetRaw = $('#gift-user-id').val().trim();
     const amount    = parseInt($('#gift-amount').val(), 10);
-    if (!targetRaw)           { showGiftMsg('Enter a profile ID or "all".', false); return; }
-    if (!amount || amount < 1){ showGiftMsg('Enter a valid coin amount (min 1).', false); return; }
+    if (!targetRaw)            { showGiftMsg('Enter a profile ID or "all".', false); return; }
+    if (!amount || amount < 1) { showGiftMsg('Enter a valid coin amount (min 1).', false); return; }
 
     if (targetRaw.toLowerCase() === 'all') {
         const { data:profiles, error } = await sb.from('profiles').select('id');
@@ -1051,7 +1098,6 @@ async function giveCoins() {
         $('#gift-user-id').val(''); $('#gift-amount').val('');
         return;
     }
-
     const { data:profile, error:profErr } = await sb.from('profiles').select('id,display_name').eq('id', targetRaw).maybeSingle();
     if (profErr || !profile) { showGiftMsg('Profile not found. Check the ID.', false); return; }
     await globalChannel.send({ type:'broadcast', event:'coin_grant', payload:{ target:profile.id, amount } });
@@ -1079,12 +1125,23 @@ function subscribeGlobal() {
             $('body').addClass('sound-flash');
             setTimeout(()=>$('body').removeClass('sound-flash'), 600);
         })
-        .on('broadcast', { event:'stop_sound'  }, ()=> { if(currentAudio){currentAudio.pause();currentAudio.currentTime=0;} })
-        .on('broadcast', { event:'coin_grant'  }, (p)=> {
+        .on('broadcast', { event:'stop_sound'  }, () => { if(currentAudio){currentAudio.pause();currentAudio.currentTime=0;} })
+        .on('broadcast', { event:'coin_grant'  }, (p) => {
             if (!user) return;
-            if (p.payload.target==='all' || p.payload.target===user.id) {
+            if (p.payload.target === 'all' || p.payload.target === user.id) {
                 addCoins(p.payload.amount);
                 showBanner('Admin', `+${p.payload.amount} coins granted to you!`, '');
+            }
+        })
+        .on('broadcast', { event:'crate_grant' }, (p) => {
+            if (!user) return;
+            if (p.payload.target === 'all' || p.payload.target === user.id) {
+                const ct = p.payload.crateType, amt = p.payload.amount;
+                if (!playerData.freeCrates[ct]) playerData.freeCrates[ct] = 0;
+                playerData.freeCrates[ct] += amt;
+                savePlayerData(true);
+                renderShop(); // refresh button if shop is open
+                showBanner('Admin', `You received ${amt}× ${CRATES[ct]?.name || ct}! Check the Shop.`, '');
             }
         })
         .subscribe();
@@ -1092,23 +1149,23 @@ function subscribeGlobal() {
 
 let bannerTimer = null;
 function showBanner(sender, msg, pfp) {
-    if (pfp) $('#global-banner-pfp').attr('src',pfp).show(); else $('#global-banner-pfp').hide();
+    if (pfp) $('#global-banner-pfp').attr('src', pfp).show(); else $('#global-banner-pfp').hide();
     $('#global-banner-sender').text(sender+': ');
     $('#global-banner-text').text(msg);
     $('#global-banner').addClass('show');
     if (bannerTimer) clearTimeout(bannerTimer);
-    bannerTimer = setTimeout(()=>$('#global-banner').removeClass('show'), 6000);
+    bannerTimer = setTimeout(() => $('#global-banner').removeClass('show'), 6000);
 }
 
 /* ═══════════════════════════════════════════════════════
    ADMIN — BROADCAST / PARTY / SOUND
 ═══════════════════════════════════════════════════════ */
 function updateBroadcastPreview() {
-    const msg=$('#admin-msg').val().trim(), name=$('#my-display-name').text();
+    const msg = $('#admin-msg').val().trim(), name = $('#my-display-name').text();
     $('#broadcast-preview-text').text(msg ? `${name}: ${msg}` : '—');
 }
 async function sendBroadcast() {
-    const msg=$('#admin-msg').val().trim(); if(!msg) return;
+    const msg = $('#admin-msg').val().trim(); if (!msg) return;
     await globalChannel.send({ type:'broadcast', event:'announcement', payload:{ name:$('#my-display-name').text(), msg, pfp:$('#my-pfp').attr('src')||'' } });
     $('#admin-msg').val(''); $('#broadcast-preview-text').text('—');
 }
@@ -1123,77 +1180,108 @@ async function loadSoundList() {
     });
 }
 async function broadcastSound() {
-    const file=$('#admin-sound-file')[0].files[0]; let url=$('#admin-sound-select').val();
+    const file = $('#admin-sound-file')[0].files[0]; let url = $('#admin-sound-select').val();
     if (file) {
         const { data:ex } = await sb.storage.from('avatars').list('global_sounds');
-        if (ex?.find(f=>f.name===file.name)) { url=sb.storage.from('avatars').getPublicUrl('global_sounds/'+file.name).data.publicUrl; showSoundMsg('Reusing: '+file.name,true); }
-        else { const path='global_sounds/'+file.name; await sb.storage.from('avatars').upload(path,file); url=sb.storage.from('avatars').getPublicUrl(path).data.publicUrl; showSoundMsg('Uploaded: '+file.name,true); await loadSoundList(); }
+        if (ex?.find(f => f.name === file.name)) {
+            url = sb.storage.from('avatars').getPublicUrl('global_sounds/'+file.name).data.publicUrl;
+            showSoundMsg('Reusing: '+file.name, true);
+        } else {
+            const path = 'global_sounds/'+file.name;
+            await sb.storage.from('avatars').upload(path, file);
+            url = sb.storage.from('avatars').getPublicUrl(path).data.publicUrl;
+            showSoundMsg('Uploaded: '+file.name, true);
+            await loadSoundList();
+        }
         $('#admin-sound-file').val('');
     }
-    if (!url) { showSoundMsg('Select or upload a sound first.',false); return; }
+    if (!url) { showSoundMsg('Select or upload a sound first.', false); return; }
     await globalChannel.send({ type:'broadcast', event:'play_sound', payload:{ url } });
 }
-function showSoundMsg(msg,ok) { $('#sound-upload-msg').text(msg).removeClass('hidden inline-error inline-success').addClass(ok?'inline-success':'inline-error'); setTimeout(()=>$('#sound-upload-msg').addClass('hidden'),3000); }
+function showSoundMsg(msg, ok) {
+    $('#sound-upload-msg').text(msg).removeClass('hidden inline-error inline-success').addClass(ok?'inline-success':'inline-error');
+    setTimeout(() => $('#sound-upload-msg').addClass('hidden'), 3000);
+}
 async function stopAllSounds() { await globalChannel.send({ type:'broadcast', event:'stop_sound' }); }
 
 /* ═══════════════════════════════════════════════════════
    AUTH & PROFILE
 ═══════════════════════════════════════════════════════ */
 async function handleAuth(type) {
-    const email=$('#auth-email').val().trim(), pass=$('#auth-pass').val();
+    const email = $('#auth-email').val().trim(), pass = $('#auth-pass').val();
     $('#auth-error').addClass('hidden').text('');
-    if (!email||!pass) { showAuthError('Please fill in both fields.'); return; }
-    const { error } = type==='login' ? await sb.auth.signInWithPassword({email,password:pass}) : await sb.auth.signUp({email,password:pass});
+    if (!email || !pass) { showAuthError('Please fill in both fields.'); return; }
+    const { error } = type === 'login'
+        ? await sb.auth.signInWithPassword({email, password:pass})
+        : await sb.auth.signUp({email, password:pass});
     if (error) showAuthError(error.message); else checkSession();
 }
 function showAuthError(msg) { $('#auth-error').text(msg).removeClass('hidden'); }
 function toggleForgot() { $('#forgot-panel').toggleClass('hidden'); $('#reset-msg').addClass('hidden').text(''); $('#reset-email').val(''); }
 async function sendReset() {
-    const email=$('#reset-email').val().trim();
+    const email = $('#reset-email').val().trim();
     if (!email) { $('#reset-msg').text('Enter your email first.').removeClass('hidden inline-success').addClass('inline-error'); return; }
     await sb.auth.resetPasswordForEmail(email);
     $('#reset-msg').text('Reset link sent!').removeClass('hidden inline-error').addClass('inline-success');
-    setTimeout(()=>$('#forgot-panel').addClass('hidden'),3000);
+    setTimeout(() => $('#forgot-panel').addClass('hidden'), 3000);
 }
+
 async function checkSession() {
     const { data } = await sb.auth.getUser();
     if (data?.user) {
         user = data.user;
-        const { data:prof } = await sb.from('profiles').select('*').eq('id',user.id).maybeSingle();
+        const { data:prof } = await sb.from('profiles').select('*').eq('id', user.id).maybeSingle();
         const displayName = prof?.display_name || emailToName(user.email);
         const pfpUrl      = prof?.pfp_url || DEFAULT_AVATAR;
         isAdmin           = prof?.is_admin === true;
-        $('#my-display-name').text(displayName); $('#my-email-sub').text(user.email); $('#my-pfp').attr('src',pfpUrl);
-        isAdmin ? ($('#admin-badge').removeClass('hidden'),$('#admin-panel-btn').removeClass('hidden')) : ($('#admin-badge').addClass('hidden'),$('#admin-panel-btn').addClass('hidden'));
+        $('#my-display-name').text(displayName);
+        $('#my-email-sub').text(user.email);
+        $('#my-pfp').attr('src', pfpUrl);
+        isAdmin
+            ? ($('#admin-badge').removeClass('hidden'), $('#admin-panel-btn').removeClass('hidden'))
+            : ($('#admin-badge').addClass('hidden'), $('#admin-panel-btn').addClass('hidden'));
         $('#set-name').val(displayName);
-        if (prof?.pfp_url) { $('#pfp-preview').attr('src',prof.pfp_url).show(); $('#pfp-upload-label').css('border-color','var(--accent)'); }
-        loadPlayerData();
+        if (prof?.pfp_url) { $('#pfp-preview').attr('src', prof.pfp_url).show(); $('#pfp-upload-label').css('border-color','var(--accent)'); }
+
+        // Load cloud inventory
+        await loadPlayerData();
+
         $('#user-profile-bar').removeClass('hidden');
         showView('view-lobby');
-    } else { showView('view-auth'); }
+    } else {
+        showView('view-auth');
+    }
 }
+
 function previewPfp(event) {
-    const file=event.target.files[0]; if(!file) return;
-    const r=new FileReader(); r.onload=e=>{$('#pfp-preview').attr('src',e.target.result).show();$('#pfp-upload-label').css('border-color','var(--accent)');};
+    const file = event.target.files[0]; if (!file) return;
+    const r = new FileReader();
+    r.onload = e => { $('#pfp-preview').attr('src', e.target.result).show(); $('#pfp-upload-label').css('border-color','var(--accent)'); };
     r.readAsDataURL(file);
 }
+
 async function updateProfile() {
-    const name=$('#set-name').val().trim()||emailToName(user.email);
-    const file=$('#pfp-file')[0].files[0];
-    let pfpUrl=(await sb.from('profiles').select('pfp_url').eq('id',user.id).maybeSingle())?.data?.pfp_url||'';
+    const name = $('#set-name').val().trim() || emailToName(user.email);
+    const file = $('#pfp-file')[0].files[0];
+    let pfpUrl = (await sb.from('profiles').select('pfp_url').eq('id', user.id).maybeSingle())?.data?.pfp_url || '';
     if (file) {
         $('#pfp-upload-status').text('Uploading...');
-        const path=`${user.id}/avatar.${file.name.split('.').pop()}`;
-        const {error:upErr}=await sb.storage.from('avatars').upload(path,file,{upsert:true});
-        if (upErr) { showProfileMsg('Upload failed: '+upErr.message,false); $('#pfp-upload-status').text(''); return; }
-        pfpUrl=sb.storage.from('avatars').getPublicUrl(path).data.publicUrl+'?t='+Date.now();
+        const path = `${user.id}/avatar.${file.name.split('.').pop()}`;
+        const { error:upErr } = await sb.storage.from('avatars').upload(path, file, {upsert:true});
+        if (upErr) { showProfileMsg('Upload failed: '+upErr.message, false); $('#pfp-upload-status').text(''); return; }
+        pfpUrl = sb.storage.from('avatars').getPublicUrl(path).data.publicUrl + '?t=' + Date.now();
         $('#pfp-upload-status').text('Uploaded ✓');
     }
-    const {error}=await sb.from('profiles').upsert({id:user.id,display_name:name,pfp_url:pfpUrl});
-    if (error) { showProfileMsg('Save failed: '+error.message,false); return; }
-    showProfileMsg('Profile saved!',true); await checkSession();
+    const { error } = await sb.from('profiles').upsert({id:user.id, display_name:name, pfp_url:pfpUrl});
+    if (error) { showProfileMsg('Save failed: '+error.message, false); return; }
+    showProfileMsg('Profile saved!', true);
+    await checkSession();
 }
-function showProfileMsg(msg,ok) { $('#profile-msg').text(msg).removeClass('hidden inline-error inline-success').addClass(ok?'inline-success':'inline-error'); setTimeout(()=>$('#profile-msg').addClass('hidden'),4000); }
+
+function showProfileMsg(msg, ok) {
+    $('#profile-msg').text(msg).removeClass('hidden inline-error inline-success').addClass(ok?'inline-success':'inline-error');
+    setTimeout(() => $('#profile-msg').addClass('hidden'), 4000);
+}
 async function signOut() { await sb.auth.signOut(); location.reload(); }
 
 /* ═══════════════════════════════════════════════════════
@@ -1203,9 +1291,8 @@ function lockForMatchmaking() {
     matchReady = false;
     $('#board-lock-overlay').removeClass('hidden');
     $('#chat-logs').addClass('locked');
-    $('#chat-input').prop('disabled',true).attr('placeholder','Match not started yet…');
+    $('#chat-input').prop('disabled', true).attr('placeholder', 'Match not started yet…');
     $('#chat-locked-hint').removeClass('hidden');
-    // Show cancel button, hide resign
     $('#resign-btn').addClass('hidden');
     $('#cancel-mm-btn').removeClass('hidden');
 }
@@ -1213,9 +1300,8 @@ function unlockAfterMatch() {
     matchReady = true;
     $('#board-lock-overlay').addClass('hidden');
     $('#chat-logs').removeClass('locked');
-    $('#chat-input').prop('disabled',false).attr('placeholder','Message… (Enter to send)');
+    $('#chat-input').prop('disabled', false).attr('placeholder', 'Message… (Enter to send)');
     $('#chat-locked-hint').addClass('hidden');
-    // Show resign, hide cancel
     $('#cancel-mm-btn').addClass('hidden');
     $('#resign-btn').removeClass('hidden');
 }
@@ -1241,17 +1327,17 @@ async function cancelMatchmaking() {
 ═══════════════════════════════════════════════════════ */
 function removeGreyDots() { $('#board .square-55d63').removeClass('highlight-move highlight-capture'); }
 function addGreyDots(sq) {
-    game.moves({square:sq,verbose:true}).forEach(m=>{
-        $(`#board .square-${m.to}`).addClass(game.get(m.to)?'highlight-capture':'highlight-move');
+    game.moves({square:sq, verbose:true}).forEach(m => {
+        $(`#board .square-${m.to}`).addClass(game.get(m.to) ? 'highlight-capture' : 'highlight-move');
     });
 }
 
 /* ═══════════════════════════════════════════════════════
-   BOARD CALLBACKS (extracted for reuse in equipSet)
+   BOARD CALLBACKS
 ═══════════════════════════════════════════════════════ */
 function onDragStart(source, piece) {
     if (!matchReady) return false;
-    if (game.game_over()||game.turn()!==myColor||piece[0]!==myColor) return false;
+    if (game.game_over() || game.turn() !== myColor || piece[0] !== myColor) return false;
     addGreyDots(source);
 }
 function onDrop(source, target) {
@@ -1264,135 +1350,152 @@ function onSnapEnd() { removeGreyDots(); board.position(game.fen()); }
 /* ═══════════════════════════════════════════════════════
    MATCHMAKING & GAME
 ═══════════════════════════════════════════════════════ */
-function setOpponent(name, pfp) { $('#opp-name-display').text(name||'Opponent'); $('#opp-pfp').attr('src',pfp||DEFAULT_AVATAR); }
+function setOpponent(name, pfp) { $('#opp-name-display').text(name||'Opponent'); $('#opp-pfp').attr('src', pfp||DEFAULT_AVATAR); }
 function setMatchStatus(state, text) { $('#match-status').removeClass('searching playing').addClass(state); $('#match-status-text').text(text); }
 
 async function findMatch() {
     showView('view-game');
-    setMatchStatus('searching','Searching for opponent...');
+    setMatchStatus('searching', 'Searching for opponent...');
     $('#board-idle-msg').addClass('hidden');
-    $('#opp-pfp').attr('src',DEFAULT_AVATAR);
+    $('#opp-pfp').attr('src', DEFAULT_AVATAR);
     lockForMatchmaking();
     winCoinAwarded = false;
 
-    const myName=$('#my-display-name').text(), myPfp=$('#my-pfp').attr('src')||DEFAULT_AVATAR;
-    await sb.from('matches').delete().eq('status','waiting').eq('white_player',user.email);
+    const myName = $('#my-display-name').text(), myPfp = $('#my-pfp').attr('src') || DEFAULT_AVATAR;
+    await sb.from('matches').delete().eq('status','waiting').eq('white_player', user.email);
 
-    const cutoff=new Date(Date.now()-2*60*1000).toISOString();
-    const {data:open}=await sb.from('matches').select('*').eq('status','waiting').neq('white_player',user.email).gte('created_at',cutoff).limit(1);
+    const cutoff = new Date(Date.now() - 2*60*1000).toISOString();
+    const { data:open } = await sb.from('matches').select('*').eq('status','waiting').neq('white_player', user.email).gte('created_at', cutoff).limit(1);
 
-    if (open?.length>0) {
-        currentMatchId=open[0].id; myColor='b';
-        await sb.from('matches').update({black_player:user.email,black_display:myName,black_pfp:myPfp,status:'playing'}).eq('id',currentMatchId);
-        if (open[0].fen) try{game.load(open[0].fen);}catch(e){}
-        setOpponent(open[0].white_display||emailToName(open[0].white_player),open[0].white_pfp||DEFAULT_AVATAR);
-        setMatchStatus('playing','Match in progress');
+    if (open?.length > 0) {
+        currentMatchId = open[0].id; myColor = 'b';
+        await sb.from('matches').update({black_player:user.email, black_display:myName, black_pfp:myPfp, status:'playing'}).eq('id', currentMatchId);
+        if (open[0].fen) try { game.load(open[0].fen); } catch(e) {}
+        setOpponent(open[0].white_display || emailToName(open[0].white_player), open[0].white_pfp || DEFAULT_AVATAR);
+        setMatchStatus('playing', 'Match in progress');
         unlockAfterMatch();
         subscribe(currentMatchId); initGame('black'); updateUI();
     } else {
-        const {data:created,error:insertErr}=await sb.from('matches').insert([{
-            white_player:user.email,white_display:myName,white_pfp:myPfp,status:'waiting',fen:new Chess().fen()
+        const { data:created, error:insertErr } = await sb.from('matches').insert([{
+            white_player:user.email, white_display:myName, white_pfp:myPfp, status:'waiting', fen:new Chess().fen()
         }]).select();
-        if (insertErr||!created?.length) { $('#match-error').text('Could not create match: '+(insertErr?.message||'Unknown error')).removeClass('hidden'); showView('view-lobby'); return; }
-        currentMatchId=created[0].id; myColor='w';
+        if (insertErr || !created?.length) {
+            $('#match-error').text('Could not create match: '+(insertErr?.message||'Unknown error')).removeClass('hidden');
+            showView('view-lobby'); return;
+        }
+        currentMatchId = created[0].id; myColor = 'w';
         subscribe(currentMatchId); initGame('white');
     }
 }
 
 function initGame(orient) {
     board = Chessboard('board', {
-        draggable:true, position:game.fen(), orientation:orient, pieceTheme:pieceStyle,
+        draggable: true, position: game.fen(), orientation: orient, pieceTheme: pieceStyle,
         onDragStart, onDrop, onSnapEnd
     });
 }
 
 async function handleMove(source, target) {
-    const move=game.move({from:source,to:target,promotion:'q'});
+    const move = game.move({from:source, to:target, promotion:'q'});
     if (!move) return 'snapback';
-    if (move.captured) { const c=COIN_VALUES[move.captured]||0; if(c>0){addCoins(c);showCoinFloater(move.to,c);} }
+    if (move.captured) {
+        const c = COIN_VALUES[move.captured] || 0;
+        if (c > 0) { addCoins(c); showCoinFloater(move.to, c); }
+    }
     updateUI();
-    await sb.from('matches').update({fen:game.fen()}).eq('id',currentMatchId);
+    await sb.from('matches').update({fen:game.fen()}).eq('id', currentMatchId);
 }
 
 function subscribe(id) {
     sb.channel(`match_${id}`)
-        .on('postgres_changes',{event:'UPDATE',schema:'public',table:'matches',filter:`id=eq.${id}`},(payload)=>{
-            const d=payload.new;
-            if (myColor==='w'&&d.status==='playing'&&d.black_player&&$('#opp-name-display').text()==='Waiting...') {
-                setOpponent(d.black_display||emailToName(d.black_player),d.black_pfp||DEFAULT_AVATAR);
-                setMatchStatus('playing','Match in progress'); unlockAfterMatch();
+        .on('postgres_changes', {event:'UPDATE', schema:'public', table:'matches', filter:`id=eq.${id}`}, (payload) => {
+            const d = payload.new;
+            if (myColor==='w' && d.status==='playing' && d.black_player && $('#opp-name-display').text()==='Waiting...') {
+                setOpponent(d.black_display || emailToName(d.black_player), d.black_pfp || DEFAULT_AVATAR);
+                setMatchStatus('playing', 'Match in progress');
+                unlockAfterMatch();
             }
-            if (d.status==='resigned') {
+            if (d.status === 'resigned') {
                 if ($('#game-result-overlay').hasClass('hidden')) {
-                    if (!winCoinAwarded){winCoinAwarded=true;addCoins(WIN_COINS);}
-                    showResult('win','🏆','You Win!',`Opponent resigned  •  +${WIN_COINS} 🪙`);
+                    if (!winCoinAwarded) { winCoinAwarded = true; addCoins(WIN_COINS); }
+                    showResult('win', '🏆', 'You Win!', `Opponent resigned  •  +${WIN_COINS} 🪙`);
                 }
                 return;
             }
-            if (d.status==='finished') return;
-            if (d.fen&&d.fen!==game.fen()) { try{game.load(d.fen);}catch(e){return;} board.position(game.fen()); updateUI(); }
+            if (d.status === 'finished') return;
+            if (d.fen && d.fen !== game.fen()) {
+                try { game.load(d.fen); } catch(e) { return; }
+                board.position(game.fen()); updateUI();
+            }
         }).subscribe();
 
-    sb.channel(`chat_${id}`).on('broadcast',{event:'msg'},(p)=>appendChat(p.payload.user,p.payload.text,false)).subscribe();
+    sb.channel(`chat_${id}`).on('broadcast', {event:'msg'}, (p) => appendChat(p.payload.user, p.payload.text, false)).subscribe();
 }
 
 function appendChat(name, text, isMe) {
-    const color=isMe?'#b5d97a':'#81b64c';
+    const color = isMe ? '#b5d97a' : '#81b64c';
     $('#chat-logs').append(`<div><b style="color:${color}">${isMe?'Me':name}:</b> ${$('<span>').text(text).html()}</div>`);
-    const b=document.getElementById('chat-logs'); b.scrollTop=b.scrollHeight;
+    const b = document.getElementById('chat-logs'); b.scrollTop = b.scrollHeight;
 }
 async function sendChat() {
-    if (!matchReady) return; const text=$('#chat-input').val().trim(); if(!text) return;
-    sb.channel(`chat_${currentMatchId}`).send({type:'broadcast',event:'msg',payload:{user:$('#my-display-name').text(),text}});
-    appendChat('',text,true); $('#chat-input').val('');
+    if (!matchReady) return;
+    const text = $('#chat-input').val().trim(); if (!text) return;
+    sb.channel(`chat_${currentMatchId}`).send({type:'broadcast', event:'msg', payload:{user:$('#my-display-name').text(), text}});
+    appendChat('', text, true); $('#chat-input').val('');
 }
 function promptResign()  { $('#resign-confirm').removeClass('hidden'); }
 function cancelResign()  { $('#resign-confirm').addClass('hidden'); }
 async function confirmResign() {
     $('#resign-confirm').addClass('hidden');
-    await sb.from('matches').update({status:'resigned'}).eq('id',currentMatchId);
-    showResult('lose','☠','You Resigned','Better luck next time');
+    await sb.from('matches').update({status:'resigned'}).eq('id', currentMatchId);
+    showResult('lose', '☠', 'You Resigned', 'Better luck next time');
 }
-window.addEventListener('beforeunload',()=>{ if(currentMatchId) sb.from('matches').update({status:'resigned'}).eq('id',currentMatchId); });
+window.addEventListener('beforeunload', () => {
+    if (currentMatchId) sb.from('matches').update({status:'resigned'}).eq('id', currentMatchId);
+});
 
 /* ═══════════════════════════════════════════════════════
    UI UPDATES
 ═══════════════════════════════════════════════════════ */
 function updateUI() {
-    const isWhiteTurn=game.turn()==='w', isMyTurn=game.turn()===myColor;
-    let txt=isWhiteTurn?'♔ Turn: White':'♚ Turn: Black';
+    const isWhiteTurn = game.turn() === 'w', isMyTurn = game.turn() === myColor;
+    let txt = isWhiteTurn ? '♔ Turn: White' : '♚ Turn: Black';
     if (game.in_checkmate()) {
-        const winner=isWhiteTurn?'Black':'White';
-        const iWon=(winner==='White'&&myColor==='w')||(winner==='Black'&&myColor==='b');
+        const winner = isWhiteTurn ? 'Black' : 'White';
+        const iWon   = (winner==='White'&&myColor==='w') || (winner==='Black'&&myColor==='b');
         $('#turn-display').text(`☠ Checkmate — ${winner} wins!`);
-        endMatch('checkmate',iWon); return;
+        endMatch('checkmate', iWon); return;
     }
-    if (game.in_draw()) { $('#turn-display').text('½ Draw'); endMatch('draw',null); return; }
-    if (game.in_check()) txt+=' ⚠ CHECK';
-    $('#turn-display').text(txt).toggleClass('your-turn-glow',isMyTurn);
-    const hist=document.getElementById('move-history'); hist.innerHTML='';
-    const moves=game.history();
-    for(let i=0;i<moves.length;i+=2){
-        const e=document.createElement('div'); e.className='move-entry';
-        e.innerHTML=`<span>${Math.floor(i/2)+1}.</span>${moves[i]}${moves[i+1]?` <span style="color:var(--muted)">${moves[i+1]}</span>`:''}`; hist.appendChild(e);
+    if (game.in_draw()) { $('#turn-display').text('½ Draw'); endMatch('draw', null); return; }
+    if (game.in_check()) txt += ' ⚠ CHECK';
+    $('#turn-display').text(txt).toggleClass('your-turn-glow', isMyTurn);
+    const hist = document.getElementById('move-history'); hist.innerHTML = '';
+    const moves = game.history();
+    for (let i = 0; i < moves.length; i += 2) {
+        const e = document.createElement('div'); e.className = 'move-entry';
+        e.innerHTML = `<span>${Math.floor(i/2)+1}.</span>${moves[i]}${moves[i+1]?` <span style="color:var(--muted)">${moves[i+1]}</span>`:''}`;
+        hist.appendChild(e);
     }
-    hist.scrollTop=hist.scrollHeight;
+    hist.scrollTop = hist.scrollHeight;
 }
-function showResult(type,icon,title,sub) {
-    const el=$('#game-result-overlay');
+
+function showResult(type, icon, title, sub) {
+    const el = $('#game-result-overlay');
     el.removeClass('hidden result-win result-lose result-draw').addClass('result-'+type);
     $('#result-icon').text(icon); $('#result-title').text(title); $('#result-sub').text(sub);
-    if(board) board.draggable=false;
+    if (board) board.draggable = false;
 }
-async function endMatch(reason,iWon) {
-    if(currentMatchId) await sb.from('matches').update({status:'finished',result:reason}).eq('id',currentMatchId);
-    if(reason==='draw') showResult('draw','½','Draw','The game is a draw');
-    else if(iWon){ if(!winCoinAwarded){winCoinAwarded=true;addCoins(WIN_COINS);} showResult('win','🏆','You Win!',`Checkmate  •  +${WIN_COINS} 🪙`); }
-    else showResult('lose','☠','You Lose','Checkmate');
+async function endMatch(reason, iWon) {
+    if (currentMatchId) await sb.from('matches').update({status:'finished', result:reason}).eq('id', currentMatchId);
+    if (reason === 'draw') showResult('draw', '½', 'Draw', 'The game is a draw');
+    else if (iWon) {
+        if (!winCoinAwarded) { winCoinAwarded = true; addCoins(WIN_COINS); }
+        showResult('win', '🏆', 'You Win!', `Checkmate  •  +${WIN_COINS} 🪙`);
+    } else showResult('lose', '☠', 'You Lose', 'Checkmate');
 }
 function leaveGame() {
-    currentMatchId=null; matchReady=false; winCoinAwarded=false;
-    game=new Chess(); board.position('start');
+    currentMatchId = null; matchReady = false; winCoinAwarded = false;
+    game = new Chess(); board.position('start');
     $('#game-result-overlay').addClass('hidden'); $('#board-idle-msg').removeClass('hidden');
     showView('view-lobby');
 }
@@ -1401,13 +1504,12 @@ function leaveGame() {
    VIEW MANAGER
 ═══════════════════════════════════════════════════════ */
 function showView(id) {
-    // Stop collection cycle when leaving collection
     if (id !== 'view-collection') stopCollectionCycle();
     $('.tab-content').addClass('hidden');
     $('#'+id).removeClass('hidden');
-    if (id==='view-admin')      { updateBroadcastPreview(); loadSoundList(); }
-    if (id==='view-shop')       { renderShop(); }
-    if (id==='view-collection') { renderCollection(); }
+    if (id === 'view-admin')      { updateBroadcastPreview(); loadSoundList(); }
+    if (id === 'view-shop')       { renderShop(); }
+    if (id === 'view-collection') { renderCollection(); }
 }
 
 function emailToName(email) { return email ? email.split('@')[0] : 'Player'; }
@@ -1417,15 +1519,45 @@ function emailToName(email) { return email ? email.split('@')[0] : 'Player'; }
 ═══════════════════════════════════════════════════════ */
 $(document).ready(() => {
     board = Chessboard('board', { position:'start', draggable:false, pieceTheme:pieceStyle });
-
-    // Prevent page scroll when touch-dragging pieces on mobile
-    document.getElementById('board-wrapper').addEventListener('touchmove', function(e) {
-        e.preventDefault();
-    }, { passive: false });
-
+    document.getElementById('board-wrapper').addEventListener('touchmove', e => e.preventDefault(), { passive: false });
     subscribeGlobal();
     checkSession();
 });
 </script>
+
+<!--
+═══════════════════════════════════════════════════════
+  SUPABASE SETUP — run this SQL in your Supabase SQL editor
+  to create the player_inventory table:
+
+  create table if not exists public.player_inventory (
+    id           uuid primary key references auth.users(id) on delete cascade,
+    coins        integer not null default 0,
+    owned_sets   text[]  not null default array['wikipedia'],
+    equipped_set text    not null default 'wikipedia',
+    free_crates  jsonb   not null default '{"bronze":0,"silver":0,"gold":0}'::jsonb,
+    updated_at   timestamptz not null default now()
+  );
+
+  -- Enable Row Level Security
+  alter table public.player_inventory enable row level security;
+
+  -- Each user can only read/write their own row
+  create policy "Users manage own inventory"
+    on public.player_inventory
+    for all
+    using  (auth.uid() = id)
+    with check (auth.uid() = id);
+
+  -- Auto-update the updated_at timestamp
+  create or replace function update_updated_at()
+  returns trigger language plpgsql as $$
+  begin new.updated_at = now(); return new; end; $$;
+
+  create trigger inventory_updated_at
+    before update on public.player_inventory
+    for each row execute procedure update_updated_at();
+═══════════════════════════════════════════════════════
+-->
 </body>
 </html>
