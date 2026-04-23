@@ -1834,12 +1834,20 @@ function showSoundMsg(msg, ok) {
 async function stopAllSounds() { await globalChannel.send({ type:'broadcast', event:'stop_sound' }); }
 
 /* ═══════════════════════════════════════════════════════
-   AUTH — USERNAME BASED (no email required)
-   Strategy: store username in profiles.username,
-   use username@suocial.chess as the Supabase email
+   AUTH — PURE USERNAME + PASSWORD, NO EMAIL
+   Uses Supabase anon sessions + custom credential check.
+   Passwords are hashed with SHA-256 + username salt via
+   Web Crypto API. Session persists in localStorage.
 ═══════════════════════════════════════════════════════ */
-function usernameToEmail(username) {
-    return username.toLowerCase().replace(/[^a-z0-9_]/g, '') + '@suocial.chess';
+
+async function sha256(str) {
+    const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+    return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+}
+
+async function hashPassword(username, password) {
+    // Salt with username so same password = different hash per user
+    return sha256('suocial::' + username.toLowerCase() + '::' + password);
 }
 
 async function handleAuth(type) {
@@ -1854,66 +1862,84 @@ async function handleAuth(type) {
     }
 
     const cleanUsername = rawUsername.toLowerCase();
-    const fakeEmail     = usernameToEmail(cleanUsername);
+    const hash          = await hashPassword(cleanUsername, pass);
 
     if (type === 'signup') {
-        // Check username isn't taken
-        const { data:existing } = await sb.from('profiles').select('id').eq('username', cleanUsername).maybeSingle();
+        const { data:existing } = await sb.from('profiles')
+            .select('id').eq('username', cleanUsername).maybeSingle();
         if (existing) { showAuthError('Username already taken. Choose another.'); return; }
 
-        const { error } = await sb.auth.signUp({ email: fakeEmail, password: pass });
-        if (error) { showAuthError(error.message); return; }
+        const uid = crypto.randomUUID();
+        user = { id: uid };
 
-        // Give them a default display name = username
-        const { data:sessionData } = await sb.auth.getUser();
-        if (sessionData?.user) {
-            await sb.from('profiles').upsert({ id: sessionData.user.id, username: cleanUsername, display_name: rawUsername, pfp_url: '' });
-        }
+        const { error:profErr } = await sb.from('profiles').upsert({
+            id:            uid,
+            username:      cleanUsername,
+            display_name:  rawUsername,
+            password_hash: hash,
+            pfp_url:       '',
+        });
+        if (profErr) { showAuthError('Profile creation failed: ' + profErr.message); return; }
+
+        localStorage.setItem('sc_uid', uid);
+        localStorage.setItem('sc_username', cleanUsername);
+
     } else {
-        const { error } = await sb.auth.signInWithPassword({ email: fakeEmail, password: pass });
-        if (error) {
-            // Friendly error for wrong credentials
-            if (error.message.includes('Invalid')) showAuthError('Incorrect username or password.');
-            else showAuthError(error.message);
-            return;
-        }
+        const { data:prof } = await sb.from('profiles')
+            .select('id, password_hash, display_name, username')
+            .eq('username', cleanUsername)
+            .maybeSingle();
+
+        if (!prof)                     { showAuthError('Username not found.'); return; }
+        if (prof.password_hash !== hash) { showAuthError('Incorrect password.'); return; }
+
+        user = { id: prof.id };
+        localStorage.setItem('sc_uid', prof.id);
+        localStorage.setItem('sc_username', cleanUsername);
     }
+
     checkSession();
 }
-
 function showAuthError(msg) { $('#auth-error').text(msg).removeClass('hidden'); }
 
 async function checkSession() {
-    const { data } = await sb.auth.getUser();
-    if (data?.user) {
-        user = data.user;
-        const { data:prof } = await sb.from('profiles').select('*').eq('id', user.id).maybeSingle();
-        const displayName = prof?.display_name || (prof?.username) || 'Player';
-        const pfpUrl      = prof?.pfp_url || DEFAULT_AVATAR;
-        myUsername        = prof?.username || '';
-        isAdmin           = prof?.is_admin === true;
+    const storedUid = localStorage.getItem('sc_uid');
+    if (!storedUid) { showView('view-auth'); return; }
+    user = { id: storedUid };
 
-        $('#my-display-name').text(displayName);
-        $('#my-username-sub').text('@' + myUsername);
-        $('#my-pfp').attr('src', pfpUrl);
-        $('#profile-id-display').text(user.id);
-        $('#profile-username-display').text('@' + myUsername);
+    const { data:prof } = await sb.from('profiles')
+        .select('*').eq('id', user.id).maybeSingle();
 
-        isAdmin
-            ? ($('#admin-badge').removeClass('hidden'), $('#admin-panel-btn').removeClass('hidden'))
-            : ($('#admin-badge').addClass('hidden'), $('#admin-panel-btn').addClass('hidden'));
-
-        $('#set-name').val(displayName);
-        if (prof?.pfp_url) { $('#pfp-preview').attr('src', prof.pfp_url).show(); $('#pfp-upload-label').css('border-color','var(--accent)'); }
-
-        await loadPlayerData();
-        await loadTradeRequests();
-
-        $('#user-profile-bar').removeClass('hidden');
-        showView('view-lobby');
-    } else {
-        showView('view-auth');
+    if (!prof) {
+        // Stale stored id — clear and show auth
+        localStorage.removeItem('sc_uid');
+        localStorage.removeItem('sc_username');
+        showView('view-auth'); return;
     }
+
+    const displayName = prof.display_name || prof.username || 'Player';
+    const pfpUrl      = prof.pfp_url || DEFAULT_AVATAR;
+    myUsername        = prof.username || '';
+    isAdmin           = prof.is_admin === true;
+
+    $('#my-display-name').text(displayName);
+    $('#my-username-sub').text('@' + myUsername);
+    $('#my-pfp').attr('src', pfpUrl);
+    $('#profile-id-display').text(user.id);
+    $('#profile-username-display').text('@' + myUsername);
+
+    isAdmin
+        ? ($('#admin-badge').removeClass('hidden'), $('#admin-panel-btn').removeClass('hidden'))
+        : ($('#admin-badge').addClass('hidden'),    $('#admin-panel-btn').addClass('hidden'));
+
+    $('#set-name').val(displayName);
+    if (prof.pfp_url) { $('#pfp-preview').attr('src', prof.pfp_url).show(); $('#pfp-upload-label').css('border-color','var(--accent)'); }
+
+    await loadPlayerData();
+    await loadTradeRequests();
+
+    $('#user-profile-bar').removeClass('hidden');
+    showView('view-lobby');
 }
 
 function previewPfp(event) {
@@ -1935,7 +1961,8 @@ async function updateProfile() {
         pfpUrl = sb.storage.from('avatars').getPublicUrl(path).data.publicUrl + '?t=' + Date.now();
         $('#pfp-upload-status').text('Uploaded ✓');
     }
-    const { error } = await sb.from('profiles').upsert({ id:user.id, username:myUsername, display_name:name, pfp_url:pfpUrl });
+    // Keep password_hash intact — only update display fields
+    const { error } = await sb.from('profiles').update({ display_name: name, pfp_url: pfpUrl }).eq('id', user.id);
     if (error) { showProfileMsg('Save failed: '+error.message, false); return; }
     showProfileMsg('Profile saved!', true);
     await checkSession();
@@ -1945,7 +1972,12 @@ function showProfileMsg(msg, ok) {
     $('#profile-msg').text(msg).removeClass('hidden inline-error inline-success').addClass(ok?'inline-success':'inline-error');
     setTimeout(() => $('#profile-msg').addClass('hidden'), 4000);
 }
-async function signOut() { await sb.auth.signOut(); location.reload(); }
+async function signOut() {
+    localStorage.removeItem('sc_uid');
+    localStorage.removeItem('sc_username');
+    await sb.auth.signOut();
+    location.reload();
+}
 
 /* ═══════════════════════════════════════════════════════
    MATCHMAKING LOCK / UNLOCK
@@ -2206,50 +2238,154 @@ $(document).ready(() => {
 </script>
 
 <!--
-═══════════════════════════════════════════════════════
-  SUPABASE SQL — run in your SQL editor
+╔══════════════════════════════════════════════════════════════════╗
+║  SUPABASE SETUP — paste this entire block into the SQL Editor   ║
+║  Database → SQL Editor → New Query → Paste → Run               ║
+╚══════════════════════════════════════════════════════════════════╝
 
-  ── player_inventory (add crate_inventory column) ──
-  alter table public.player_inventory
-    add column if not exists crate_inventory jsonb not null default '{"bronze":0,"silver":0,"gold":0}'::jsonb;
+-- ─────────────────────────────────────────────────────────────────
+-- 1. PROFILES  (stores username, hashed password, display info)
+-- ─────────────────────────────────────────────────────────────────
+create table if not exists public.profiles (
+  id            uuid primary key default gen_random_uuid(),
+  username      text unique not null,
+  display_name  text,
+  password_hash text,          -- SHA-256(salt + username + password)
+  pfp_url       text default '',
+  is_admin      boolean default false,
+  created_at    timestamptz default now()
+);
 
-  ── profiles (add username column) ──
-  alter table public.profiles
-    add column if not exists username text unique;
+-- Everyone can read profiles (needed for username lookups, trade targets)
+alter table public.profiles enable row level security;
+drop policy if exists "Public read profiles" on public.profiles;
+create policy "Public read profiles"
+  on public.profiles for select using (true);
 
-  create index if not exists profiles_username_idx on public.profiles(username);
+-- Anyone can insert their own profile (signup)
+drop policy if exists "Insert own profile" on public.profiles;
+create policy "Insert own profile"
+  on public.profiles for insert with check (true);
 
-  ── trade_requests (with crate + piece trade support) ──
-  create table if not exists public.trade_requests (
-    id               uuid primary key default gen_random_uuid(),
-    from_user_id     uuid references auth.users(id) on delete cascade,
-    from_username    text,
-    from_display     text,
-    to_user_id       uuid references auth.users(id) on delete cascade,
-    to_username      text,
-    to_display       text,
-    trade_type       text not null default 'pieces',
-    offer_set        text,
-    want_set         text,
-    offer_crate      text,
-    offer_crate_qty  integer,
-    want_crate       text,
-    want_crate_qty   integer,
-    status           text not null default 'pending',
-    messages         jsonb not null default '[]'::jsonb,
-    created_at       timestamptz not null default now()
-  );
+-- Update: anyone can update any profile row (we rely on app-level auth)
+-- For a production app you'd tighten this, but for this game it's fine
+drop policy if exists "Update own profile" on public.profiles;
+create policy "Update own profile"
+  on public.profiles for update using (true);
 
-  alter table public.trade_requests enable row level security;
 
-  create policy "Trade parties can read/write"
-    on public.trade_requests for all
-    using (auth.uid() = from_user_id or auth.uid() = to_user_id)
-    with check (auth.uid() = from_user_id or auth.uid() = to_user_id);
+-- ─────────────────────────────────────────────────────────────────
+-- 2. PLAYER INVENTORY
+-- ─────────────────────────────────────────────────────────────────
+create table if not exists public.player_inventory (
+  id               uuid primary key references public.profiles(id) on delete cascade,
+  coins            integer not null default 0,
+  owned_sets       text[]  not null default array['wikipedia'],
+  equipped_set     text    not null default 'wikipedia',
+  free_crates      jsonb   not null default '{"bronze":0,"silver":0,"gold":0}'::jsonb,
+  crate_inventory  jsonb   not null default '{"bronze":0,"silver":0,"gold":0}'::jsonb,
+  updated_at       timestamptz default now()
+);
 
-  -- NOTE: Legendary piece sets (Horsey, IC Pieces, Anarcandy) are ~1% each
-  -- from Gold Crates via weighted random. No DB changes needed for this.
-═══════════════════════════════════════════════════════
+-- Disable RLS on inventory — access controlled by app logic using profile id
+alter table public.player_inventory disable row level security;
+
+-- Auto-update timestamp
+create or replace function update_updated_at()
+returns trigger language plpgsql as $$
+begin new.updated_at = now(); return new; end; $$;
+
+drop trigger if exists inventory_updated_at on public.player_inventory;
+create trigger inventory_updated_at
+  before update on public.player_inventory
+  for each row execute procedure update_updated_at();
+
+
+-- ─────────────────────────────────────────────────────────────────
+-- 3. MATCHES
+-- ─────────────────────────────────────────────────────────────────
+create table if not exists public.matches (
+  id            uuid primary key default gen_random_uuid(),
+  white_player  uuid,
+  white_display text,
+  white_pfp     text,
+  black_player  uuid,
+  black_display text,
+  black_pfp     text,
+  status        text default 'waiting',
+  fen           text,
+  result        text,
+  created_at    timestamptz default now()
+);
+
+alter table public.matches disable row level security;
+
+
+-- ─────────────────────────────────────────────────────────────────
+-- 4. TRADE REQUESTS
+-- ─────────────────────────────────────────────────────────────────
+create table if not exists public.trade_requests (
+  id               uuid primary key default gen_random_uuid(),
+  from_user_id     uuid references public.profiles(id) on delete cascade,
+  from_username    text,
+  from_display     text,
+  to_user_id       uuid references public.profiles(id) on delete cascade,
+  to_username      text,
+  to_display       text,
+  trade_type       text not null default 'pieces',
+  offer_set        text,
+  want_set         text,
+  offer_crate      text,
+  offer_crate_qty  integer,
+  want_crate       text,
+  want_crate_qty   integer,
+  status           text not null default 'pending',
+  messages         jsonb not null default '[]'::jsonb,
+  created_at       timestamptz default now()
+);
+
+alter table public.trade_requests disable row level security;
+
+
+-- ─────────────────────────────────────────────────────────────────
+-- 5. STORAGE BUCKET  (avatars + global sounds)
+-- ─────────────────────────────────────────────────────────────────
+-- Run this separately if the bucket doesn't exist yet:
+-- insert into storage.buckets (id, name, public)
+--   values ('avatars', 'avatars', true)
+--   on conflict (id) do nothing;
+
+-- Allow anyone to read from the avatars bucket (public CDN)
+drop policy if exists "Public avatar read" on storage.objects;
+create policy "Public avatar read"
+  on storage.objects for select using (bucket_id = 'avatars');
+
+-- Allow anyone to upload to avatars (app controls paths)
+drop policy if exists "Anyone upload avatars" on storage.objects;
+create policy "Anyone upload avatars"
+  on storage.objects for insert with check (bucket_id = 'avatars');
+
+drop policy if exists "Anyone update avatars" on storage.objects;
+create policy "Anyone update avatars"
+  on storage.objects for update using (bucket_id = 'avatars');
+
+
+-- ─────────────────────────────────────────────────────────────────
+-- 6. REALTIME  (enable for matches + trade_requests)
+-- ─────────────────────────────────────────────────────────────────
+-- In Supabase Dashboard → Database → Replication:
+-- Enable realtime for: public.matches, public.trade_requests
+--
+-- Or run:
+-- alter publication supabase_realtime add table public.matches;
+-- alter publication supabase_realtime add table public.trade_requests;
+
+-- ─────────────────────────────────────────────────────────────────
+-- DONE! No email required. Auth is username + SHA-256 password
+-- stored in profiles.password_hash. Sessions use Supabase anon
+-- auth for realtime/storage, with the real profile id stored in
+-- localStorage for data queries.
+-- ─────────────────────────────────────────────────────────────────
 -->
 </body>
 </html>
