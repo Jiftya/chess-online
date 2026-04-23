@@ -25,6 +25,7 @@
             --black-sq: #779556;
             --danger: #c0392b;
             --gold: #ffd700;
+            --trade: #4fc3f7;
         }
 
         html, body { height: 100%; }
@@ -144,12 +145,12 @@
         h2 { font-size:1.1rem; text-transform:uppercase; color:var(--accent); margin:0 0 16px 0; border-bottom:2px solid var(--border); padding-bottom:8px; letter-spacing:0.1em; }
         label { font-size:0.7rem; color:var(--muted); text-transform:uppercase; letter-spacing:0.08em; display:block; margin-bottom:3px; margin-top:8px; }
 
-        input {
+        input, select {
             background:#1a1917; border:2px solid var(--border); color:white;
             padding:9px 10px; margin-bottom:4px; width:100%;
             font-family:'Courier New',monospace; font-size:0.85rem; transition:border-color 0.15s;
         }
-        input:focus { outline:none; border-color:var(--accent); }
+        input:focus, select:focus { outline:none; border-color:var(--accent); }
         input:disabled { opacity:0.4; cursor:not-allowed; }
 
         button {
@@ -163,6 +164,7 @@
         .sec-btn    { background:#3d3a37; border:1px solid var(--border); }
         .danger-btn { background:var(--danger); }
         .admin-btn  { background:#e6a817; color:#1a1917; }
+        .trade-btn  { background:#1a3a4a; border:1px solid var(--trade); color:var(--trade); }
 
         /* ── STATUS CHIP ── */
         .status-chip {
@@ -199,6 +201,21 @@
         .inline-error   { background:rgba(192,57,43,0.15); border:1px solid var(--danger); color:#e8776c; padding:7px 10px; font-size:0.72rem; letter-spacing:0.04em; margin-bottom:8px; }
         .inline-success { background:rgba(129,182,76,0.12); border:1px solid var(--accent); color:var(--accent); padding:7px 10px; font-size:0.72rem; letter-spacing:0.04em; margin-bottom:8px; }
 
+        /* ── PROFILE ID BOX ── */
+        .id-box {
+            background:#1a1917; border:1px solid var(--border);
+            padding:8px 10px; font-size:0.65rem; color:var(--muted);
+            margin-bottom:10px; word-break:break-all; line-height:1.6;
+        }
+        .id-box strong { color:white; font-size:0.75rem; display:block; margin-bottom:2px; }
+        .id-copy-btn {
+            background:#2a2825; border:1px solid var(--border); color:var(--muted);
+            font-size:0.65rem; padding:5px 8px; width:auto; margin-bottom:0;
+            text-transform:uppercase; letter-spacing:0.06em; cursor:pointer;
+            transition:border-color 0.15s, color 0.15s;
+        }
+        .id-copy-btn:hover { border-color:var(--accent); color:var(--accent); }
+
         /* ── ADMIN ── */
         #view-admin h2 { color:#e6a817; border-color:#e6a817; }
         .broadcast-preview { background:#1a1917; border:1px solid var(--border); padding:8px 10px; font-size:0.78rem; color:var(--muted); margin-bottom:10px; min-height:32px; }
@@ -209,10 +226,8 @@
         #gift-msg  { font-size:0.72rem; margin-bottom:6px; padding:6px 8px; border:1px solid var(--border); }
         #gift-hint { font-size:0.65rem; color:var(--muted); letter-spacing:0.06em; margin-bottom:8px; line-height:1.5; }
 
-        /* ════════════════════════════════
-           SHOP
-        ════════════════════════════════ */
-        #view-shop h2, #view-collection h2 { color:var(--gold); border-color:#5a4e10; }
+        /* ══ SHOP ══ */
+        #view-shop h2, #view-collection h2, #view-crate-inventory h2 { color:var(--gold); border-color:#5a4e10; }
 
         #crate-result-banner {
             display:flex; align-items:center; gap:12px;
@@ -237,17 +252,19 @@
         .crate-card-pool  { font-size:0.66rem; color:var(--muted); margin-bottom:6px; text-transform:uppercase; letter-spacing:0.06em; }
         .crate-card-price { font-size:0.82rem; font-weight:bold; color:var(--gold); margin-bottom:6px; }
         .crate-card-btn   { margin-bottom:0; padding:8px; font-size:0.75rem; }
-        .crate-card-btn.free-crate {
-            background: #1a3a1a; border: 2px solid var(--accent);
-            color: var(--accent); letter-spacing: 0.06em;
-            animation: freePulse 2s ease-in-out infinite;
-        }
-        .crate-card-btn.free-crate:hover:not(:disabled) { background: #243f24; opacity: 1; }
-        @keyframes freePulse { 0%,100%{border-color:var(--accent)} 50%{border-color:#b5d97a} }
 
-        /* ════════════════════════════════
-           CRATE OPENING ANIMATION OVERLAY
-        ════════════════════════════════ */
+        /* ── CRATE INVENTORY ── */
+        .inv-crate-card {
+            background:#1a1917; border:2px solid var(--border);
+            padding:14px; margin-bottom:10px; display:flex; align-items:center; gap:12px;
+        }
+        .inv-crate-icon { font-size:2.2rem; flex-shrink:0; }
+        .inv-crate-body { flex:1; min-width:0; }
+        .inv-crate-name { font-weight:bold; font-size:0.9rem; margin-bottom:3px; }
+        .inv-crate-count { font-size:0.72rem; color:var(--muted); margin-bottom:6px; letter-spacing:0.06em; text-transform:uppercase; }
+        .inv-crate-open-btn { margin-bottom:0; padding:9px 14px; font-size:0.78rem; }
+
+        /* ── CRATE OPENING ANIMATION ── */
         #crate-opening-overlay {
             position: fixed; inset: 0; z-index: 8000;
             display: flex; align-items: center; justify-content: center;
@@ -328,9 +345,7 @@
         #crate-reveal-msg      { font-size: 0.72rem; color: var(--muted); letter-spacing: 0.06em; }
         #crate-reveal-dismiss  { margin-top: 20px; padding: 10px 36px; width: auto; font-size: 0.8rem; letter-spacing: 0.1em; }
 
-        /* ════════════════════════════════
-           COLLECTION
-        ════════════════════════════════ */
+        /* ══ COLLECTION ══ */
         #collection-piece-bar {
             display: flex; align-items: center; justify-content: center;
             gap: 6px; margin-bottom: 14px; padding: 8px 0 6px;
@@ -353,11 +368,73 @@
             align-items: center; text-align: center; gap: 4px; transition: border-color 0.2s;
         }
         .set-card.equipped { border-color: var(--accent); }
+        .set-card.legendary-owned { border-color: #7c3aed; animation: legendaryPulse 3s ease-in-out infinite; }
+        @keyframes legendaryPulse { 0%,100%{border-color:#7c3aed;box-shadow:none!important} 50%{border-color:#c084fc} }
         .set-card-piece-img { width: 48px; height: 48px; object-fit: contain; image-rendering: auto; margin-bottom: 2px; transition: opacity 0.12s; }
         .set-card-name   { font-weight:bold; font-size:0.82rem; letter-spacing:0.05em; }
         .set-card-rarity { font-size:0.62rem; text-transform:uppercase; letter-spacing:0.1em; }
         .set-card-btn    { margin-bottom:0; margin-top:6px; padding:7px; font-size:0.7rem; width:100%; }
         .set-card-btn.sec-btn:disabled { background:#2a2825; color:var(--accent); opacity:1; border-color:var(--accent); cursor:default; }
+
+        /* ══ TRADING SYSTEM ══ */
+        #view-trade h2 { color:var(--trade); border-color:#1a4a5e; }
+
+        .trade-panel-tabs {
+            display:flex; gap:0; margin-bottom:14px; border-bottom:2px solid var(--border);
+        }
+        .trade-tab {
+            flex:1; padding:8px; background:transparent; border:none; color:var(--muted);
+            font-family:'Courier New',monospace; font-size:0.72rem; text-transform:uppercase;
+            letter-spacing:0.08em; cursor:pointer; margin-bottom:0;
+            border-bottom:2px solid transparent; transition:all 0.15s;
+        }
+        .trade-tab.active { color:var(--trade); border-bottom-color:var(--trade); background:rgba(79,195,247,0.06); }
+        .trade-tab:hover:not(.active) { color:white; }
+
+        .trade-request-card {
+            background:#1a1917; border:2px solid var(--border);
+            padding:12px; margin-bottom:8px; transition:border-color 0.2s;
+        }
+        .trade-request-card.incoming { border-color:#1a4a5e; }
+        .trade-request-card-header {
+            display:flex; justify-content:space-between; align-items:center;
+            margin-bottom:8px; font-size:0.72rem;
+        }
+        .trade-from { color:var(--trade); font-weight:bold; font-size:0.82rem; }
+        .trade-time { color:var(--muted); font-size:0.62rem; }
+        .trade-items { display:flex; align-items:center; gap:10px; margin-bottom:8px; flex-wrap:wrap; }
+        .trade-item-pill {
+            background:#2a2825; border:1px solid var(--border);
+            padding:3px 8px; font-size:0.68rem; display:flex; align-items:center; gap:4px;
+        }
+        .trade-arrow { color:var(--muted); font-size:1rem; }
+        .trade-actions { display:flex; gap:6px; }
+        .trade-actions button { flex:1; margin-bottom:0; padding:7px; font-size:0.72rem; }
+
+        /* trade chat */
+        .trade-chat-box {
+            background:#111110; border:1px solid var(--border);
+            padding:8px 10px; height:80px; overflow-y:auto; font-size:0.73rem;
+            margin-bottom:6px;
+        }
+        .trade-chat-box .tc-line { padding:1px 0; }
+        .tc-from { font-weight:bold; margin-right:4px; }
+
+        /* create trade form */
+        .trade-set-select {
+            display:grid; grid-template-columns:repeat(2,1fr); gap:6px; margin-bottom:8px;
+        }
+        .trade-set-opt {
+            background:#1a1917; border:2px solid var(--border);
+            padding:8px 6px; cursor:pointer; text-align:center;
+            transition:border-color 0.15s;
+            display:flex; flex-direction:column; align-items:center; gap:3px;
+        }
+        .trade-set-opt:hover { border-color:#5a5550; }
+        .trade-set-opt.selected { border-color:var(--trade); background:#0e2530; }
+        .trade-set-opt img { width:32px; height:32px; object-fit:contain; }
+        .trade-set-opt-name { font-size:0.66rem; letter-spacing:0.04em; }
+        .trade-set-opt-rarity { font-size:0.58rem; text-transform:uppercase; letter-spacing:0.08em; }
 
         /* ── MOVE INDICATORS ── */
         .highlight-move::after    { content:""; position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:28%; height:28%; background:rgba(0,0,0,0.18); border-radius:50%!important; pointer-events:none; z-index:0; }
@@ -391,6 +468,13 @@
         }
         #save-indicator.show { opacity: 1; }
         #save-indicator.error { border-color: var(--danger); color: #e8776c; }
+
+        /* trade notification badge */
+        .trade-badge {
+            display:inline-flex; align-items:center; justify-content:center;
+            background:var(--danger); color:white; font-size:0.58rem; font-weight:bold;
+            width:16px; height:16px; margin-left:4px; vertical-align:middle;
+        }
 
         /* ══ MOBILE ══ */
         @media (max-width: 700px) {
@@ -478,7 +562,7 @@
                     <span id="my-display-name">Player</span>
                     <span id="admin-badge" class="admin-badge hidden">Admin</span>
                 </div>
-                <div id="my-email-sub" class="user-bar-email"></div>
+                <div id="my-username-sub" class="user-bar-email"></div>
             </div>
             <div class="user-bar-coins">🪙&nbsp;<span id="coin-display">0</span></div>
         </div>
@@ -487,29 +571,23 @@
         <div id="view-auth" class="tab-content">
             <h2>System Access</h2>
             <div id="auth-error" class="inline-error hidden"></div>
-            <label>Email</label>
-            <input type="email" id="auth-email" placeholder="you@example.com" autocomplete="email">
+            <label>Username</label>
+            <input type="text" id="auth-username" placeholder="your_username" autocomplete="username">
             <label>Password</label>
             <input type="password" id="auth-pass" placeholder="••••••••" autocomplete="current-password">
             <button style="margin-top:10px;" onclick="handleAuth('login')">Login</button>
             <button class="sec-btn" onclick="handleAuth('signup')">Register</button>
-            <div id="forgot-wrap" style="margin-top:4px;">
-                <button class="sec-btn" style="font-size:0.65rem;border:none;opacity:0.7;margin-bottom:0;" onclick="toggleForgot()">Forgot Password?</button>
-                <div id="forgot-panel" class="hidden" style="margin-top:6px;">
-                    <input type="email" id="reset-email" placeholder="your@email.com">
-                    <div id="reset-msg" class="inline-success hidden"></div>
-                    <button onclick="sendReset()" style="margin-bottom:0;">Send Reset Link</button>
-                </div>
-            </div>
         </div>
 
         <!-- LOBBY -->
         <div id="view-lobby" class="tab-content hidden">
             <h2>Lobby</h2>
             <button onclick="findMatch()">▶ Play Online</button>
-            <button style="background:#2e4a1e;border:1px solid var(--accent-dim);" onclick="showView('view-shop')">Shop</button>
-            <button style="background:#2e3a4a;border:1px solid #3a5570;" onclick="showView('view-collection')">My Pieces</button>
-            <button class="sec-btn" onclick="showView('view-profile')">Edit Profile</button>
+            <button style="background:#2e4a1e;border:1px solid var(--accent-dim);" onclick="showView('view-shop')">🛒 Shop</button>
+            <button style="background:#1c2e1c;border:1px solid #3a5570;" onclick="showView('view-crate-inventory')">📦 My Crates</button>
+            <button style="background:#2e3a4a;border:1px solid #3a5570;" onclick="showView('view-collection')">♟ My Pieces</button>
+            <button class="trade-btn" onclick="showView('view-trade')">⇄ Trade <span id="trade-badge-lobby" class="trade-badge hidden">!</span></button>
+            <button class="sec-btn" onclick="showView('view-profile')">⚙ Edit Profile</button>
             <button id="admin-panel-btn" class="admin-btn hidden" onclick="showView('view-admin')">⚡ Admin Panel</button>
             <button class="sec-btn danger-btn" style="margin-top:6px;" onclick="signOut()">Logout</button>
         </div>
@@ -517,8 +595,18 @@
         <!-- PROFILE -->
         <div id="view-profile" class="tab-content hidden">
             <h2>Edit Profile</h2>
-            <label>Display Name</label>
-            <input type="text" id="set-name" placeholder="Your name">
+
+            <div class="id-box">
+                <strong>Your Profile ID</strong>
+                <span id="profile-id-display" style="font-size:0.62rem;">—</span>
+                <br><br>
+                <strong>Your Username</strong>
+                <span id="profile-username-display" style="font-size:0.72rem;">—</span>
+            </div>
+            <button class="id-copy-btn" onclick="copyProfileId()" style="margin-bottom:10px;">📋 Copy Profile ID</button>
+
+            <label>Display Name <span style="color:var(--muted);font-size:0.6rem;">(shown in-game, can be anything)</span></label>
+            <input type="text" id="set-name" placeholder="Your display name">
             <label>Profile Picture</label>
             <div id="pfp-preview-wrap" style="margin-bottom:8px;">
                 <img id="pfp-preview" src="" style="width:60px;height:60px;object-fit:cover;border:2px solid var(--border);display:none;">
@@ -558,7 +646,7 @@
                 <input type="text" id="gift-crate-user-id" placeholder="Profile ID or 'all'">
                 <input type="number" id="gift-crate-amount" class="gift-amount" placeholder="Qty" min="1" value="1">
             </div>
-            <select id="gift-crate-type" style="background:#1a1917;border:2px solid var(--border);color:white;padding:9px 10px;width:100%;font-family:'Courier New',monospace;font-size:0.82rem;margin-bottom:6px;">
+            <select id="gift-crate-type" style="margin-bottom:6px;">
                 <option value="bronze">📦 Bronze Crate (Common)</option>
                 <option value="silver">🎁 Silver Crate (Uncommon)</option>
                 <option value="gold">👑 Gold Crate (Rare)</option>
@@ -569,7 +657,7 @@
             <label>Party Mode</label>
             <button id="party-toggle-btn" class="sec-btn" onclick="togglePartyMode()">🎉 Enable Party Mode</button>
             <label>Sound Trigger</label>
-            <select id="admin-sound-select" style="background:#1a1917;border:2px solid var(--border);color:white;padding:9px 10px;width:100%;font-family:'Courier New',monospace;font-size:0.82rem;margin-bottom:4px;">
+            <select id="admin-sound-select">
                 <option value="">-- Select uploaded sound --</option>
             </select>
             <label style="margin-top:6px;">Upload New Sound</label>
@@ -610,8 +698,17 @@
         <!-- SHOP -->
         <div id="view-shop" class="tab-content hidden">
             <h2>Shop</h2>
-            <div id="crate-result-banner" class="hidden"></div>
+            <div style="font-size:0.68rem;color:var(--muted);margin-bottom:10px;padding:8px;background:#1a1917;border:1px solid var(--border);">
+                Buy crates to add them to your inventory. Open them from <b style="color:white">My Crates</b>.
+            </div>
             <div id="shop-content"></div>
+            <button class="sec-btn" style="margin-top:4px;" onclick="showView('view-lobby')">← Back to Lobby</button>
+        </div>
+
+        <!-- CRATE INVENTORY -->
+        <div id="view-crate-inventory" class="tab-content hidden">
+            <h2>📦 My Crates</h2>
+            <div id="crate-inv-content"></div>
             <button class="sec-btn" style="margin-top:4px;" onclick="showView('view-lobby')">← Back to Lobby</button>
         </div>
 
@@ -624,6 +721,63 @@
             <div id="collection-piece-bar"></div>
             <div id="collection-content"></div>
             <button class="sec-btn" style="margin-top:12px;" onclick="showView('view-lobby')">← Back to Lobby</button>
+        </div>
+
+        <!-- TRADE -->
+        <div id="view-trade" class="tab-content hidden">
+            <h2>⇄ Trading Post</h2>
+            <div class="trade-panel-tabs">
+                <button class="trade-tab active" id="ttab-incoming" onclick="switchTradeTab('incoming')">Incoming</button>
+                <button class="trade-tab" id="ttab-outgoing" onclick="switchTradeTab('outgoing')">Outgoing</button>
+                <button class="trade-tab" id="ttab-new" onclick="switchTradeTab('new')">+ New Trade</button>
+            </div>
+            <div id="trade-tab-incoming"></div>
+            <div id="trade-tab-outgoing" class="hidden"></div>
+            <div id="trade-tab-new" class="hidden">
+                <label>Send Trade Request To (Username)</label>
+                <input type="text" id="trade-target-username" placeholder="their_username">
+
+                <label>Trade Type</label>
+                <div style="display:flex;gap:0;margin-bottom:8px;">
+                    <button class="trade-tab active" id="ttype-pieces" style="flex:1;margin-bottom:0;" onclick="switchTradeType('pieces')">Piece Sets</button>
+                    <button class="trade-tab" id="ttype-crates" style="flex:1;margin-bottom:0;" onclick="switchTradeType('crates')">Crates</button>
+                </div>
+
+                <div id="trade-pieces-form">
+                    <label>You Offer (select from your pieces)</label>
+                    <div id="trade-offer-grid" class="trade-set-select"></div>
+                    <label>You Want (select what you'd like)</label>
+                    <div id="trade-want-grid" class="trade-set-select"></div>
+                </div>
+
+                <div id="trade-crates-form" class="hidden">
+                    <label>You Offer (crate type + qty)</label>
+                    <div style="display:flex;gap:6px;margin-bottom:4px;">
+                        <select id="trade-offer-crate" style="flex:2;margin-bottom:0;">
+                            <option value="bronze">📦 Bronze Crate</option>
+                            <option value="silver">🎁 Silver Crate</option>
+                            <option value="gold">👑 Gold Crate</option>
+                        </select>
+                        <input type="number" id="trade-offer-crate-qty" value="1" min="1" max="99" style="flex:1;margin-bottom:0;">
+                    </div>
+                    <div id="trade-offer-crate-avail" style="font-size:0.65rem;color:var(--muted);margin-bottom:8px;"></div>
+                    <label>You Want (crate type + qty)</label>
+                    <div style="display:flex;gap:6px;margin-bottom:4px;">
+                        <select id="trade-want-crate" style="flex:2;margin-bottom:0;">
+                            <option value="bronze">📦 Bronze Crate</option>
+                            <option value="silver">🎁 Silver Crate</option>
+                            <option value="gold">👑 Gold Crate</option>
+                        </select>
+                        <input type="number" id="trade-want-crate-qty" value="1" min="1" max="99" style="flex:1;margin-bottom:0;">
+                    </div>
+                </div>
+
+                <label>Trade Message / Offer Notes</label>
+                <input type="text" id="trade-init-msg" placeholder="e.g. happy to negotiate!">
+                <div id="trade-send-err" class="inline-error hidden"></div>
+                <button onclick="sendTradeRequest()" style="margin-top:6px;">⇄ Send Trade Request</button>
+            </div>
+            <button class="sec-btn" style="margin-top:8px;" onclick="showView('view-lobby')">← Back</button>
         </div>
 
     </div><!-- /sidebar -->
@@ -646,23 +800,49 @@ const PIECE_TYPES  = ['K','Q','R','B','N','P'];
 const PIECE_LABELS = ['King','Queen','Rook','Bishop','Knight','Pawn'];
 
 const PIECE_SETS = {
-    wikipedia:  { name:'Classic',    url:'https://chessboardjs.com/img/chesspieces/wikipedia/{piece}.png',  rarity:'Default',  rarityColor:'#989795', ext:'png' },
-    cburnett:   { name:'Burnett',    url:'https://lichess1.org/assets/piece/cburnett/{piece}.svg',           rarity:'Common',   rarityColor:'#81b64c', ext:'svg' },
-    alpha:      { name:'Alpha',      url:'https://lichess1.org/assets/piece/alpha/{piece}.svg',              rarity:'Common',   rarityColor:'#81b64c', ext:'svg' },
-    merida:     { name:'Merida',     url:'https://lichess1.org/assets/piece/merida/{piece}.svg',             rarity:'Common',   rarityColor:'#81b64c', ext:'svg' },
-    pixel:      { name:'Pixel',      url:'https://lichess1.org/assets/piece/pixel/{piece}.svg',              rarity:'Uncommon', rarityColor:'#4fc3f7', ext:'svg' },
-    maestro:    { name:'Maestro',    url:'https://lichess1.org/assets/piece/maestro/{piece}.svg',            rarity:'Uncommon', rarityColor:'#4fc3f7', ext:'svg' },
-    fantasy:    { name:'Fantasy',    url:'https://lichess1.org/assets/piece/fantasy/{piece}.svg',            rarity:'Uncommon', rarityColor:'#4fc3f7', ext:'svg' },
-    california: { name:'California', url:'https://lichess1.org/assets/piece/california/{piece}.svg',         rarity:'Rare',     rarityColor:'#e6a817', ext:'svg' },
-    tatiana:    { name:'Tatiana',    url:'https://lichess1.org/assets/piece/tatiana/{piece}.svg',            rarity:'Rare',     rarityColor:'#e6a817', ext:'svg' },
-    governor:   { name:'Governor',   url:'https://lichess1.org/assets/piece/governor/{piece}.svg',           rarity:'Rare',     rarityColor:'#e6a817', ext:'svg' },
-    gioco:      { name:'Gioco',      url:'https://lichess1.org/assets/piece/gioco/{piece}.svg',              rarity:'Rare',     rarityColor:'#e6a817', ext:'svg' },
+    wikipedia:  { name:'Classic',    url:'https://chessboardjs.com/img/chesspieces/wikipedia/{piece}.png',  rarity:'Default',    rarityColor:'#989795', ext:'png' },
+    cburnett:   { name:'Burnett',    url:'https://lichess1.org/assets/piece/cburnett/{piece}.svg',           rarity:'Common',     rarityColor:'#81b64c', ext:'svg' },
+    alpha:      { name:'Alpha',      url:'https://lichess1.org/assets/piece/alpha/{piece}.svg',              rarity:'Common',     rarityColor:'#81b64c', ext:'svg' },
+    merida:     { name:'Merida',     url:'https://lichess1.org/assets/piece/merida/{piece}.svg',             rarity:'Common',     rarityColor:'#81b64c', ext:'svg' },
+    pixel:      { name:'Pixel',      url:'https://lichess1.org/assets/piece/pixel/{piece}.svg',              rarity:'Uncommon',   rarityColor:'#4fc3f7', ext:'svg' },
+    maestro:    { name:'Maestro',    url:'https://lichess1.org/assets/piece/maestro/{piece}.svg',            rarity:'Uncommon',   rarityColor:'#4fc3f7', ext:'svg' },
+    fantasy:    { name:'Fantasy',    url:'https://lichess1.org/assets/piece/fantasy/{piece}.svg',            rarity:'Uncommon',   rarityColor:'#4fc3f7', ext:'svg' },
+    california: { name:'California', url:'https://lichess1.org/assets/piece/california/{piece}.svg',         rarity:'Rare',       rarityColor:'#e6a817', ext:'svg' },
+    tatiana:    { name:'Tatiana',    url:'https://lichess1.org/assets/piece/tatiana/{piece}.svg',            rarity:'Rare',       rarityColor:'#e6a817', ext:'svg' },
+    governor:   { name:'Governor',   url:'https://lichess1.org/assets/piece/governor/{piece}.svg',           rarity:'Rare',       rarityColor:'#e6a817', ext:'svg' },
+    gioco:      { name:'Gioco',      url:'https://lichess1.org/assets/piece/gioco/{piece}.svg',              rarity:'Rare',       rarityColor:'#e6a817', ext:'svg' },
+    // ── LEGENDARY (Gold crate, ~1% each) ──
+    horsey:     { name:'Horsey',     url:'https://lichess1.org/assets/piece/horsey/{piece}.svg',             rarity:'Legendary',  rarityColor:'#c084fc', ext:'svg' },
+    icpieces:   { name:'IC Pieces',  url:'https://lichess1.org/assets/piece/icpieces/{piece}.svg',           rarity:'Legendary',  rarityColor:'#c084fc', ext:'svg' },
+    anarcandy:  { name:'Anarcandy',  url:'https://lichess1.org/assets/piece/anarcandy/{piece}.svg',          rarity:'Legendary',  rarityColor:'#c084fc', ext:'svg' },
 };
+
+/* Weighted roll for gold crate:
+   Each rare item = 33/4 ≈ 8.25 weight, total rare = 33
+   Each legendary = 1 weight, total legendary = 3
+   Total pool weight = 36 → legendary chance ≈ 1/36 ≈ 2.8% per legendary, ~8.3% total
+   We use explicit weights so it's tunable. */
+const GOLD_CRATE_DROPS = [
+    { setId:'california', weight:24 },
+    { setId:'tatiana',    weight:24 },
+    { setId:'governor',   weight:24 },
+    { setId:'gioco',      weight:24 },
+    { setId:'horsey',     weight:1  },
+    { setId:'icpieces',   weight:1  },
+    { setId:'anarcandy',  weight:1  },
+];
+
+function weightedRandom(drops) {
+    const total = drops.reduce((s, d) => s + d.weight, 0);
+    let r = Math.random() * total;
+    for (const d of drops) { r -= d.weight; if (r <= 0) return d.setId; }
+    return drops[drops.length - 1].setId;
+}
 
 const CRATES = {
     bronze: { name:'Bronze Crate', cost:50,  color:'#cd7f32', rayColor:'#cd7f32', pool:['cburnett','alpha','merida'],              desc:'Common Pieces',   icon:'📦' },
     silver: { name:'Silver Crate', cost:150, color:'#a8a9ad', rayColor:'#c0c0c0', pool:['pixel','maestro','fantasy'],              desc:'Uncommon Pieces', icon:'🎁' },
-    gold:   { name:'Gold Crate',   cost:300, color:'#ffd700', rayColor:'#ffd700', pool:['california','tatiana','governor','gioco'], desc:'Rare Pieces',     icon:'👑' },
+    gold:   { name:'Gold Crate',   cost:300, color:'#ffd700', rayColor:'#ffd700', pool:null, drops:GOLD_CRATE_DROPS,               desc:'Rare + Legendary',icon:'👑' },
 };
 
 const COIN_VALUES = { p:1, n:3, b:3, r:5, q:9 };
@@ -674,6 +854,7 @@ const WIN_COINS   = 15;
 let game = new Chess();
 let board = null;
 let user  = null;
+let myUsername = '';
 let isAdmin = false;
 let currentMatchId = null;
 let myColor = 'w';
@@ -686,17 +867,22 @@ let pieceStyle = PIECE_SETS.wikipedia.url;
 let collectionPieceIdx = 0;
 let collectionCycleTimer = null;
 
-/* ═══════════════════════════════════════════════════════
-   PLAYER DATA — Supabase-backed
-   Table: player_inventory
-   Columns: id (uuid FK → auth.users), coins (int4), owned_sets (text[]),
-            equipped_set (text), free_crates (jsonb)
-═══════════════════════════════════════════════════════ */
-let playerData = { coins:0, ownedSets:['wikipedia'], equippedSet:'wikipedia', freeCrates:{bronze:0,silver:0,gold:0} };
+let playerData = {
+    coins:0, ownedSets:['wikipedia'], equippedSet:'wikipedia',
+    freeCrates:{bronze:0,silver:0,gold:0},
+    crateInventory:{bronze:0,silver:0,gold:0}
+};
 
-// Debounce timer for saves
 let _saveTimer = null;
 
+// ── Trade state ──
+let activeTradeId = null;
+let tradeRequests = { incoming:[], outgoing:[] };
+let tradeChannel = null;
+
+/* ═══════════════════════════════════════════════════════
+   SAVE INDICATOR
+═══════════════════════════════════════════════════════ */
 function showSaveIndicator(msg, isError) {
     const el = document.getElementById('save-indicator');
     el.textContent = msg || 'Saving…';
@@ -706,76 +892,56 @@ function showSaveIndicator(msg, isError) {
     el._hideTimer = setTimeout(() => el.classList.remove('show'), 2000);
 }
 
-/**
- * Load inventory from Supabase.  Falls back to defaults if row doesn't exist yet.
- */
+/* ═══════════════════════════════════════════════════════
+   LOAD / SAVE PLAYER DATA
+═══════════════════════════════════════════════════════ */
 async function loadPlayerData() {
     if (!user) return;
     const { data, error } = await sb
         .from('player_inventory')
-        .select('coins, owned_sets, equipped_set, free_crates')
+        .select('coins, owned_sets, equipped_set, free_crates, crate_inventory')
         .eq('id', user.id)
         .maybeSingle();
 
-    if (error) {
-        console.warn('loadPlayerData error:', error.message);
-    }
-
     if (data) {
-        const fc = data.free_crates || {};
+        const fc  = data.free_crates    || {};
+        const ci  = data.crate_inventory || {};
         playerData = {
-            coins:       typeof data.coins === 'number' ? data.coins : 0,
-            ownedSets:   Array.isArray(data.owned_sets) ? data.owned_sets : ['wikipedia'],
-            equippedSet: data.equipped_set || 'wikipedia',
-            freeCrates:  {
-                bronze: fc.bronze || 0,
-                silver: fc.silver || 0,
-                gold:   fc.gold   || 0,
-            },
+            coins:           typeof data.coins === 'number' ? data.coins : 0,
+            ownedSets:       Array.isArray(data.owned_sets) ? data.owned_sets : ['wikipedia'],
+            equippedSet:     data.equipped_set || 'wikipedia',
+            freeCrates:      { bronze: fc.bronze||0, silver: fc.silver||0, gold: fc.gold||0 },
+            crateInventory:  { bronze: ci.bronze||0, silver: ci.silver||0, gold: ci.gold||0 },
         };
     } else {
-        playerData = { coins: 0, ownedSets: ['wikipedia'], equippedSet: 'wikipedia', freeCrates: {bronze:0,silver:0,gold:0} };
+        playerData = { coins:0, ownedSets:['wikipedia'], equippedSet:'wikipedia', freeCrates:{bronze:0,silver:0,gold:0}, crateInventory:{bronze:0,silver:0,gold:0} };
     }
 
-    // Always guarantee wikipedia is in the set
     if (!playerData.ownedSets.includes('wikipedia')) playerData.ownedSets.unshift('wikipedia');
     pieceStyle = (PIECE_SETS[playerData.equippedSet] || PIECE_SETS.wikipedia).url;
     updateCoinDisplay();
 }
 
-/**
- * Persist current playerData to Supabase (debounced 400 ms so rapid coin gains
- * don't spam the DB — e.g. capturing multiple pieces quickly).
- */
 function savePlayerData(immediate) {
     if (!user) return;
     clearTimeout(_saveTimer);
     const doSave = async () => {
         showSaveIndicator('Saving…', false);
         const { error } = await sb.from('player_inventory').upsert({
-            id:           user.id,
-            coins:        playerData.coins,
-            owned_sets:   playerData.ownedSets,
-            equipped_set: playerData.equippedSet,
-            free_crates:  playerData.freeCrates,
+            id:               user.id,
+            coins:            playerData.coins,
+            owned_sets:       playerData.ownedSets,
+            equipped_set:     playerData.equippedSet,
+            free_crates:      playerData.freeCrates,
+            crate_inventory:  playerData.crateInventory,
         });
-        if (error) {
-            console.error('savePlayerData error:', error.message);
-            showSaveIndicator('Save failed', true);
-        } else {
-            showSaveIndicator('Saved ✓', false);
-        }
+        if (error) { showSaveIndicator('Save failed', true); }
+        else       { showSaveIndicator('Saved ✓', false); }
     };
-    if (immediate) { doSave(); }
-    else { _saveTimer = setTimeout(doSave, 400); }
+    if (immediate) doSave(); else _saveTimer = setTimeout(doSave, 400);
 }
 
-function addCoins(amount) {
-    playerData.coins += amount;
-    savePlayerData();
-    updateCoinDisplay();
-}
-
+function addCoins(amount) { playerData.coins += amount; savePlayerData(); updateCoinDisplay(); }
 function updateCoinDisplay() { $('#coin-display').text(playerData.coins); }
 
 /* ═══════════════════════════════════════════════════════
@@ -846,10 +1012,12 @@ function renderCollection() {
     const $c = $('#collection-content').empty();
     playerData.ownedSets.forEach(setId => {
         const set = PIECE_SETS[setId]; if (!set) return;
-        const isEquipped = playerData.equippedSet === setId;
-        $c.append($(`<div class="set-card ${isEquipped?'equipped':''}" data-set-id="${setId}">
+        const isEquipped   = playerData.equippedSet === setId;
+        const isLegendary  = set.rarity === 'Legendary';
+        const extraClass   = isEquipped ? 'equipped' : (isLegendary ? 'legendary-owned' : '');
+        $c.append($(`<div class="set-card ${extraClass}" data-set-id="${setId}">
             <img class="set-card-piece-img" src="" alt="${set.name}">
-            <div class="set-card-name">${set.name}</div>
+            <div class="set-card-name">${isLegendary ? '✨ ' : ''}${set.name}</div>
             <div class="set-card-rarity" style="color:${set.rarityColor}">${set.rarity}</div>
             <button class="set-card-btn ${isEquipped?'sec-btn':''}"
                     onclick="equipSet('${setId}')"
@@ -868,21 +1036,106 @@ function equipSet(setId) {
     if (!playerData.ownedSets.includes(setId)) return;
     playerData.equippedSet = setId;
     pieceStyle = (PIECE_SETS[setId] || PIECE_SETS.wikipedia).url;
-    savePlayerData(true); // immediate — user explicitly chose this
-
+    savePlayerData(true);
     if (board) {
-        const pos    = game.fen();
-        const orient = (myColor === 'b') ? 'black' : 'white';
+        const pos = game.fen(), orient = (myColor === 'b') ? 'black' : 'white';
         if (currentMatchId) {
-            board = Chessboard('board', {
-                draggable: true, position: pos, orientation: orient, pieceTheme: pieceStyle,
-                onDragStart, onDrop, onSnapEnd
-            });
+            board = Chessboard('board', { draggable:true, position:pos, orientation:orient, pieceTheme:pieceStyle, onDragStart, onDrop, onSnapEnd });
         } else {
-            board = Chessboard('board', { position: 'start', draggable: false, pieceTheme: pieceStyle });
+            board = Chessboard('board', { position:'start', draggable:false, pieceTheme:pieceStyle });
         }
     }
     renderCollection();
+}
+
+/* ═══════════════════════════════════════════════════════
+   CRATE INVENTORY RENDER
+═══════════════════════════════════════════════════════ */
+function renderCrateInventory() {
+    const $c = $('#crate-inv-content').empty();
+    let hasAny = false;
+
+    // Show free crates (admin-gifted) first
+    Object.entries(CRATES).forEach(([crateId, crate]) => {
+        const freeCount = playerData.freeCrates[crateId] || 0;
+        if (freeCount > 0) {
+            hasAny = true;
+            $c.append(`
+                <div class="inv-crate-card" style="border-color:${crate.color};">
+                    <div class="inv-crate-icon">${crate.icon}</div>
+                    <div class="inv-crate-body">
+                        <div class="inv-crate-name" style="color:${crate.color}">${crate.name}</div>
+                        <div class="inv-crate-count">★ Free — ${freeCount} remaining</div>
+                        <button class="inv-crate-open-btn" style="background:${crate.color};color:#1a1917;border:none;" onclick="openFromInventory('${crateId}', true)">
+                            Open Free Crate
+                        </button>
+                    </div>
+                </div>
+            `);
+        }
+    });
+
+    // Then purchased crates
+    Object.entries(CRATES).forEach(([crateId, crate]) => {
+        const count = playerData.crateInventory[crateId] || 0;
+        if (count > 0) {
+            hasAny = true;
+            $c.append(`
+                <div class="inv-crate-card">
+                    <div class="inv-crate-icon">${crate.icon}</div>
+                    <div class="inv-crate-body">
+                        <div class="inv-crate-name" style="color:${crate.color}">${crate.name}</div>
+                        <div class="inv-crate-count">${count}× in inventory</div>
+                        <button class="inv-crate-open-btn" style="background:${crate.color};color:#1a1917;border:none;" onclick="openFromInventory('${crateId}', false)">
+                            Open Crate
+                        </button>
+                    </div>
+                </div>
+            `);
+        }
+    });
+
+    if (!hasAny) {
+        $c.append(`<div style="color:var(--muted);font-size:0.78rem;text-align:center;padding:24px 0;border:2px dashed var(--border);">
+            No crates in inventory.<br><br>
+            <span style="font-size:0.68rem;">Buy some from the <b style="color:white">Shop</b> or earn free ones from admins.</span>
+        </div>`);
+    }
+}
+
+function openFromInventory(crateId, isFree) {
+    const crate = CRATES[crateId];
+    if (!crate) return;
+    if (isFree) {
+        if ((playerData.freeCrates[crateId] || 0) < 1) return;
+    } else {
+        if ((playerData.crateInventory[crateId] || 0) < 1) return;
+    }
+
+    openCrateAnimation(crateId, () => {
+        if (isFree) {
+            playerData.freeCrates[crateId]--;
+        } else {
+            playerData.crateInventory[crateId]--;
+        }
+
+        const picked = crate.drops ? weightedRandom(crate.drops) : crate.pool[Math.floor(Math.random() * crate.pool.length)];
+        const pickedSet = PIECE_SETS[picked];
+        const isLegendary = pickedSet?.rarity === 'Legendary';
+        let isDupe = false, msg = '';
+        if (playerData.ownedSets.includes(picked)) {
+            const refund = isFree ? 0 : Math.floor(crate.cost * (isLegendary ? 0.75 : 0.5));
+            if (refund > 0) playerData.coins += refund;
+            isDupe = true;
+            msg = refund > 0 ? `Already owned — +${refund} 🪙 refunded` : `Already owned — no refund on free crates`;
+        } else {
+            playerData.ownedSets.push(picked);
+            msg = isLegendary ? `✨ LEGENDARY UNLOCKED!` : `New piece set unlocked!`;
+        }
+        savePlayerData(true);
+        updateCoinDisplay();
+        return { setId: picked, isDupe, msg, isLegendary };
+    });
 }
 
 /* ═══════════════════════════════════════════════════════
@@ -890,7 +1143,6 @@ function equipSet(setId) {
 ═══════════════════════════════════════════════════════ */
 function openCrateAnimation(crateId, onDone) {
     const crate = CRATES[crateId];
-
     const overlay  = document.getElementById('crate-opening-overlay');
     const iconWrap = document.getElementById('crate-icon-wrap');
     const burst    = document.getElementById('crate-burst');
@@ -902,10 +1154,8 @@ function openCrateAnimation(crateId, onDone) {
     iconWrap.style.animation = 'none';
     burst.className = '';
     burst.style.setProperty('--crate-glow', crate.rayColor);
-    raysEl.innerHTML = '';
-    raysEl.className = 'crate-rays';
-    revInfo.style.display = 'none';
-    revInfo.style.animation = 'none';
+    raysEl.innerHTML = ''; raysEl.className = 'crate-rays';
+    revInfo.style.display = 'none'; revInfo.style.animation = 'none';
 
     for (let i = 0; i < 12; i++) {
         const ray = document.createElement('div');
@@ -939,16 +1189,20 @@ function openCrateAnimation(crateId, onDone) {
             setTimeout(() => spark.remove(), 1200);
         }
 
-        const result = onDone(); // { setId, isDupe, msg }
+        const result = onDone();
 
         setTimeout(() => {
             raysEl.classList.remove('visible');
             const set = PIECE_SETS[result.setId];
+            const isLeg = result.isLegendary && !result.isDupe;
             document.getElementById('crate-reveal-set-name').textContent = set.name;
             document.getElementById('crate-reveal-set-name').style.color = set.rarityColor;
-            document.getElementById('crate-reveal-rarity').textContent = set.rarity;
-            document.getElementById('crate-reveal-rarity').style.color = set.rarityColor;
-            document.getElementById('crate-reveal-msg').textContent = result.msg;
+            document.getElementById('crate-reveal-set-name').style.textShadow = isLeg ? '0 0 20px #c084fc, 0 0 40px #a855f7' : 'none';
+            document.getElementById('crate-reveal-set-name').style.fontSize = isLeg ? '1.7rem' : '1.4rem';
+            document.getElementById('crate-reveal-rarity').textContent   = (isLeg ? '✨ ' : '') + set.rarity + (isLeg ? ' ✨' : '');
+            document.getElementById('crate-reveal-rarity').style.color   = set.rarityColor;
+            document.getElementById('crate-reveal-rarity').style.letterSpacing = isLeg ? '0.3em' : '0.2em';
+            document.getElementById('crate-reveal-msg').textContent      = result.msg;
             revInfo.style.display = 'block';
             void revInfo.offsetWidth;
             revInfo.style.animation = 'revealInfoDrop 0.4s cubic-bezier(.2,1.4,.5,1) forwards';
@@ -958,11 +1212,11 @@ function openCrateAnimation(crateId, onDone) {
 
 function dismissCrateOverlay() {
     document.getElementById('crate-opening-overlay').style.display = 'none';
-    renderShop();
+    renderCrateInventory();
 }
 
 /* ═══════════════════════════════════════════════════════
-   SHOP RENDER
+   SHOP RENDER  (buy = add to inventory)
 ═══════════════════════════════════════════════════════ */
 function renderShop() {
     const $c = $('#shop-content').empty();
@@ -974,40 +1228,26 @@ function renderShop() {
         </div>
     `);
     Object.entries(CRATES).forEach(([crateId, crate]) => {
-        const freeCount = playerData.freeCrates[crateId] || 0;
         const canAfford = playerData.coins >= crate.cost;
-        const hasFree   = freeCount > 0;
-        const canOpen   = hasFree || canAfford;
-        const poolNames = crate.pool.map(s => PIECE_SETS[s].name).join(' · ');
-
-        let btnClass, btnStyle, btnLabel, priceHtml;
-        if (hasFree) {
-            btnClass  = 'crate-card-btn free-crate';
-            btnStyle  = '';
-            btnLabel  = '★ FREE (' + freeCount + ' left)';
-            priceHtml = '<span style="color:var(--accent);text-decoration:line-through;opacity:0.5;">' + crate.cost + ' \uD83E\uDE99</span> <span style="color:var(--accent);font-size:0.72rem;">FREE</span>';
-        } else if (canAfford) {
-            btnClass  = 'crate-card-btn';
-            btnStyle  = 'background:' + crate.color + ';color:#1a1917;border:none;';
-            btnLabel  = 'Open Crate';
-            priceHtml = crate.cost + ' \uD83E\uDE99';
+        // Build pool display — for gold show weighted rarities
+        let poolHtml;
+        if (crate.drops) {
+            const rareNames = crate.drops.filter(d => PIECE_SETS[d.setId]?.rarity === 'Rare').map(d => PIECE_SETS[d.setId].name).join(' · ');
+            const legNames  = crate.drops.filter(d => PIECE_SETS[d.setId]?.rarity === 'Legendary').map(d => PIECE_SETS[d.setId].name).join(' · ');
+            poolHtml = `<span style="color:#e6a817">${rareNames}</span><br><span style="color:#c084fc;font-size:0.6rem;">✨ Legendary (~1% each): ${legNames}</span>`;
         } else {
-            btnClass  = 'crate-card-btn';
-            btnStyle  = '';
-            btnLabel  = 'Not enough coins';
-            priceHtml = crate.cost + ' \uD83E\uDE99';
+            poolHtml = crate.pool.map(s => PIECE_SETS[s].name).join(' · ');
         }
-
         $c.append(`
             <div class="crate-card">
                 <div class="crate-card-body">
                     <div class="crate-card-name" style="color:${crate.color}">${crate.name}</div>
-                    <div class="crate-card-pool">${poolNames}</div>
-                    <div class="crate-card-price">${priceHtml}</div>
-                    <button class="${btnClass}" style="${btnStyle}"
+                    <div class="crate-card-pool" style="line-height:1.6;">${poolHtml}</div>
+                    <div class="crate-card-price">${crate.cost} 🪙</div>
+                    <button class="crate-card-btn" style="background:${crate.color};color:#1a1917;border:none;"
                             onclick="buyCrate('${crateId}')"
-                            ${canOpen ? '' : 'disabled'}>
-                        ${btnLabel}
+                            ${canAfford ? '' : 'disabled'}>
+                        ${canAfford ? 'Buy & Add to Inventory' : 'Not enough coins'}
                     </button>
                 </div>
             </div>
@@ -1016,42 +1256,416 @@ function renderShop() {
 }
 
 /* ═══════════════════════════════════════════════════════
-   BUY CRATE
+   BUY CRATE  (adds to crateInventory, doesn't open yet)
 ═══════════════════════════════════════════════════════ */
 function buyCrate(crateId) {
     const crate = CRATES[crateId];
-    if (!crate) return;
-    const freeCount = playerData.freeCrates[crateId] || 0;
-    const useFree   = freeCount > 0;
-    if (!useFree && playerData.coins < crate.cost) return;
-
-    openCrateAnimation(crateId, () => {
-        if (useFree) {
-            playerData.freeCrates[crateId] = freeCount - 1;
-        } else {
-            playerData.coins -= crate.cost;
-        }
-
-        const pool   = crate.pool;
-        const picked = pool[Math.floor(Math.random() * pool.length)];
-        let isDupe = false, msg = '';
-        if (playerData.ownedSets.includes(picked)) {
-            const refund = useFree ? 0 : Math.floor(crate.cost * 0.5);
-            if (refund > 0) playerData.coins += refund;
-            isDupe = true;
-            msg = refund > 0 ? `Already owned — +${refund} 🪙 refunded` : `Already owned — no refund on free crates`;
-        } else {
-            playerData.ownedSets.push(picked);
-            msg = `New piece set unlocked!`;
-        }
-        savePlayerData(true);
-        updateCoinDisplay();
-        return { setId: picked, isDupe, msg };
-    });
+    if (!crate || playerData.coins < crate.cost) return;
+    playerData.coins -= crate.cost;
+    playerData.crateInventory[crateId] = (playerData.crateInventory[crateId] || 0) + 1;
+    savePlayerData(true);
+    updateCoinDisplay();
+    renderShop();
+    showBanner('Shop', `${crate.name} added to your inventory! Open it in My Crates.`, '');
 }
 
 /* ═══════════════════════════════════════════════════════
-   ADMIN — GIVE COINS
+   PROFILE ID
+═══════════════════════════════════════════════════════ */
+function copyProfileId() {
+    const id = $('#profile-id-display').text();
+    if (!id || id === '—') return;
+    navigator.clipboard.writeText(id).then(() => {
+        const btn = event.target.closest('button');
+        if (btn) { btn.textContent = '✓ Copied!'; setTimeout(() => btn.textContent = '📋 Copy Profile ID', 2000); }
+    }).catch(() => {});
+}
+
+/* ═══════════════════════════════════════════════════════
+   TRADING SYSTEM
+═══════════════════════════════════════════════════════ */
+let currentTradeType = 'pieces';
+
+function switchTradeType(type) {
+    currentTradeType = type;
+    document.getElementById('ttype-pieces').classList.toggle('active', type === 'pieces');
+    document.getElementById('ttype-crates').classList.toggle('active', type === 'crates');
+    document.getElementById('trade-pieces-form').classList.toggle('hidden', type !== 'pieces');
+    document.getElementById('trade-crates-form').classList.toggle('hidden', type !== 'crates');
+    if (type === 'crates') updateCrateOfferAvail();
+}
+
+function updateCrateOfferAvail() {
+    const crateId = $('#trade-offer-crate').val();
+    const inv = (playerData.crateInventory[crateId] || 0) + (playerData.freeCrates[crateId] || 0);
+    $('#trade-offer-crate-avail').text(`You have: ${inv}× ${CRATES[crateId]?.name || crateId}`);
+}
+
+let currentTradeTab = 'incoming';
+
+function switchTradeTab(tab) {
+    currentTradeTab = tab;
+    document.querySelectorAll('.trade-tab').forEach(t => t.classList.remove('active'));
+    document.getElementById('ttab-'+tab).classList.add('active');
+    ['incoming','outgoing','new'].forEach(t => {
+        document.getElementById('trade-tab-'+t).classList.toggle('hidden', t !== tab);
+    });
+    if (tab === 'new') { renderTradeNewForm(); switchTradeType('pieces'); }
+    if (tab === 'incoming') renderTradeIncoming();
+    if (tab === 'outgoing') renderTradeOutgoing();
+}
+
+function renderTradeNewForm() {
+    // Offer: sets you own (excluding default)
+    const $offer = $('#trade-offer-grid').empty();
+    const $want  = $('#trade-want-grid').empty();
+    playerData.ownedSets.filter(s => s !== 'wikipedia').forEach(setId => {
+        const set = PIECE_SETS[setId]; if (!set) return;
+        $offer.append(`<div class="trade-set-opt" data-setid="${setId}" onclick="toggleTradeSelect(this,'offer')">
+            <img src="${pieceUrl(setId,'w','K')}" onerror="this.style.opacity=0.3">
+            <div class="trade-set-opt-name">${set.name}</div>
+            <div class="trade-set-opt-rarity" style="color:${set.rarityColor}">${set.rarity}</div>
+        </div>`);
+    });
+    if ($offer.children().length === 0) {
+        $offer.append(`<div style="grid-column:span 2;color:var(--muted);font-size:0.72rem;padding:10px;">You have no tradeable sets. Open crates to get some!</div>`);
+    }
+
+    // Want: all sets except wikipedia
+    Object.entries(PIECE_SETS).filter(([id]) => id !== 'wikipedia').forEach(([setId, set]) => {
+        $want.append(`<div class="trade-set-opt" data-setid="${setId}" onclick="toggleTradeSelect(this,'want')">
+            <img src="${pieceUrl(setId,'w','K')}" onerror="this.style.opacity=0.3">
+            <div class="trade-set-opt-name">${set.name}</div>
+            <div class="trade-set-opt-rarity" style="color:${set.rarityColor}">${set.rarity}</div>
+        </div>`);
+    });
+}
+
+function toggleTradeSelect(el, group) {
+    // Single-select per group
+    $(el).closest('.trade-set-select').find('.trade-set-opt').removeClass('selected');
+    $(el).toggleClass('selected');
+}
+
+async function sendTradeRequest() {
+    const targetUsername = $('#trade-target-username').val().trim().toLowerCase();
+    const initMsg        = $('#trade-init-msg').val().trim();
+
+    $('#trade-send-err').addClass('hidden').text('');
+    if (!targetUsername)            { showTradeErr('Enter a username to trade with.'); return; }
+    if (targetUsername === myUsername) { showTradeErr("You can't trade with yourself."); return; }
+
+    let tradePayload = { type: currentTradeType };
+
+    if (currentTradeType === 'pieces') {
+        const offerSetId = $('#trade-offer-grid .selected').data('setid');
+        const wantSetId  = $('#trade-want-grid .selected').data('setid');
+        if (!offerSetId) { showTradeErr('Select a set to offer.'); return; }
+        if (!wantSetId)  { showTradeErr('Select a set you want.'); return; }
+        tradePayload.offer_set  = offerSetId;
+        tradePayload.want_set   = wantSetId;
+    } else {
+        const offerCrate    = $('#trade-offer-crate').val();
+        const offerCrateQty = parseInt($('#trade-offer-crate-qty').val(), 10) || 1;
+        const wantCrate     = $('#trade-want-crate').val();
+        const wantCrateQty  = parseInt($('#trade-want-crate-qty').val(), 10) || 1;
+        const myTotal = (playerData.crateInventory[offerCrate] || 0) + (playerData.freeCrates[offerCrate] || 0);
+        if (myTotal < offerCrateQty) { showTradeErr(`You only have ${myTotal}× ${CRATES[offerCrate]?.name}.`); return; }
+        tradePayload.offer_crate     = offerCrate;
+        tradePayload.offer_crate_qty = offerCrateQty;
+        tradePayload.want_crate      = wantCrate;
+        tradePayload.want_crate_qty  = wantCrateQty;
+    }
+
+    // Look up target user
+    const { data:targetProf } = await sb.from('profiles').select('id,display_name,username').eq('username', targetUsername).maybeSingle();
+    if (!targetProf) { showTradeErr(`No player found with username "${targetUsername}".`); return; }
+
+    const { error } = await sb.from('trade_requests').insert({
+        from_user_id:   user.id,
+        from_username:  myUsername,
+        from_display:   $('#my-display-name').text(),
+        to_user_id:     targetProf.id,
+        to_username:    targetUsername,
+        to_display:     targetProf.display_name || targetUsername,
+        // piece fields (null if crate trade)
+        offer_set:      tradePayload.offer_set  || null,
+        want_set:       tradePayload.want_set   || null,
+        // crate fields (null if piece trade)
+        offer_crate:     tradePayload.offer_crate     || null,
+        offer_crate_qty: tradePayload.offer_crate_qty || null,
+        want_crate:      tradePayload.want_crate      || null,
+        want_crate_qty:  tradePayload.want_crate_qty  || null,
+        trade_type:     currentTradeType,
+        status:         'pending',
+        messages:       initMsg ? [{ from: myUsername, text: initMsg, ts: Date.now() }] : [],
+    });
+
+    if (error) { showTradeErr('Failed to send request: ' + error.message); return; }
+
+    globalChannel.send({ type:'broadcast', event:'trade_notification', payload:{ target: targetProf.id, from: myUsername } });
+
+    $('#trade-target-username').val('');
+    $('#trade-init-msg').val('');
+    $('#trade-offer-grid .selected, #trade-want-grid .selected').removeClass('selected');
+    switchTradeTab('outgoing');
+    await loadTradeRequests();
+    showBanner('Trade', `Trade request sent to ${targetProf.display_name || targetUsername}!`, '');
+}
+
+function showTradeErr(msg) {
+    $('#trade-send-err').text(msg).removeClass('hidden');
+}
+
+async function loadTradeRequests() {
+    if (!user) return;
+    const [{ data: incoming }, { data: outgoing }] = await Promise.all([
+        sb.from('trade_requests').select('*').eq('to_user_id', user.id).in('status', ['pending','counter']).order('created_at', {ascending:false}),
+        sb.from('trade_requests').select('*').eq('from_user_id', user.id).in('status', ['pending','counter']).order('created_at', {ascending:false}),
+    ]);
+    tradeRequests.incoming = incoming || [];
+    tradeRequests.outgoing = outgoing || [];
+    updateTradeBadge();
+    if (currentTradeTab === 'incoming') renderTradeIncoming();
+    if (currentTradeTab === 'outgoing') renderTradeOutgoing();
+}
+
+function updateTradeBadge() {
+    const count = tradeRequests.incoming.length;
+    $('#trade-badge-lobby').toggleClass('hidden', count === 0).text(count > 0 ? '!' : '');
+}
+
+function tradeItemsHtml(req) {
+    if (req.trade_type === 'crates' || req.offer_crate) {
+        const oc = CRATES[req.offer_crate], wc = CRATES[req.want_crate];
+        return `
+            <div class="trade-item-pill" style="border-color:${oc?.color||'var(--border)'}">
+                ${oc?.icon||'📦'} ${req.offer_crate_qty||1}× ${oc?.name||req.offer_crate}
+            </div>
+            <span class="trade-arrow">→</span>
+            <div class="trade-item-pill" style="border-color:${wc?.color||'var(--border)'}">
+                ${wc?.icon||'📦'} ${req.want_crate_qty||1}× ${wc?.name||req.want_crate}
+            </div>`;
+    }
+    const offerSet = PIECE_SETS[req.offer_set], wantSet = PIECE_SETS[req.want_set];
+    return `
+        <div class="trade-item-pill" style="border-color:${offerSet?.rarityColor||'var(--border)'}">
+            <img src="${pieceUrl(req.offer_set,'w','K')}" style="width:18px;height:18px;object-fit:contain;">
+            ${escHtml(offerSet?.name||req.offer_set)}
+        </div>
+        <span class="trade-arrow">→</span>
+        <div class="trade-item-pill" style="border-color:${wantSet?.rarityColor||'var(--border)'}">
+            <img src="${pieceUrl(req.want_set,'w','K')}" style="width:18px;height:18px;object-fit:contain;">
+            ${escHtml(wantSet?.name||req.want_set)}
+        </div>`;
+}
+
+function canAcceptTrade(req) {
+    if (req.trade_type === 'crates' || req.offer_crate) {
+        const myTotal = (playerData.crateInventory[req.want_crate] || 0) + (playerData.freeCrates[req.want_crate] || 0);
+        return myTotal >= (req.want_crate_qty || 1);
+    }
+    return playerData.ownedSets.includes(req.want_set);
+}
+
+function acceptBlockReason(req) {
+    if (req.trade_type === 'crates' || req.offer_crate) {
+        const myTotal = (playerData.crateInventory[req.want_crate] || 0) + (playerData.freeCrates[req.want_crate] || 0);
+        if (myTotal < (req.want_crate_qty || 1)) return `You only have ${myTotal}× ${CRATES[req.want_crate]?.name}`;
+        return null;
+    }
+    if (!playerData.ownedSets.includes(req.want_set)) return `You don't own ${PIECE_SETS[req.want_set]?.name||req.want_set}`;
+    return null;
+}
+
+function renderTradeIncoming() {
+    const $c = $('#trade-tab-incoming').empty();
+    if (!tradeRequests.incoming.length) {
+        $c.append(`<div style="color:var(--muted);font-size:0.76rem;padding:16px 0;text-align:center;">No incoming trade requests.</div>`);
+        return;
+    }
+    tradeRequests.incoming.forEach(req => {
+        const blockReason = acceptBlockReason(req);
+        const canAccept   = !blockReason;
+        const typeLabel   = (req.trade_type === 'crates' || req.offer_crate) ? '📦 Crate Trade' : '♟ Piece Trade';
+        $c.append(`
+        <div class="trade-request-card incoming" id="trade-card-${req.id}">
+            <div class="trade-request-card-header">
+                <span class="trade-from">⇄ ${escHtml(req.from_display || req.from_username)}</span>
+                <span class="trade-time" style="display:flex;flex-direction:column;align-items:flex-end;gap:2px;">
+                    <span style="font-size:0.58rem;color:var(--trade);text-transform:uppercase;letter-spacing:0.06em;">${typeLabel}</span>
+                    <span>${timeAgo(req.created_at)}</span>
+                </span>
+            </div>
+            <div class="trade-items">${tradeItemsHtml(req)}</div>
+            <div class="trade-chat-box" id="tchat-${req.id}"></div>
+            <div style="display:flex;gap:6px;margin-bottom:6px;">
+                <input type="text" placeholder="Reply…" id="tchat-input-${req.id}" style="margin-bottom:0;font-size:0.72rem;padding:6px 8px;" onkeypress="if(event.key==='Enter')sendTradeMsg('${req.id}',this.value)">
+            </div>
+            <div class="trade-actions">
+                <button onclick="acceptTrade('${req.id}')" ${canAccept ? '' : 'disabled'} style="background:var(--accent);">Accept</button>
+                <button onclick="declineTrade('${req.id}')" class="sec-btn danger-btn">Decline</button>
+            </div>
+            ${blockReason ? `<div style="font-size:0.62rem;color:var(--muted);margin-top:4px;text-transform:uppercase;letter-spacing:0.06em;">${escHtml(blockReason)} — can't accept</div>` : ''}
+        </div>`);
+        renderTradeChat(req);
+    });
+}
+
+function renderTradeOutgoing() {
+    const $c = $('#trade-tab-outgoing').empty();
+    if (!tradeRequests.outgoing.length) {
+        $c.append(`<div style="color:var(--muted);font-size:0.76rem;padding:16px 0;text-align:center;">No outgoing trade requests.</div>`);
+        return;
+    }
+    tradeRequests.outgoing.forEach(req => {
+        const typeLabel = (req.trade_type === 'crates' || req.offer_crate) ? '📦 Crate Trade' : '♟ Piece Trade';
+        $c.append(`
+        <div class="trade-request-card" id="trade-card-${req.id}">
+            <div class="trade-request-card-header">
+                <span class="trade-from" style="color:var(--muted);">→ ${escHtml(req.to_display || req.to_username)}</span>
+                <span class="trade-time" style="display:flex;flex-direction:column;align-items:flex-end;gap:2px;">
+                    <span style="font-size:0.58rem;color:var(--trade);text-transform:uppercase;letter-spacing:0.06em;">${typeLabel}</span>
+                    <span>${timeAgo(req.created_at)}</span>
+                </span>
+            </div>
+            <div class="trade-items">${tradeItemsHtml(req)}</div>
+            <div class="trade-chat-box" id="tchat-${req.id}"></div>
+            <div style="display:flex;gap:6px;margin-bottom:6px;">
+                <input type="text" placeholder="Add message…" id="tchat-input-${req.id}" style="margin-bottom:0;font-size:0.72rem;padding:6px 8px;" onkeypress="if(event.key==='Enter')sendTradeMsg('${req.id}',this.value)">
+            </div>
+            <div class="trade-actions">
+                <button onclick="cancelTrade('${req.id}')" class="sec-btn">Cancel Request</button>
+            </div>
+        </div>`);
+        renderTradeChat(req);
+    });
+}
+
+function renderTradeChat(req) {
+    const $box = $(`#tchat-${req.id}`);
+    if (!$box.length) return;
+    $box.empty();
+    const msgs = Array.isArray(req.messages) ? req.messages : [];
+    msgs.forEach(m => {
+        const isMe = m.from === myUsername;
+        $box.append(`<div class="tc-line"><span class="tc-from" style="color:${isMe?'#b5d97a':'var(--trade)'}">${escHtml(m.from)}:</span>${escHtml(m.text)}</div>`);
+    });
+    $box[0].scrollTop = $box[0].scrollHeight;
+}
+
+async function sendTradeMsg(tradeId, text, otherUsername) {
+    text = (typeof text === 'string' ? text : $(`#tchat-input-${tradeId}`).val()).trim();
+    if (!text) return;
+    $(`#tchat-input-${tradeId}`).val('');
+
+    const { data:req } = await sb.from('trade_requests').select('messages').eq('id', tradeId).maybeSingle();
+    if (!req) return;
+    const msgs = Array.isArray(req.messages) ? req.messages : [];
+    msgs.push({ from: myUsername, text, ts: Date.now() });
+    await sb.from('trade_requests').update({ messages: msgs }).eq('id', tradeId);
+
+    // Notify the other party
+    globalChannel.send({ type:'broadcast', event:'trade_message', payload:{ tradeId, from: myUsername } });
+
+    await loadTradeRequests();
+}
+
+async function acceptTrade(tradeId) {
+    const req = tradeRequests.incoming.find(r => r.id === tradeId);
+    if (!req) return;
+
+    const isCrateTrade = req.trade_type === 'crates' || !!req.offer_crate;
+
+    if (isCrateTrade) {
+        // Validate I have enough of the wanted crate
+        const wantQty = req.want_crate_qty || 1;
+        const offerQty = req.offer_crate_qty || 1;
+        const myTotal = (playerData.crateInventory[req.want_crate] || 0) + (playerData.freeCrates[req.want_crate] || 0);
+        if (myTotal < wantQty) {
+            showBanner('Trade', `You don't have enough ${CRATES[req.want_crate]?.name}.`, ''); return;
+        }
+
+        // Check sender has enough
+        const { data:senderInv } = await sb.from('player_inventory').select('crate_inventory,free_crates').eq('id', req.from_user_id).maybeSingle();
+        const senderTotal = ((senderInv?.crate_inventory||{})[req.offer_crate]||0) + ((senderInv?.free_crates||{})[req.offer_crate]||0);
+        if (senderTotal < offerQty) {
+            showBanner('Trade', "Sender no longer has enough crates.", '');
+            await sb.from('trade_requests').update({ status:'cancelled' }).eq('id', tradeId);
+            loadTradeRequests(); return;
+        }
+
+        // Deduct from my inventory (use free first, then purchased)
+        let remaining = wantQty;
+        const myFree = playerData.freeCrates[req.want_crate] || 0;
+        const deductFree = Math.min(myFree, remaining);
+        playerData.freeCrates[req.want_crate] = myFree - deductFree;
+        remaining -= deductFree;
+        playerData.crateInventory[req.want_crate] = Math.max(0, (playerData.crateInventory[req.want_crate]||0) - remaining);
+
+        // Add the crates I'm getting
+        playerData.crateInventory[req.offer_crate] = (playerData.crateInventory[req.offer_crate]||0) + offerQty;
+        savePlayerData(true);
+
+        // Update sender's crate inventory
+        const sci = { ...(senderInv?.crate_inventory || {}) };
+        const sfc = { ...(senderInv?.free_crates || {}) };
+        let sRemaining = offerQty;
+        const sFree = sfc[req.offer_crate] || 0;
+        const sDeductFree = Math.min(sFree, sRemaining);
+        sfc[req.offer_crate] = sFree - sDeductFree; sRemaining -= sDeductFree;
+        sci[req.offer_crate] = Math.max(0, (sci[req.offer_crate]||0) - sRemaining);
+        sci[req.want_crate]  = (sci[req.want_crate]||0) + wantQty;
+        await sb.from('player_inventory').update({ crate_inventory: sci, free_crates: sfc }).eq('id', req.from_user_id);
+
+        await sb.from('trade_requests').update({ status: 'completed' }).eq('id', tradeId);
+        globalChannel.send({ type:'broadcast', event:'trade_completed', payload:{ tradeId, target: req.from_user_id, fromDisplay: $('#my-display-name').text() } });
+        showBanner('Trade', `Crate trade complete! Got ${offerQty}× ${CRATES[req.offer_crate]?.name}!`, '');
+
+    } else {
+        // Piece trade
+        if (!playerData.ownedSets.includes(req.want_set)) {
+            showBanner('Trade', "You don't own the requested set.", ''); return;
+        }
+        const { data:senderInv } = await sb.from('player_inventory').select('owned_sets').eq('id', req.from_user_id).maybeSingle();
+        if (!senderInv?.owned_sets?.includes(req.offer_set)) {
+            showBanner('Trade', "Sender no longer owns their offered set.", '');
+            await sb.from('trade_requests').update({ status:'cancelled' }).eq('id', tradeId);
+            loadTradeRequests(); return;
+        }
+
+        const myNew = playerData.ownedSets.filter(s => s !== req.want_set);
+        myNew.push(req.offer_set);
+        playerData.ownedSets = [...new Set(myNew)];
+        if (playerData.equippedSet === req.want_set) { playerData.equippedSet = 'wikipedia'; pieceStyle = PIECE_SETS.wikipedia.url; }
+        savePlayerData(true);
+
+        const senderNew = senderInv.owned_sets.filter(s => s !== req.offer_set);
+        senderNew.push(req.want_set);
+        await sb.from('player_inventory').update({ owned_sets: [...new Set(senderNew)] }).eq('id', req.from_user_id);
+
+        await sb.from('trade_requests').update({ status: 'completed' }).eq('id', tradeId);
+        globalChannel.send({ type:'broadcast', event:'trade_completed', payload:{ tradeId, target: req.from_user_id, fromDisplay: $('#my-display-name').text() } });
+        showBanner('Trade', `Trade completed! You got ${PIECE_SETS[req.offer_set]?.name || req.offer_set}!`, '');
+    }
+
+    await loadTradeRequests();
+}
+
+async function declineTrade(tradeId) {
+    const req = tradeRequests.incoming.find(r => r.id === tradeId);
+    await sb.from('trade_requests').update({ status: 'declined' }).eq('id', tradeId);
+    if (req) globalChannel.send({ type:'broadcast', event:'trade_declined', payload:{ tradeId, target: req.from_user_id } });
+    await loadTradeRequests();
+}
+
+async function cancelTrade(tradeId) {
+    await sb.from('trade_requests').update({ status: 'cancelled' }).eq('id', tradeId);
+    await loadTradeRequests();
+}
+
+/* ═══════════════════════════════════════════════════════
+   ADMIN — GIVE COINS / CRATES
 ═══════════════════════════════════════════════════════ */
 function showGiftCrateMsg(msg, success) {
     $('#gift-crate-msg').text(msg).removeClass('hidden inline-error inline-success').addClass(success ? 'inline-success' : 'inline-error');
@@ -1066,15 +1680,13 @@ async function giveCrates() {
     if (!CRATES[crateType])    { showGiftCrateMsg('Select a valid crate type.', false); return; }
 
     if (targetRaw.toLowerCase() === 'all') {
-        const { data:profiles, error } = await sb.from('profiles').select('id');
-        if (error || !profiles?.length) { showGiftCrateMsg('Failed to fetch profiles: '+(error?.message||'None found'), false); return; }
+        const { data:profiles } = await sb.from('profiles').select('id');
         await globalChannel.send({ type:'broadcast', event:'crate_grant', payload:{ target:'all', crateType, amount } });
-        showGiftCrateMsg(`Sent ${amount}× ${CRATES[crateType].name} to all ${profiles.length} players.`, true);
-        $('#gift-crate-user-id').val(''); $('#gift-crate-amount').val('1');
-        return;
+        showGiftCrateMsg(`Sent ${amount}× ${CRATES[crateType].name} to all ${profiles?.length||'?'} players.`, true);
+        $('#gift-crate-user-id').val(''); $('#gift-crate-amount').val('1'); return;
     }
-    const { data:profile, error:profErr } = await sb.from('profiles').select('id,display_name').eq('id', targetRaw).maybeSingle();
-    if (profErr || !profile) { showGiftCrateMsg('Profile not found. Check the ID.', false); return; }
+    const { data:profile } = await sb.from('profiles').select('id,display_name').eq('id', targetRaw).maybeSingle();
+    if (!profile) { showGiftCrateMsg('Profile not found.', false); return; }
     await globalChannel.send({ type:'broadcast', event:'crate_grant', payload:{ target:profile.id, crateType, amount } });
     showGiftCrateMsg(`Sent ${amount}× ${CRATES[crateType].name} to ${profile.display_name||profile.id}.`, true);
     $('#gift-crate-user-id').val(''); $('#gift-crate-amount').val('1');
@@ -1091,22 +1703,20 @@ async function giveCoins() {
     if (!amount || amount < 1) { showGiftMsg('Enter a valid coin amount (min 1).', false); return; }
 
     if (targetRaw.toLowerCase() === 'all') {
-        const { data:profiles, error } = await sb.from('profiles').select('id');
-        if (error || !profiles?.length) { showGiftMsg('Failed to fetch profiles: '+(error?.message||'None found'), false); return; }
+        const { data:profiles } = await sb.from('profiles').select('id');
         await globalChannel.send({ type:'broadcast', event:'coin_grant', payload:{ target:'all', amount } });
-        showGiftMsg(`Broadcast +${amount} coins to all ${profiles.length} players.`, true);
-        $('#gift-user-id').val(''); $('#gift-amount').val('');
-        return;
+        showGiftMsg(`Broadcast +${amount} coins to all ${profiles?.length||'?'} players.`, true);
+        $('#gift-user-id').val(''); $('#gift-amount').val(''); return;
     }
-    const { data:profile, error:profErr } = await sb.from('profiles').select('id,display_name').eq('id', targetRaw).maybeSingle();
-    if (profErr || !profile) { showGiftMsg('Profile not found. Check the ID.', false); return; }
+    const { data:profile } = await sb.from('profiles').select('id,display_name').eq('id', targetRaw).maybeSingle();
+    if (!profile) { showGiftMsg('Profile not found.', false); return; }
     await globalChannel.send({ type:'broadcast', event:'coin_grant', payload:{ target:profile.id, amount } });
     showGiftMsg(`Sent +${amount} coins to ${profile.display_name||profile.id}.`, true);
     $('#gift-user-id').val(''); $('#gift-amount').val('');
 }
 
 /* ═══════════════════════════════════════════════════════
-   GLOBAL BROADCAST
+   GLOBAL BROADCAST CHANNEL
 ═══════════════════════════════════════════════════════ */
 const globalChannel = sb.channel('global_main', { config:{ broadcast:{ self:true } } });
 
@@ -1140,9 +1750,28 @@ function subscribeGlobal() {
                 if (!playerData.freeCrates[ct]) playerData.freeCrates[ct] = 0;
                 playerData.freeCrates[ct] += amt;
                 savePlayerData(true);
-                renderShop(); // refresh button if shop is open
-                showBanner('Admin', `You received ${amt}× ${CRATES[ct]?.name || ct}! Check the Shop.`, '');
+                showBanner('Admin', `You received ${amt}× ${CRATES[ct]?.name || ct}! Check My Crates.`, '');
             }
+        })
+        .on('broadcast', { event:'trade_notification' }, (p) => {
+            if (!user || p.payload.target !== user.id) return;
+            loadTradeRequests();
+            showBanner('Trade', `New trade request from ${p.payload.from}!`, '');
+        })
+        .on('broadcast', { event:'trade_message' }, (p) => {
+            if (!user) return;
+            loadTradeRequests();
+        })
+        .on('broadcast', { event:'trade_completed' }, (p) => {
+            if (!user || p.payload.target !== user.id) return;
+            // Reload their inventory to get the new set
+            loadPlayerData();
+            showBanner('Trade', `${p.payload.fromDisplay} accepted your trade!`, '');
+        })
+        .on('broadcast', { event:'trade_declined' }, (p) => {
+            if (!user || p.payload.target !== user.id) return;
+            loadTradeRequests();
+            showBanner('Trade', `Your trade request was declined.`, '');
         })
         .subscribe();
 }
@@ -1150,7 +1779,7 @@ function subscribeGlobal() {
 let bannerTimer = null;
 function showBanner(sender, msg, pfp) {
     if (pfp) $('#global-banner-pfp').attr('src', pfp).show(); else $('#global-banner-pfp').hide();
-    $('#global-banner-sender').text(sender+': ');
+    $('#global-banner-sender').text(sender ? sender+': ' : '');
     $('#global-banner-text').text(msg);
     $('#global-banner').addClass('show');
     if (bannerTimer) clearTimeout(bannerTimer);
@@ -1205,46 +1834,80 @@ function showSoundMsg(msg, ok) {
 async function stopAllSounds() { await globalChannel.send({ type:'broadcast', event:'stop_sound' }); }
 
 /* ═══════════════════════════════════════════════════════
-   AUTH & PROFILE
+   AUTH — USERNAME BASED (no email required)
+   Strategy: store username in profiles.username,
+   use username@suocial.chess as the Supabase email
 ═══════════════════════════════════════════════════════ */
+function usernameToEmail(username) {
+    return username.toLowerCase().replace(/[^a-z0-9_]/g, '') + '@suocial.chess';
+}
+
 async function handleAuth(type) {
-    const email = $('#auth-email').val().trim(), pass = $('#auth-pass').val();
+    const rawUsername = $('#auth-username').val().trim();
+    const pass        = $('#auth-pass').val();
     $('#auth-error').addClass('hidden').text('');
-    if (!email || !pass) { showAuthError('Please fill in both fields.'); return; }
-    const { error } = type === 'login'
-        ? await sb.auth.signInWithPassword({email, password:pass})
-        : await sb.auth.signUp({email, password:pass});
-    if (error) showAuthError(error.message); else checkSession();
+
+    if (!rawUsername || !pass) { showAuthError('Please fill in both fields.'); return; }
+    if (!/^[a-zA-Z0-9_]{3,20}$/.test(rawUsername)) {
+        showAuthError('Username must be 3–20 characters (letters, numbers, underscores only).');
+        return;
+    }
+
+    const cleanUsername = rawUsername.toLowerCase();
+    const fakeEmail     = usernameToEmail(cleanUsername);
+
+    if (type === 'signup') {
+        // Check username isn't taken
+        const { data:existing } = await sb.from('profiles').select('id').eq('username', cleanUsername).maybeSingle();
+        if (existing) { showAuthError('Username already taken. Choose another.'); return; }
+
+        const { error } = await sb.auth.signUp({ email: fakeEmail, password: pass });
+        if (error) { showAuthError(error.message); return; }
+
+        // Give them a default display name = username
+        const { data:sessionData } = await sb.auth.getUser();
+        if (sessionData?.user) {
+            await sb.from('profiles').upsert({ id: sessionData.user.id, username: cleanUsername, display_name: rawUsername, pfp_url: '' });
+        }
+    } else {
+        const { error } = await sb.auth.signInWithPassword({ email: fakeEmail, password: pass });
+        if (error) {
+            // Friendly error for wrong credentials
+            if (error.message.includes('Invalid')) showAuthError('Incorrect username or password.');
+            else showAuthError(error.message);
+            return;
+        }
+    }
+    checkSession();
 }
+
 function showAuthError(msg) { $('#auth-error').text(msg).removeClass('hidden'); }
-function toggleForgot() { $('#forgot-panel').toggleClass('hidden'); $('#reset-msg').addClass('hidden').text(''); $('#reset-email').val(''); }
-async function sendReset() {
-    const email = $('#reset-email').val().trim();
-    if (!email) { $('#reset-msg').text('Enter your email first.').removeClass('hidden inline-success').addClass('inline-error'); return; }
-    await sb.auth.resetPasswordForEmail(email);
-    $('#reset-msg').text('Reset link sent!').removeClass('hidden inline-error').addClass('inline-success');
-    setTimeout(() => $('#forgot-panel').addClass('hidden'), 3000);
-}
 
 async function checkSession() {
     const { data } = await sb.auth.getUser();
     if (data?.user) {
         user = data.user;
         const { data:prof } = await sb.from('profiles').select('*').eq('id', user.id).maybeSingle();
-        const displayName = prof?.display_name || emailToName(user.email);
+        const displayName = prof?.display_name || (prof?.username) || 'Player';
         const pfpUrl      = prof?.pfp_url || DEFAULT_AVATAR;
+        myUsername        = prof?.username || '';
         isAdmin           = prof?.is_admin === true;
+
         $('#my-display-name').text(displayName);
-        $('#my-email-sub').text(user.email);
+        $('#my-username-sub').text('@' + myUsername);
         $('#my-pfp').attr('src', pfpUrl);
+        $('#profile-id-display').text(user.id);
+        $('#profile-username-display').text('@' + myUsername);
+
         isAdmin
             ? ($('#admin-badge').removeClass('hidden'), $('#admin-panel-btn').removeClass('hidden'))
             : ($('#admin-badge').addClass('hidden'), $('#admin-panel-btn').addClass('hidden'));
+
         $('#set-name').val(displayName);
         if (prof?.pfp_url) { $('#pfp-preview').attr('src', prof.pfp_url).show(); $('#pfp-upload-label').css('border-color','var(--accent)'); }
 
-        // Load cloud inventory
         await loadPlayerData();
+        await loadTradeRequests();
 
         $('#user-profile-bar').removeClass('hidden');
         showView('view-lobby');
@@ -1261,7 +1924,7 @@ function previewPfp(event) {
 }
 
 async function updateProfile() {
-    const name = $('#set-name').val().trim() || emailToName(user.email);
+    const name = $('#set-name').val().trim() || myUsername;
     const file = $('#pfp-file')[0].files[0];
     let pfpUrl = (await sb.from('profiles').select('pfp_url').eq('id', user.id).maybeSingle())?.data?.pfp_url || '';
     if (file) {
@@ -1272,7 +1935,7 @@ async function updateProfile() {
         pfpUrl = sb.storage.from('avatars').getPublicUrl(path).data.publicUrl + '?t=' + Date.now();
         $('#pfp-upload-status').text('Uploaded ✓');
     }
-    const { error } = await sb.from('profiles').upsert({id:user.id, display_name:name, pfp_url:pfpUrl});
+    const { error } = await sb.from('profiles').upsert({ id:user.id, username:myUsername, display_name:name, pfp_url:pfpUrl });
     if (error) { showProfileMsg('Save failed: '+error.message, false); return; }
     showProfileMsg('Profile saved!', true);
     await checkSession();
@@ -1306,9 +1969,6 @@ function unlockAfterMatch() {
     $('#resign-btn').removeClass('hidden');
 }
 
-/* ═══════════════════════════════════════════════════════
-   CANCEL MATCHMAKING
-═══════════════════════════════════════════════════════ */
 async function cancelMatchmaking() {
     if (currentMatchId) {
         await sb.from('matches').delete().eq('id', currentMatchId).eq('status', 'waiting');
@@ -1362,22 +2022,22 @@ async function findMatch() {
     winCoinAwarded = false;
 
     const myName = $('#my-display-name').text(), myPfp = $('#my-pfp').attr('src') || DEFAULT_AVATAR;
-    await sb.from('matches').delete().eq('status','waiting').eq('white_player', user.email);
+    await sb.from('matches').delete().eq('status','waiting').eq('white_player', user.id);
 
     const cutoff = new Date(Date.now() - 2*60*1000).toISOString();
-    const { data:open } = await sb.from('matches').select('*').eq('status','waiting').neq('white_player', user.email).gte('created_at', cutoff).limit(1);
+    const { data:open } = await sb.from('matches').select('*').eq('status','waiting').neq('white_player', user.id).gte('created_at', cutoff).limit(1);
 
     if (open?.length > 0) {
         currentMatchId = open[0].id; myColor = 'b';
-        await sb.from('matches').update({black_player:user.email, black_display:myName, black_pfp:myPfp, status:'playing'}).eq('id', currentMatchId);
+        await sb.from('matches').update({black_player:user.id, black_display:myName, black_pfp:myPfp, status:'playing'}).eq('id', currentMatchId);
         if (open[0].fen) try { game.load(open[0].fen); } catch(e) {}
-        setOpponent(open[0].white_display || emailToName(open[0].white_player), open[0].white_pfp || DEFAULT_AVATAR);
+        setOpponent(cleanDisplayName(open[0].white_display) || myUsername, open[0].white_pfp || DEFAULT_AVATAR);
         setMatchStatus('playing', 'Match in progress');
         unlockAfterMatch();
         subscribe(currentMatchId); initGame('black'); updateUI();
     } else {
         const { data:created, error:insertErr } = await sb.from('matches').insert([{
-            white_player:user.email, white_display:myName, white_pfp:myPfp, status:'waiting', fen:new Chess().fen()
+            white_player:user.id, white_display:myName, white_pfp:myPfp, status:'waiting', fen:new Chess().fen()
         }]).select();
         if (insertErr || !created?.length) {
             $('#match-error').text('Could not create match: '+(insertErr?.message||'Unknown error')).removeClass('hidden');
@@ -1411,7 +2071,7 @@ function subscribe(id) {
         .on('postgres_changes', {event:'UPDATE', schema:'public', table:'matches', filter:`id=eq.${id}`}, (payload) => {
             const d = payload.new;
             if (myColor==='w' && d.status==='playing' && d.black_player && $('#opp-name-display').text()==='Waiting...') {
-                setOpponent(d.black_display || emailToName(d.black_player), d.black_pfp || DEFAULT_AVATAR);
+                setOpponent(cleanDisplayName(d.black_display) || 'Opponent', d.black_pfp || DEFAULT_AVATAR);
                 setMatchStatus('playing', 'Match in progress');
                 unlockAfterMatch();
             }
@@ -1434,7 +2094,7 @@ function subscribe(id) {
 
 function appendChat(name, text, isMe) {
     const color = isMe ? '#b5d97a' : '#81b64c';
-    $('#chat-logs').append(`<div><b style="color:${color}">${isMe?'Me':name}:</b> ${$('<span>').text(text).html()}</div>`);
+    $('#chat-logs').append(`<div><b style="color:${color}">${isMe?'Me':escHtml(name)}:</b> ${escHtml(text)}</div>`);
     const b = document.getElementById('chat-logs'); b.scrollTop = b.scrollHeight;
 }
 async function sendChat() {
@@ -1507,12 +2167,32 @@ function showView(id) {
     if (id !== 'view-collection') stopCollectionCycle();
     $('.tab-content').addClass('hidden');
     $('#'+id).removeClass('hidden');
-    if (id === 'view-admin')      { updateBroadcastPreview(); loadSoundList(); }
-    if (id === 'view-shop')       { renderShop(); }
-    if (id === 'view-collection') { renderCollection(); }
+    if (id === 'view-admin')           { updateBroadcastPreview(); loadSoundList(); }
+    if (id === 'view-shop')            { renderShop(); }
+    if (id === 'view-collection')      { renderCollection(); }
+    if (id === 'view-crate-inventory') { renderCrateInventory(); }
+    if (id === 'view-trade')           { switchTradeTab('incoming'); }
 }
 
-function emailToName(email) { return email ? email.split('@')[0] : 'Player'; }
+/* ═══════════════════════════════════════════════════════
+   HELPERS
+═══════════════════════════════════════════════════════ */
+function escHtml(str) {
+    return String(str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function timeAgo(ts) {
+    if (!ts) return '';
+    const diff = Date.now() - new Date(ts).getTime();
+    if (diff < 60000)    return 'just now';
+    if (diff < 3600000)  return Math.floor(diff/60000) + 'm ago';
+    if (diff < 86400000) return Math.floor(diff/3600000) + 'h ago';
+    return Math.floor(diff/86400000) + 'd ago';
+}
+// Strip our fake email domain so it never shows in UI
+function cleanDisplayName(raw) {
+    if (!raw) return 'Player';
+    return raw.replace(/@suocial\.chess$/i, '').replace(/@.*$/, '');
+}
 
 /* ═══════════════════════════════════════════════════════
    STARTUP
@@ -1527,36 +2207,48 @@ $(document).ready(() => {
 
 <!--
 ═══════════════════════════════════════════════════════
-  SUPABASE SETUP — run this SQL in your Supabase SQL editor
-  to create the player_inventory table:
+  SUPABASE SQL — run in your SQL editor
 
-  create table if not exists public.player_inventory (
-    id           uuid primary key references auth.users(id) on delete cascade,
-    coins        integer not null default 0,
-    owned_sets   text[]  not null default array['wikipedia'],
-    equipped_set text    not null default 'wikipedia',
-    free_crates  jsonb   not null default '{"bronze":0,"silver":0,"gold":0}'::jsonb,
-    updated_at   timestamptz not null default now()
+  ── player_inventory (add crate_inventory column) ──
+  alter table public.player_inventory
+    add column if not exists crate_inventory jsonb not null default '{"bronze":0,"silver":0,"gold":0}'::jsonb;
+
+  ── profiles (add username column) ──
+  alter table public.profiles
+    add column if not exists username text unique;
+
+  create index if not exists profiles_username_idx on public.profiles(username);
+
+  ── trade_requests (with crate + piece trade support) ──
+  create table if not exists public.trade_requests (
+    id               uuid primary key default gen_random_uuid(),
+    from_user_id     uuid references auth.users(id) on delete cascade,
+    from_username    text,
+    from_display     text,
+    to_user_id       uuid references auth.users(id) on delete cascade,
+    to_username      text,
+    to_display       text,
+    trade_type       text not null default 'pieces',
+    offer_set        text,
+    want_set         text,
+    offer_crate      text,
+    offer_crate_qty  integer,
+    want_crate       text,
+    want_crate_qty   integer,
+    status           text not null default 'pending',
+    messages         jsonb not null default '[]'::jsonb,
+    created_at       timestamptz not null default now()
   );
 
-  -- Enable Row Level Security
-  alter table public.player_inventory enable row level security;
+  alter table public.trade_requests enable row level security;
 
-  -- Each user can only read/write their own row
-  create policy "Users manage own inventory"
-    on public.player_inventory
-    for all
-    using  (auth.uid() = id)
-    with check (auth.uid() = id);
+  create policy "Trade parties can read/write"
+    on public.trade_requests for all
+    using (auth.uid() = from_user_id or auth.uid() = to_user_id)
+    with check (auth.uid() = from_user_id or auth.uid() = to_user_id);
 
-  -- Auto-update the updated_at timestamp
-  create or replace function update_updated_at()
-  returns trigger language plpgsql as $$
-  begin new.updated_at = now(); return new; end; $$;
-
-  create trigger inventory_updated_at
-    before update on public.player_inventory
-    for each row execute procedure update_updated_at();
+  -- NOTE: Legendary piece sets (Horsey, IC Pieces, Anarcandy) are ~1% each
+  -- from Gold Crates via weighted random. No DB changes needed for this.
 ═══════════════════════════════════════════════════════
 -->
 </body>
