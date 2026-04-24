@@ -4,13 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Chess-go</title>
-
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <link rel="stylesheet" href="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.css">
     <script src="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
     <style>
         :root {
             --bg: #312e2b;
@@ -26,6 +24,7 @@
             --danger: #c0392b;
             --gold: #ffd700;
             --trade: #4fc3f7;
+            --bot: #e67e22;
         }
 
         html, body { height: 100%; }
@@ -107,11 +106,25 @@
         #board-lock-overlay .lock-label  { font-size: 0.72rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.12em; }
         @keyframes spinPulse { 0%,100%{transform:rotate(0deg) scale(1)} 50%{transform:rotate(180deg) scale(1.15)} }
 
+        /* ── BOT THINK OVERLAY ── */
+        #bot-think-overlay {
+            position: absolute; bottom: 14px; left: 50%; transform: translateX(-50%);
+            background: rgba(33,31,28,0.92); border: 1px solid var(--bot);
+            color: var(--bot); font-size: 0.7rem; letter-spacing: 0.12em;
+            text-transform: uppercase; padding: 5px 14px; z-index: 41;
+            display: flex; align-items: center; gap: 7px;
+            opacity: 0; transition: opacity 0.2s;
+        }
+        #bot-think-overlay.visible { opacity: 1; }
+        #bot-think-overlay .think-dots span { animation: dotBlink 1.2s infinite; }
+        #bot-think-overlay .think-dots span:nth-child(2) { animation-delay: 0.2s; }
+        #bot-think-overlay .think-dots span:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes dotBlink { 0%,100%{opacity:0.2} 50%{opacity:1} }
+
         /* ── COIN FLOATER ── */
         .coin-floater {
             position: absolute; font-family: 'Courier New', monospace;
             font-weight: bold; font-size: 1rem; color: var(--gold);
-            text-shadow: 0 1px 4px rgba(0,0,0,0.9), 0 0 8px rgba(255,215,0,0.4);
             pointer-events: none; z-index: 100; transform: translateX(-50%);
             animation: coinFloat 1.1s ease-out forwards; white-space: nowrap; letter-spacing: 0.04em;
         }
@@ -165,6 +178,7 @@
         .danger-btn { background:var(--danger); }
         .admin-btn  { background:#e6a817; color:#1a1917; }
         .trade-btn  { background:#1a3a4a; border:1px solid var(--trade); color:var(--trade); }
+        .bot-btn    { background:#2a1a08; border:1px solid var(--bot); color:var(--bot); }
 
         /* ── STATUS CHIP ── */
         .status-chip {
@@ -176,6 +190,7 @@
         .status-chip .dot { width:7px; height:7px; border-radius:50%!important; background:var(--muted); }
         .status-chip.searching .dot { background:#e6a817; animation:blink 1s infinite; }
         .status-chip.playing   .dot { background:var(--accent); }
+        .status-chip.bot-game  .dot { background:var(--bot); }
         @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.2} }
 
         /* ── OPP INFO ── */
@@ -226,20 +241,33 @@
         #gift-msg  { font-size:0.72rem; margin-bottom:6px; padding:6px 8px; border:1px solid var(--border); }
         #gift-hint { font-size:0.65rem; color:var(--muted); letter-spacing:0.06em; margin-bottom:8px; line-height:1.5; }
 
+        /* ── BOT SETUP ── */
+        #view-bot h2 { color:var(--bot); border-color:#4a3010; }
+        .difficulty-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:14px; }
+        .diff-btn {
+            background:#1a1917; border:2px solid var(--border); color:var(--muted);
+            padding:12px 6px; cursor:pointer; font-family:'Courier New',monospace;
+            text-align:center; font-size:0.72rem; text-transform:uppercase; letter-spacing:0.06em;
+            transition:all 0.15s; width:100%; margin-bottom:0;
+        }
+        .diff-btn:hover { border-color:var(--bot); color:var(--bot); }
+        .diff-btn.selected { border-color:var(--bot); background:#2a1a08; color:var(--bot); }
+        .diff-btn .diff-icon { font-size:1.4rem; display:block; margin-bottom:4px; }
+        .diff-btn .diff-name { font-weight:bold; font-size:0.74rem; }
+        .diff-btn .diff-elo  { font-size:0.6rem; color:var(--muted); margin-top:2px; }
+        .diff-btn.selected .diff-elo { color:var(--bot); opacity:0.7; }
+        .color-choice { display:flex; gap:8px; margin-bottom:14px; }
+        .color-opt {
+            flex:1; padding:10px; background:#1a1917; border:2px solid var(--border);
+            cursor:pointer; font-family:'Courier New',monospace; text-align:center;
+            font-size:0.78rem; text-transform:uppercase; letter-spacing:0.06em;
+            transition:all 0.15s; margin-bottom:0;
+        }
+        .color-opt.selected { border-color:var(--accent); background:#1a2a10; color:var(--accent); }
+        .color-opt .co-piece { font-size:1.6rem; display:block; margin-bottom:3px; }
+
         /* ══ SHOP ══ */
         #view-shop h2, #view-collection h2, #view-crate-inventory h2 { color:var(--gold); border-color:#5a4e10; }
-
-        #crate-result-banner {
-            display:flex; align-items:center; gap:12px;
-            background:#1a1917; border:2px solid var(--accent);
-            padding:12px; margin-bottom:12px;
-            animation:crateSlideIn 0.3s ease;
-        }
-        #crate-result-banner.dupe { border-color:var(--muted); }
-        @keyframes crateSlideIn { from{opacity:0;transform:translateY(-8px)} to{opacity:1;transform:translateY(0)} }
-        .crb-set-name { font-weight:bold; font-size:0.9rem; letter-spacing:0.06em; }
-        .crb-rarity   { font-size:0.65rem; text-transform:uppercase; letter-spacing:0.1em; }
-        .crb-msg      { font-size:0.7rem; color:var(--muted); margin-top:3px; }
 
         .crate-card {
             display:flex; gap:14px; align-items:center;
@@ -369,8 +397,8 @@
         }
         .set-card.equipped { border-color: var(--accent); }
         .set-card.legendary-owned { border-color: #7c3aed; animation: legendaryPulse 3s ease-in-out infinite; }
-        @keyframes legendaryPulse { 0%,100%{border-color:#7c3aed;box-shadow:none!important} 50%{border-color:#c084fc} }
-        .set-card-piece-img { width: 48px; height: 48px; object-fit: contain; image-rendering: auto; margin-bottom: 2px; transition: opacity 0.12s; }
+        @keyframes legendaryPulse { 0%,100%{border-color:#7c3aed} 50%{border-color:#c084fc} }
+        .set-card-piece-img { width: 48px; height: 48px; object-fit: contain; image-rendering: auto; margin-bottom: 2px; }
         .set-card-name   { font-weight:bold; font-size:0.82rem; letter-spacing:0.05em; }
         .set-card-rarity { font-size:0.62rem; text-transform:uppercase; letter-spacing:0.1em; }
         .set-card-btn    { margin-bottom:0; margin-top:6px; padding:7px; font-size:0.7rem; width:100%; }
@@ -379,62 +407,154 @@
         /* ══ TRADING SYSTEM ══ */
         #view-trade h2 { color:var(--trade); border-color:#1a4a5e; }
 
-        .trade-panel-tabs {
-            display:flex; gap:0; margin-bottom:14px; border-bottom:2px solid var(--border);
+        .outgoing-trade-card {
+            background:#1a1917; border:2px solid var(--border); border-left:3px solid var(--muted);
+            padding:10px 12px; margin-bottom:8px; display:flex; align-items:center; gap:10px;
         }
-        .trade-tab {
-            flex:1; padding:8px; background:transparent; border:none; color:var(--muted);
-            font-family:'Courier New',monospace; font-size:0.72rem; text-transform:uppercase;
-            letter-spacing:0.08em; cursor:pointer; margin-bottom:0;
-            border-bottom:2px solid transparent; transition:all 0.15s;
-        }
-        .trade-tab.active { color:var(--trade); border-bottom-color:var(--trade); background:rgba(79,195,247,0.06); }
-        .trade-tab:hover:not(.active) { color:white; }
+        .otc-info { flex:1; min-width:0; }
+        .otc-to   { font-size:0.8rem; font-weight:bold; color:var(--muted); }
+        .otc-note { font-size:0.66rem; color:var(--muted); font-style:italic; margin-top:2px; }
+        .otc-cancel { background:#2a2825; border:1px solid var(--border); color:var(--muted); padding:5px 10px; font-size:0.68rem; cursor:pointer; width:auto; margin-bottom:0; text-transform:uppercase; letter-spacing:0.06em; flex-shrink:0; }
+        .otc-cancel:hover { border-color:var(--danger); color:#e8776c; }
 
-        .trade-request-card {
-            background:#1a1917; border:2px solid var(--border);
-            padding:12px; margin-bottom:8px; transition:border-color 0.2s;
+        /* ── TRADE REQUEST POPUP ── */
+        #trade-request-popup {
+            position: fixed; right: -360px; top: 50%; transform: translateY(-50%);
+            width: 320px; z-index: 9500; background: #1a1917;
+            border: 3px solid var(--trade); border-right: none;
+            transition: right 0.4s cubic-bezier(.2,1.2,.4,1);
         }
-        .trade-request-card.incoming { border-color:#1a4a5e; }
-        .trade-request-card-header {
-            display:flex; justify-content:space-between; align-items:center;
-            margin-bottom:8px; font-size:0.72rem;
-        }
-        .trade-from { color:var(--trade); font-weight:bold; font-size:0.82rem; }
-        .trade-time { color:var(--muted); font-size:0.62rem; }
-        .trade-items { display:flex; align-items:center; gap:10px; margin-bottom:8px; flex-wrap:wrap; }
-        .trade-item-pill {
-            background:#2a2825; border:1px solid var(--border);
-            padding:3px 8px; font-size:0.68rem; display:flex; align-items:center; gap:4px;
-        }
-        .trade-arrow { color:var(--muted); font-size:1rem; }
-        .trade-actions { display:flex; gap:6px; }
-        .trade-actions button { flex:1; margin-bottom:0; padding:7px; font-size:0.72rem; }
+        #trade-request-popup.show { right: 0; }
 
-        /* trade chat */
-        .trade-chat-box {
-            background:#111110; border:1px solid var(--border);
-            padding:8px 10px; height:80px; overflow-y:auto; font-size:0.73rem;
-            margin-bottom:6px;
+        .trp-header {
+            background: var(--trade); color: #0a1820;
+            padding: 10px 14px; font-weight: bold; font-size: 0.82rem;
+            text-transform: uppercase; letter-spacing: 0.1em;
+            display: flex; align-items: center; gap: 8px;
         }
-        .trade-chat-box .tc-line { padding:1px 0; }
-        .tc-from { font-weight:bold; margin-right:4px; }
+        .trp-header .trp-icon { font-size: 1rem; }
+        .trp-body { padding: 14px; }
+        .trp-from { font-size: 1rem; font-weight: bold; color: white; margin-bottom: 4px; }
+        .trp-note { font-size: 0.72rem; color: var(--muted); font-style: italic; margin-bottom: 12px; min-height: 16px; }
+        .trp-timer-bar-wrap { background: #2a2825; height: 5px; margin-bottom: 12px; overflow: hidden; }
+        .trp-timer-bar { height: 100%; background: var(--trade); width: 100%; transition: width linear; transition-duration: var(--timer-dur, 30s); }
+        .trp-timer-bar.running { width: 0%; }
+        .trp-timer-label { font-size: 0.62rem; color: var(--muted); text-align: right; margin-top: -10px; margin-bottom: 8px; letter-spacing: 0.08em; text-transform: uppercase; }
+        .trp-actions { display: flex; gap: 8px; }
+        .trp-actions button { flex: 1; margin-bottom: 0; padding: 10px; font-size: 0.78rem; }
+        .trp-accept { background: var(--trade) !important; color: #0a1820 !important; font-weight: bold; }
+        .trp-deny   { background: #2a2825; border: 1px solid var(--border); color: var(--muted); }
+        .trp-deny:hover { border-color: var(--danger); color: #e8776c; }
 
-        /* create trade form */
-        .trade-set-select {
-            display:grid; grid-template-columns:repeat(2,1fr); gap:6px; margin-bottom:8px;
+        .trade-badge {
+            display:inline-flex; align-items:center; justify-content:center;
+            background:var(--danger); color:white; font-size:0.58rem; font-weight:bold;
+            width:16px; height:16px; margin-left:4px; vertical-align:middle;
         }
-        .trade-set-opt {
-            background:#1a1917; border:2px solid var(--border);
-            padding:8px 6px; cursor:pointer; text-align:center;
-            transition:border-color 0.15s;
-            display:flex; flex-direction:column; align-items:center; gap:3px;
+
+        /* ══ ACTIVE TRADE WINDOW ══ */
+        #trade-window-overlay {
+            position: fixed; inset: 0; z-index: 7000;
+            background: rgba(10, 8, 6, 0.96);
+            display: flex; flex-direction: column;
+            animation: tradeWindowIn 0.25s ease;
         }
-        .trade-set-opt:hover { border-color:#5a5550; }
-        .trade-set-opt.selected { border-color:var(--trade); background:#0e2530; }
-        .trade-set-opt img { width:32px; height:32px; object-fit:contain; }
-        .trade-set-opt-name { font-size:0.66rem; letter-spacing:0.04em; }
-        .trade-set-opt-rarity { font-size:0.58rem; text-transform:uppercase; letter-spacing:0.08em; }
+        @keyframes tradeWindowIn { from{opacity:0;transform:scale(0.97)} to{opacity:1;transform:scale(1)} }
+
+        #trade-window-header {
+            background: #1a1917; border-bottom: 3px solid var(--trade);
+            padding: 12px 20px; display: flex; align-items: center; justify-content: space-between;
+            flex-shrink: 0;
+        }
+        #trade-window-title { font-size: 1.1rem; font-weight: bold; color: var(--trade); text-transform: uppercase; letter-spacing: 0.12em; }
+        #trade-window-subtitle { font-size: 0.65rem; color: var(--muted); letter-spacing: 0.08em; text-transform: uppercase; margin-top: 2px; }
+        #trade-window-close { background: #2a2825; border: 1px solid var(--border); color: var(--muted); padding: 6px 14px; font-size: 0.72rem; cursor: pointer; width: auto; margin-bottom: 0; text-transform: uppercase; letter-spacing: 0.06em; }
+        #trade-window-close:hover { border-color: var(--danger); color: #e8776c; }
+
+        #trade-window-body { display: flex; flex: 1; overflow: hidden; min-height: 0; }
+        #trade-offers-area { flex: 1; display: flex; flex-direction: column; overflow: hidden; border-right: 3px solid var(--border); }
+        #trade-panels-row { display: flex; flex: 1; overflow: hidden; min-height: 0; }
+
+        .trade-offer-panel { flex: 1; display: flex; flex-direction: column; overflow: hidden; background: #1a1917; position: relative; }
+        .trade-offer-panel:first-child { border-right: 2px solid var(--border); }
+
+        .trade-panel-header { padding: 10px 14px; background: #211f1c; border-bottom: 2px solid var(--border); flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; }
+        .trade-panel-player-name { font-size: 0.82rem; font-weight: bold; letter-spacing: 0.06em; }
+        .trade-panel-player-name.mine   { color: #b5d97a; }
+        .trade-panel-player-name.theirs { color: var(--trade); }
+        .trade-panel-coins-display { font-size: 0.72rem; color: var(--gold); display: flex; align-items: center; gap: 3px; }
+
+        .trade-item-grid { flex: 1; overflow-y: auto; padding: 10px; display: flex; flex-wrap: wrap; gap: 6px; align-content: flex-start; }
+        .trade-item-slot { width: 64px; height: 64px; background: #2a2825; border: 2px solid var(--border); display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; font-size: 0.55rem; color: var(--muted); text-align: center; padding: 3px; gap: 2px; transition: border-color 0.15s; }
+        .trade-item-slot img { width: 32px; height: 32px; object-fit: contain; }
+        .trade-item-slot .slot-label { font-size: 0.52rem; color: var(--muted); text-align: center; line-height: 1.2; overflow: hidden; max-width: 100%; text-overflow: ellipsis; white-space: nowrap; }
+        .trade-item-slot .slot-count { font-size: 0.62rem; font-weight: bold; color: white; }
+        .trade-item-slot .slot-remove { position: absolute; top: -5px; right: -5px; width: 16px; height: 16px; background: var(--danger); color: white; font-size: 0.6rem; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 2; border: 1px solid #1a1917; }
+        .trade-item-slot.mine-slot:hover { border-color: var(--danger); }
+        .trade-item-slot.add-slot { border: 2px dashed #3a3835; cursor: pointer; color: #4a4845; font-size: 1.2rem; }
+        .trade-item-slot.add-slot:hover { border-color: var(--trade); color: var(--trade); }
+
+        #trade-confirm-row { padding: 10px 14px; background: #211f1c; border-top: 2px solid var(--border); display: flex; gap: 8px; align-items: center; flex-shrink: 0; }
+        .ready-btn { flex: 1; padding: 11px; font-size: 0.82rem; letter-spacing: 0.08em; background: #1a3a1a; border: 2px solid var(--accent-dim); color: var(--accent); text-transform: uppercase; font-family: 'Courier New', monospace; font-weight: bold; cursor: pointer; transition: all 0.15s; margin-bottom: 0; }
+        .ready-btn:hover:not(:disabled) { background: var(--accent); color: white; border-color: var(--accent); }
+        .ready-btn.is-ready { background: var(--accent); color: white; border-color: var(--accent); animation: readyPulse 1.5s ease-in-out infinite; }
+        @keyframes readyPulse { 0%,100%{opacity:1} 50%{opacity:0.7} }
+        .ready-btn:disabled { background:#2a2825; border-color:var(--border); color:var(--muted); animation:none; }
+        .cancel-trade-btn { padding: 11px 16px; font-size: 0.72rem; background: #2a2825; border: 1px solid var(--border); color: var(--muted); cursor: pointer; font-family: 'Courier New', monospace; text-transform: uppercase; transition: all 0.15s; margin-bottom: 0; width: auto; }
+        .cancel-trade-btn:hover { border-color: var(--danger); color: #e8776c; }
+
+        #trade-chat-area { width: 220px; flex-shrink: 0; display: flex; flex-direction: column; background: #1a1917; }
+        #trade-chat-header { padding: 10px 14px; background: #211f1c; border-bottom: 2px solid var(--border); font-size: 0.72rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; flex-shrink: 0; }
+        #trade-chat-messages { flex: 1; overflow-y: auto; padding: 10px; font-size: 0.72rem; }
+        .trade-chat-msg { margin-bottom: 6px; }
+        .trade-chat-msg .tcm-from { font-weight: bold; font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.06em; }
+        .trade-chat-msg .tcm-from.mine   { color: #b5d97a; }
+        .trade-chat-msg .tcm-from.theirs { color: var(--trade); }
+        .trade-chat-msg .tcm-text { color: #d0ceca; line-height: 1.4; word-break: break-word; }
+        .trade-chat-msg.system-msg .tcm-text { color: var(--muted); font-style: italic; font-size: 0.64rem; }
+        #trade-chat-input-row { padding: 8px; border-top: 2px solid var(--border); display: flex; gap: 6px; flex-shrink: 0; }
+        #trade-chat-input-row input  { flex: 1; margin-bottom: 0; padding: 6px 8px; font-size: 0.72rem; }
+        #trade-chat-input-row button { width: auto; padding: 6px 10px; font-size: 0.7rem; margin-bottom: 0; flex-shrink: 0; }
+
+        /* ── ADD ITEM MODAL ── */
+        #add-item-modal { position: fixed; inset: 0; z-index: 8500; background: rgba(10,8,6,0.88); display: flex; align-items: center; justify-content: center; }
+        #add-item-modal-box { background: #211f1c; border: 3px solid var(--trade); width: min(480px, 92vw); max-height: 80vh; display: flex; flex-direction: column; overflow: hidden; }
+        #add-item-modal-header { padding: 12px 16px; background: #1a1917; border-bottom: 2px solid var(--border); display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
+        #add-item-modal-title { font-size: 0.9rem; font-weight: bold; color: var(--trade); text-transform: uppercase; letter-spacing: 0.1em; }
+        #add-item-modal-close { background: none; border: none; color: var(--muted); font-size: 1.1rem; cursor: pointer; padding: 0; width: auto; margin: 0; }
+
+        #add-item-modal-tabs { display: flex; border-bottom: 2px solid var(--border); flex-shrink: 0; }
+        .aim-tab { flex: 1; padding: 9px; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; background: transparent; border: none; color: var(--muted); cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: 0; transition: all 0.15s; }
+        .aim-tab.active { color: var(--trade); border-bottom-color: var(--trade); background: rgba(79,195,247,0.06); }
+
+        #add-item-modal-content { flex: 1; overflow-y: auto; padding: 14px; }
+
+        .aim-piece-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; }
+        .aim-piece-opt { background: #1a1917; border: 2px solid var(--border); padding: 10px 6px; cursor: pointer; text-align: center; transition: border-color 0.15s; display: flex; flex-direction: column; align-items: center; gap: 3px; }
+        .aim-piece-opt:hover { border-color: var(--trade); }
+        .aim-piece-opt.disabled-opt { opacity: 0.35; cursor: not-allowed; }
+        .aim-piece-opt.disabled-opt:hover { border-color: var(--border); }
+        .aim-piece-opt img { width: 36px; height: 36px; object-fit: contain; }
+        .aim-piece-opt-name   { font-size: 0.62rem; letter-spacing: 0.04em; }
+        .aim-piece-opt-rarity { font-size: 0.52rem; text-transform: uppercase; letter-spacing: 0.08em; }
+
+        .aim-crate-row { background: #1a1917; border: 2px solid var(--border); padding: 10px 12px; margin-bottom: 6px; display: flex; align-items: center; gap:10px; cursor: pointer; transition: border-color 0.15s; }
+        .aim-crate-row:hover { border-color: var(--trade); }
+        .aim-crate-row.disabled-opt { opacity: 0.35; cursor: not-allowed; }
+        .aim-crate-row.disabled-opt:hover { border-color: var(--border); }
+        .aim-crate-icon { font-size: 1.6rem; flex-shrink: 0; }
+        .aim-crate-info { flex: 1; }
+        .aim-crate-name { font-size: 0.82rem; font-weight: bold; }
+        .aim-crate-have { font-size: 0.62rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
+        .aim-crate-qty  { display: flex; align-items: center; gap: 6px; }
+        .aim-qty-btn { background: #2a2825; border: 1px solid var(--border); color: white; padding: 3px 8px; font-size: 0.8rem; cursor: pointer; width: auto; margin: 0; }
+        .aim-qty-val { font-size: 0.82rem; font-weight: bold; min-width: 20px; text-align: center; }
+
+        .aim-coins-area { text-align: center; padding: 20px 10px; }
+        .aim-coins-big-display { font-size: 2rem; font-weight: bold; color: var(--gold); margin: 10px 0; }
+        .aim-coins-slider { width: 100%; accent-color: var(--gold); margin: 8px 0; }
+        .aim-coins-have { font-size: 0.7rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
+        .aim-confirm-btn { margin-top: 12px; }
 
         /* ── MOVE INDICATORS ── */
         .highlight-move::after    { content:""; position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:28%; height:28%; background:rgba(0,0,0,0.18); border-radius:50%!important; pointer-events:none; z-index:0; }
@@ -459,22 +579,9 @@
         @keyframes turnPulse { 0%,100%{color:var(--accent)} 50%{color:#b5d97a} }
 
         /* ── SAVING INDICATOR ── */
-        #save-indicator {
-            position: fixed; bottom: 12px; right: 12px; z-index: 9000;
-            background: #1a1917; border: 1px solid var(--border);
-            color: var(--muted); font-size: 0.62rem; text-transform: uppercase;
-            letter-spacing: 0.1em; padding: 5px 10px;
-            opacity: 0; transition: opacity 0.3s; pointer-events: none;
-        }
+        #save-indicator { position: fixed; bottom: 12px; right: 12px; z-index: 9000; background: #1a1917; border: 1px solid var(--border); color: var(--muted); font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.1em; padding: 5px 10px; opacity: 0; transition: opacity 0.3s; pointer-events: none; }
         #save-indicator.show { opacity: 1; }
         #save-indicator.error { border-color: var(--danger); color: #e8776c; }
-
-        /* trade notification badge */
-        .trade-badge {
-            display:inline-flex; align-items:center; justify-content:center;
-            background:var(--danger); color:white; font-size:0.58rem; font-weight:bold;
-            width:16px; height:16px; margin-left:4px; vertical-align:middle;
-        }
 
         /* ══ MOBILE ══ */
         @media (max-width: 700px) {
@@ -498,16 +605,19 @@
             #collection-content { grid-template-columns:repeat(2,1fr); }
             .gift-row { flex-direction:column; }
             .gift-row input.gift-amount { flex:1; width:100%; }
+            #trade-chat-area { width: 160px; }
+            .aim-piece-grid { grid-template-columns: repeat(2,1fr); }
+            .difficulty-grid { grid-template-columns:repeat(2,1fr); }
         }
         @media (max-width: 400px) {
             .user-bar-email { display:none; }
             #collection-content { grid-template-columns:repeat(2,1fr); }
+            #trade-chat-area { display: none; }
         }
     </style>
 </head>
 <body>
 
-<!-- ── SAVE INDICATOR ── -->
 <div id="save-indicator">Saving…</div>
 
 <!-- ── CRATE OPENING OVERLAY ── -->
@@ -521,6 +631,88 @@
             <div id="crate-reveal-rarity"></div>
             <div id="crate-reveal-msg"></div>
             <button id="crate-reveal-dismiss" onclick="dismissCrateOverlay()">Claim</button>
+        </div>
+    </div>
+</div>
+
+<!-- ── ADD ITEM MODAL ── -->
+<div id="add-item-modal" style="display:none;">
+    <div id="add-item-modal-box">
+        <div id="add-item-modal-header">
+            <div id="add-item-modal-title">Add to Offer</div>
+            <button id="add-item-modal-close" onclick="closeAddItemModal()">✕</button>
+        </div>
+        <div id="add-item-modal-tabs">
+            <button class="aim-tab active" id="aim-tab-pieces" onclick="switchAimTab('pieces')">♟ Pieces</button>
+            <button class="aim-tab" id="aim-tab-crates" onclick="switchAimTab('crates')">📦 Crates</button>
+            <button class="aim-tab" id="aim-tab-coins" onclick="switchAimTab('coins')">🪙 Coins</button>
+        </div>
+        <div id="add-item-modal-content"></div>
+    </div>
+</div>
+
+<!-- ── ACTIVE TRADE WINDOW ── -->
+<div id="trade-window-overlay" style="display:none;">
+    <div id="trade-window-header">
+        <div>
+            <div id="trade-window-title">⇄ Trade</div>
+            <div id="trade-window-subtitle">Add items to your offer, then both hit Ready</div>
+        </div>
+        <button id="trade-window-close" onclick="confirmCancelActiveTrade()">✕ Cancel Trade</button>
+    </div>
+    <div id="trade-window-body">
+        <div id="trade-offers-area">
+            <div id="trade-panels-row">
+                <div class="trade-offer-panel" id="my-offer-panel">
+                    <div class="trade-panel-header">
+                        <div class="trade-panel-player-name mine" id="my-offer-name">You</div>
+                        <div class="trade-panel-coins-display">🪙 <span id="my-offer-coin-display">0</span></div>
+                    </div>
+                    <div class="trade-item-grid" id="my-offer-grid"></div>
+                </div>
+                <div class="trade-offer-panel" id="their-offer-panel">
+                    <div class="trade-panel-header">
+                        <div class="trade-panel-player-name theirs" id="their-offer-name">Opponent</div>
+                        <div class="trade-panel-coins-display">🪙 <span id="their-offer-coin-display">0</span></div>
+                    </div>
+                    <div class="trade-item-grid" id="their-offer-grid"></div>
+                </div>
+            </div>
+            <div id="trade-confirm-row">
+                <button class="ready-btn" id="my-ready-btn" onclick="toggleReady()">✓ Ready</button>
+                <div style="font-size:0.62rem;color:var(--muted);text-align:center;flex-shrink:0;line-height:1.4;">
+                    <span id="their-ready-status">Waiting…</span>
+                </div>
+                <button class="cancel-trade-btn" onclick="confirmCancelActiveTrade()">Cancel</button>
+            </div>
+        </div>
+        <div id="trade-chat-area">
+            <div id="trade-chat-header">💬 Chat</div>
+            <div id="trade-chat-messages"></div>
+            <div id="trade-chat-input-row">
+                <input type="text" id="trade-chat-input" placeholder="Message…" onkeypress="if(event.key==='Enter')sendActiveTradeChat()">
+                <button onclick="sendActiveTradeChat()">→</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ── TRADE REQUEST POPUP ── -->
+<div id="trade-request-popup">
+    <div class="trp-header">
+        <span class="trp-icon">⇄</span>
+        <span>Trade Request!</span>
+    </div>
+    <div class="trp-body">
+        <div class="trp-from" id="trp-from-name">Player</div>
+        <div class="trp-note" id="trp-note"></div>
+        <div class="trp-timer-bar-wrap">
+            <div class="trp-timer-bar" id="trp-timer-bar"></div>
+        </div>
+        <div class="trp-timer-label" id="trp-timer-label">30s to respond</div>
+        <div class="trp-actions">
+            <button class="trp-accept" onclick="acceptTradePopup()">✓ Accept</button>
+            <button class="trp-deny"   onclick="denyTradePopup()">✕ Deny</button>
         </div>
     </div>
 </div>
@@ -549,12 +741,15 @@
             <div id="result-sub"></div>
             <button onclick="leaveGame()" style="margin-top:18px;width:180px;">Back to Lobby</button>
         </div>
+        <div id="bot-think-overlay">
+            <span>Bot thinking</span>
+            <span class="think-dots"><span>.</span><span>.</span><span>.</span></span>
+        </div>
     </div>
 
     <!-- ── SIDEBAR ── -->
     <div class="sidebar">
 
-        <!-- USER BAR -->
         <div id="user-profile-bar" class="user-bar hidden">
             <img src="" id="my-pfp" class="pfp">
             <div class="user-bar-info">
@@ -583,6 +778,7 @@
         <div id="view-lobby" class="tab-content hidden">
             <h2>Lobby</h2>
             <button onclick="findMatch()">▶ Play Online</button>
+            <button class="bot-btn" onclick="showView('view-bot')">🤖 Play vs Bot</button>
             <button style="background:#2e4a1e;border:1px solid var(--accent-dim);" onclick="showView('view-shop')">Shop</button>
             <button style="background:#1c2e1c;border:1px solid #3a5570;" onclick="showView('view-crate-inventory')">My Crates</button>
             <button style="background:#2e3a4a;border:1px solid #3a5570;" onclick="showView('view-collection')">My Pieces</button>
@@ -592,10 +788,68 @@
             <button class="sec-btn danger-btn" style="margin-top:6px;" onclick="signOut()">Logout</button>
         </div>
 
+        <!-- BOT SETUP -->
+        <div id="view-bot" class="tab-content hidden">
+            <h2>🤖 Play vs Bot</h2>
+            <div style="font-size:0.7rem;color:var(--muted);margin-bottom:14px;letter-spacing:0.06em;">Earn coins by capturing pieces. No win bonus in bot mode.</div>
+
+            <label>Difficulty</label>
+            <div class="difficulty-grid">
+                <button class="diff-btn selected" id="diff-novice" onclick="selectDifficulty('novice')">
+                    <span class="diff-icon">🐣</span>
+                    <span class="diff-name">Novice</span>
+                    <div class="diff-elo">~400 ELO</div>
+                </button>
+                <button class="diff-btn" id="diff-beginner" onclick="selectDifficulty('beginner')">
+                    <span class="diff-icon">🌱</span>
+                    <span class="diff-name">Beginner</span>
+                    <div class="diff-elo">~800 ELO</div>
+                </button>
+                <button class="diff-btn" id="diff-casual" onclick="selectDifficulty('casual')">
+                    <span class="diff-icon">🎮</span>
+                    <span class="diff-name">Casual</span>
+                    <div class="diff-elo">~1000 ELO</div>
+                </button>
+                <button class="diff-btn" id="diff-club" onclick="selectDifficulty('club')">
+                    <span class="diff-icon">♟</span>
+                    <span class="diff-name">Club</span>
+                    <div class="diff-elo">~1400 ELO</div>
+                </button>
+                <button class="diff-btn" id="diff-advanced" onclick="selectDifficulty('advanced')">
+                    <span class="diff-icon">🔥</span>
+                    <span class="diff-name">Advanced</span>
+                    <div class="diff-elo">~1800 ELO</div>
+                </button>
+                <button class="diff-btn" id="diff-master" onclick="selectDifficulty('master')">
+                    <span class="diff-icon">💀</span>
+                    <span class="diff-name">Master</span>
+                    <div class="diff-elo">~2400+ ELO</div>
+                </button>
+            </div>
+
+            <label>Play as</label>
+            <div class="color-choice">
+                <button class="color-opt selected" id="color-white" onclick="selectColor('white')">
+                    <span class="co-piece">♔</span>
+                    White
+                </button>
+                <button class="color-opt" id="color-black" onclick="selectColor('black')">
+                    <span class="co-piece">♚</span>
+                    Black
+                </button>
+                <button class="color-opt" id="color-random" onclick="selectColor('random')">
+                    <span class="co-piece">🎲</span>
+                    Random
+                </button>
+            </div>
+
+            <button style="background:var(--bot);color:#1a1917;border:none;margin-top:4px;" onclick="startBotGame()">▶ Start Game</button>
+            <button class="sec-btn" onclick="showView('view-lobby')">← Back</button>
+        </div>
+
         <!-- PROFILE -->
         <div id="view-profile" class="tab-content hidden">
             <h2>Edit Profile</h2>
-
             <div class="id-box">
                 <strong>Your Profile ID</strong>
                 <span id="profile-id-display" style="font-size:0.62rem;">—</span>
@@ -604,8 +858,7 @@
                 <span id="profile-username-display" style="font-size:0.72rem;">—</span>
             </div>
             <button class="id-copy-btn" onclick="copyProfileId()" style="margin-bottom:10px;">📋 Copy Profile ID</button>
-
-            <label>Display Name <span style="color:var(--muted);font-size:0.6rem;">(shown in-game, can be anything)</span></label>
+            <label>Display Name</label>
             <input type="text" id="set-name" placeholder="Your display name">
             <label>Profile Picture</label>
             <div id="pfp-preview-wrap" style="margin-bottom:8px;">
@@ -691,7 +944,7 @@
                     <button class="sec-btn"    style="margin-bottom:0;flex:1;" onclick="cancelResign()">Cancel</button>
                 </div>
             </div>
-            <button id="resign-btn"  class="sec-btn danger-btn hidden" onclick="promptResign()">⚑ Resign</button>
+            <button id="resign-btn"    class="sec-btn danger-btn hidden" onclick="promptResign()">⚑ Resign</button>
             <button id="cancel-mm-btn" class="sec-btn" onclick="cancelMatchmaking()" style="background:#3d3a37;border:1px solid var(--danger);color:#e8776c;">✕ Cancel Matchmaking</button>
         </div>
 
@@ -726,58 +979,20 @@
         <!-- TRADE -->
         <div id="view-trade" class="tab-content hidden">
             <h2>⇄ Trading Post</h2>
-            <div class="trade-panel-tabs">
-                <button class="trade-tab active" id="ttab-incoming" onclick="switchTradeTab('incoming')">Incoming</button>
-                <button class="trade-tab" id="ttab-outgoing" onclick="switchTradeTab('outgoing')">Outgoing</button>
-                <button class="trade-tab" id="ttab-new" onclick="switchTradeTab('new')">+ New Trade</button>
-            </div>
-            <div id="trade-tab-incoming"></div>
-            <div id="trade-tab-outgoing" class="hidden"></div>
-            <div id="trade-tab-new" class="hidden">
-                <label>Send Trade Request To (Username)</label>
-                <input type="text" id="trade-target-username" placeholder="their_username">
-
-                <label>Trade Type</label>
-                <div style="display:flex;gap:0;margin-bottom:8px;">
-                    <button class="trade-tab active" id="ttype-pieces" style="flex:1;margin-bottom:0;" onclick="switchTradeType('pieces')">Piece Sets</button>
-                    <button class="trade-tab" id="ttype-crates" style="flex:1;margin-bottom:0;" onclick="switchTradeType('crates')">Crates</button>
-                </div>
-
-                <div id="trade-pieces-form">
-                    <label>You Offer (select from your pieces)</label>
-                    <div id="trade-offer-grid" class="trade-set-select"></div>
-                    <label>You Want (select what you'd like)</label>
-                    <div id="trade-want-grid" class="trade-set-select"></div>
-                </div>
-
-                <div id="trade-crates-form" class="hidden">
-                    <label>You Offer (crate type + qty)</label>
-                    <div style="display:flex;gap:6px;margin-bottom:4px;">
-                        <select id="trade-offer-crate" style="flex:2;margin-bottom:0;">
-                            <option value="bronze">📦 Bronze Crate</option>
-                            <option value="silver">🎁 Silver Crate</option>
-                            <option value="gold">👑 Gold Crate</option>
-                        </select>
-                        <input type="number" id="trade-offer-crate-qty" value="1" min="1" max="99" style="flex:1;margin-bottom:0;">
-                    </div>
-                    <div id="trade-offer-crate-avail" style="font-size:0.65rem;color:var(--muted);margin-bottom:8px;"></div>
-                    <label>You Want (crate type + qty)</label>
-                    <div style="display:flex;gap:6px;margin-bottom:4px;">
-                        <select id="trade-want-crate" style="flex:2;margin-bottom:0;">
-                            <option value="bronze">📦 Bronze Crate</option>
-                            <option value="silver">🎁 Silver Crate</option>
-                            <option value="gold">👑 Gold Crate</option>
-                        </select>
-                        <input type="number" id="trade-want-crate-qty" value="1" min="1" max="99" style="flex:1;margin-bottom:0;">
-                    </div>
-                </div>
-
-                <label>Trade Message / Offer Notes</label>
-                <input type="text" id="trade-init-msg" placeholder="e.g. happy to negotiate!">
+            <div style="background:#1a1917;border:2px solid var(--border);padding:12px;margin-bottom:14px;">
+                <div style="font-size:0.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px;">Send Trade Request</div>
+                <label>Username</label>
+                <input type="text" id="trade-target-username" placeholder="their_username" style="margin-bottom:6px;">
+                <label>Note <span style="color:var(--muted);font-size:0.58rem;">(optional)</span></label>
+                <input type="text" id="trade-init-msg" placeholder="e.g. want to trade pieces!" style="margin-bottom:6px;">
                 <div id="trade-send-err" class="inline-error hidden"></div>
-                <button onclick="sendTradeRequest()" style="margin-top:6px;">⇄ Send Trade Request</button>
+                <button onclick="sendBlankTradeRequest()" style="margin-bottom:0;">⇄ Send Request</button>
             </div>
-            <button class="sec-btn" style="margin-top:8px;" onclick="showView('view-lobby')">← Back</button>
+            <div style="font-size:0.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px;">Pending Sent Requests</div>
+            <div id="outgoing-trade-list">
+                <div style="color:var(--muted);font-size:0.72rem;padding:10px 0;">No pending requests.</div>
+            </div>
+            <button class="sec-btn" style="margin-top:12px;" onclick="showView('view-lobby')">← Back</button>
         </div>
 
     </div><!-- /sidebar -->
@@ -792,6 +1007,7 @@ const SUPA_KEY = 'sb_publishable_HE2jpXo0QaT8Zz2OXWTrZw_cdKCPLpp';
 const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
 
 const DEFAULT_AVATAR = `data:image/svg+xml,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#2b2927"/><text x="50" y="74" font-size="64" text-anchor="middle" fill="#81b64c">♟</text></svg>')}`;
+const BOT_AVATAR = `data:image/svg+xml,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#2a1a08"/><text x="50" y="72" font-size="60" text-anchor="middle" fill="#e67e22">🤖</text></svg>')}`;
 
 /* ═══════════════════════════════════════════════════════
    PIECE SETS & CRATE DATA
@@ -800,28 +1016,22 @@ const PIECE_TYPES  = ['K','Q','R','B','N','P'];
 const PIECE_LABELS = ['King','Queen','Rook','Bishop','Knight','Pawn'];
 
 const PIECE_SETS = {
-    wikipedia:  { name:'Classic',    url:'https://chessboardjs.com/img/chesspieces/wikipedia/{piece}.png',  rarity:'Default',    rarityColor:'#989795', ext:'png' },
-    cburnett:   { name:'Burnett',    url:'https://lichess1.org/assets/piece/cburnett/{piece}.svg',           rarity:'Common',     rarityColor:'#81b64c', ext:'svg' },
-    alpha:      { name:'Alpha',      url:'https://lichess1.org/assets/piece/alpha/{piece}.svg',              rarity:'Common',     rarityColor:'#81b64c', ext:'svg' },
-    merida:     { name:'Merida',     url:'https://lichess1.org/assets/piece/merida/{piece}.svg',             rarity:'Common',     rarityColor:'#81b64c', ext:'svg' },
-    pixel:      { name:'Pixel',      url:'https://lichess1.org/assets/piece/pixel/{piece}.svg',              rarity:'Uncommon',   rarityColor:'#4fc3f7', ext:'svg' },
-    maestro:    { name:'Maestro',    url:'https://lichess1.org/assets/piece/maestro/{piece}.svg',            rarity:'Uncommon',   rarityColor:'#4fc3f7', ext:'svg' },
-    fantasy:    { name:'Fantasy',    url:'https://lichess1.org/assets/piece/fantasy/{piece}.svg',            rarity:'Uncommon',   rarityColor:'#4fc3f7', ext:'svg' },
-    california: { name:'California', url:'https://lichess1.org/assets/piece/california/{piece}.svg',         rarity:'Rare',       rarityColor:'#e6a817', ext:'svg' },
-    tatiana:    { name:'Tatiana',    url:'https://lichess1.org/assets/piece/tatiana/{piece}.svg',            rarity:'Rare',       rarityColor:'#e6a817', ext:'svg' },
-    governor:   { name:'Governor',   url:'https://lichess1.org/assets/piece/governor/{piece}.svg',           rarity:'Rare',       rarityColor:'#e6a817', ext:'svg' },
-    gioco:      { name:'Gioco',      url:'https://lichess1.org/assets/piece/gioco/{piece}.svg',              rarity:'Rare',       rarityColor:'#e6a817', ext:'svg' },
-    // ── LEGENDARY (Gold crate, ~1% each) ──
-    horsey:     { name:'Horsey',     url:'https://lichess1.org/assets/piece/horsey/{piece}.svg',             rarity:'Legendary',  rarityColor:'#c084fc', ext:'svg' },
-    icpieces:   { name:'IC Pieces',  url:'https://lichess1.org/assets/piece/icpieces/{piece}.svg',           rarity:'Legendary',  rarityColor:'#c084fc', ext:'svg' },
-    anarcandy:  { name:'Anarcandy',  url:'https://lichess1.org/assets/piece/anarcandy/{piece}.svg',          rarity:'Legendary',  rarityColor:'#c084fc', ext:'svg' },
+    wikipedia:  { name:'Classic',    url:'https://chessboardjs.com/img/chesspieces/wikipedia/{piece}.png',  rarity:'Default',    rarityColor:'#989795' },
+    cburnett:   { name:'Burnett',    url:'https://lichess1.org/assets/piece/cburnett/{piece}.svg',           rarity:'Common',     rarityColor:'#81b64c' },
+    alpha:      { name:'Alpha',      url:'https://lichess1.org/assets/piece/alpha/{piece}.svg',              rarity:'Common',     rarityColor:'#81b64c' },
+    merida:     { name:'Merida',     url:'https://lichess1.org/assets/piece/merida/{piece}.svg',             rarity:'Common',     rarityColor:'#81b64c' },
+    pixel:      { name:'Pixel',      url:'https://lichess1.org/assets/piece/pixel/{piece}.svg',              rarity:'Uncommon',   rarityColor:'#4fc3f7' },
+    maestro:    { name:'Maestro',    url:'https://lichess1.org/assets/piece/maestro/{piece}.svg',            rarity:'Uncommon',   rarityColor:'#4fc3f7' },
+    fantasy:    { name:'Fantasy',    url:'https://lichess1.org/assets/piece/fantasy/{piece}.svg',            rarity:'Uncommon',   rarityColor:'#4fc3f7' },
+    california: { name:'California', url:'https://lichess1.org/assets/piece/california/{piece}.svg',         rarity:'Rare',       rarityColor:'#e6a817' },
+    tatiana:    { name:'Tatiana',    url:'https://lichess1.org/assets/piece/tatiana/{piece}.svg',            rarity:'Rare',       rarityColor:'#e6a817' },
+    governor:   { name:'Governor',   url:'https://lichess1.org/assets/piece/governor/{piece}.svg',           rarity:'Rare',       rarityColor:'#e6a817' },
+    gioco:      { name:'Gioco',      url:'https://lichess1.org/assets/piece/gioco/{piece}.svg',              rarity:'Rare',       rarityColor:'#e6a817' },
+    horsey:     { name:'Horsey',     url:'https://lichess1.org/assets/piece/horsey/{piece}.svg',             rarity:'Legendary',  rarityColor:'#c084fc' },
+    icpieces:   { name:'IC Pieces',  url:'https://lichess1.org/assets/piece/icpieces/{piece}.svg',           rarity:'Legendary',  rarityColor:'#c084fc' },
+    anarcandy:  { name:'Anarcandy',  url:'https://lichess1.org/assets/piece/anarcandy/{piece}.svg',          rarity:'Legendary',  rarityColor:'#c084fc' },
 };
 
-/* Weighted roll for gold crate:
-   Each rare item = 33/4 ≈ 8.25 weight, total rare = 33
-   Each legendary = 1 weight, total legendary = 3
-   Total pool weight = 36 → legendary chance ≈ 1/36 ≈ 2.8% per legendary, ~8.3% total
-   We use explicit weights so it's tunable. */
 const GOLD_CRATE_DROPS = [
     { setId:'california', weight:24 },
     { setId:'tatiana',    weight:24 },
@@ -840,13 +1050,25 @@ function weightedRandom(drops) {
 }
 
 const CRATES = {
-    bronze: { name:'Bronze Crate', cost:50,  color:'#cd7f32', rayColor:'#cd7f32', pool:['cburnett','alpha','merida'],              desc:'Common Pieces',   icon:'📦' },
-    silver: { name:'Silver Crate', cost:150, color:'#a8a9ad', rayColor:'#c0c0c0', pool:['pixel','maestro','fantasy'],              desc:'Uncommon Pieces', icon:'🎁' },
-    gold:   { name:'Gold Crate',   cost:300, color:'#ffd700', rayColor:'#ffd700', pool:null, drops:GOLD_CRATE_DROPS,               desc:'Rare + Legendary',icon:'👑' },
+    bronze: { name:'Bronze Crate', cost:50,  color:'#cd7f32', rayColor:'#cd7f32', pool:['cburnett','alpha','merida'],   desc:'Common Pieces',   icon:'📦' },
+    silver: { name:'Silver Crate', cost:150, color:'#a8a9ad', rayColor:'#c0c0c0', pool:['pixel','maestro','fantasy'],   desc:'Uncommon Pieces', icon:'🎁' },
+    gold:   { name:'Gold Crate',   cost:300, color:'#ffd700', rayColor:'#ffd700', pool:null, drops:GOLD_CRATE_DROPS,    desc:'Rare + Legendary',icon:'👑' },
 };
 
 const COIN_VALUES = { p:1, n:3, b:3, r:5, q:9 };
 const WIN_COINS   = 15;
+
+/* ═══════════════════════════════════════════════════════
+   BOT DIFFICULTY CONFIG
+═══════════════════════════════════════════════════════ */
+const BOT_DIFFICULTIES = {
+    novice:   { depth:1, skillLevel:0,  moveTime:300,  name:'Novice',   elo:'~400'  },
+    beginner: { depth:2, skillLevel:3,  moveTime:400,  name:'Beginner', elo:'~800'  },
+    casual:   { depth:4, skillLevel:6,  moveTime:600,  name:'Casual',   elo:'~1000' },
+    club:     { depth:6, skillLevel:11, moveTime:800,  name:'Club',     elo:'~1400' },
+    advanced: { depth:8, skillLevel:16, moveTime:1000, name:'Advanced', elo:'~1800' },
+    master:   { depth:15,skillLevel:20, moveTime:1500, name:'Master',   elo:'~2400' },
+};
 
 /* ═══════════════════════════════════════════════════════
    GAME STATE
@@ -875,10 +1097,259 @@ let playerData = {
 
 let _saveTimer = null;
 
-// ── Trade state ──
-let activeTradeId = null;
-let tradeRequests = { incoming:[], outgoing:[] };
-let tradeChannel = null;
+/* ── BOT STATE ── */
+let isBotGame       = false;
+let botDifficulty   = 'novice';
+let botColor        = 'b';       // which color the bot plays
+let botColorChoice  = 'white';   // what the user selected
+let stockfishWorker = null;
+let botThinking     = false;
+let botMoveTimeout  = null;
+
+/* ═══════════════════════════════════════════════════════
+   BOT DIFFICULTY / COLOR SELECTORS
+═══════════════════════════════════════════════════════ */
+function selectDifficulty(d) {
+    botDifficulty = d;
+    document.querySelectorAll('.diff-btn').forEach(b => b.classList.remove('selected'));
+    document.getElementById('diff-' + d).classList.add('selected');
+}
+
+function selectColor(c) {
+    botColorChoice = c;
+    document.querySelectorAll('.color-opt').forEach(b => b.classList.remove('selected'));
+    document.getElementById('color-' + c).classList.add('selected');
+}
+
+/* ═══════════════════════════════════════════════════════
+   STOCKFISH WORKER (via CDN)
+═══════════════════════════════════════════════════════ */
+function createStockfishWorker() {
+    // Use a blob worker that loads Stockfish from CDN
+    const workerCode = `
+        importScripts('https://cdn.jsdelivr.net/npm/stockfish@16.0.0/src/stockfish.js');
+        var sf = Stockfish();
+        sf.addMessageListener(function(msg) { postMessage(msg); });
+        onmessage = function(e) { sf.postMessage(e.data); };
+    `;
+    const blob = new Blob([workerCode], { type: 'application/javascript' });
+    const url  = URL.createObjectURL(blob);
+    return new Worker(url);
+}
+
+function initStockfish() {
+    if (stockfishWorker) { stockfishWorker.terminate(); stockfishWorker = null; }
+    try {
+        stockfishWorker = createStockfishWorker();
+        stockfishWorker.onerror = (e) => { console.warn('Stockfish worker error, falling back:', e); stockfishWorker = null; };
+        stockfishWorker.postMessage('uci');
+        const cfg = BOT_DIFFICULTIES[botDifficulty];
+        stockfishWorker.postMessage(`setoption name Skill Level value ${cfg.skillLevel}`);
+        stockfishWorker.postMessage('ucinewgame');
+    } catch(e) {
+        console.warn('Stockfish unavailable, using fallback engine:', e);
+        stockfishWorker = null;
+    }
+}
+
+/* ── Fallback: simple minimax engine ── */
+const PIECE_VALUES = { p:100, n:320, b:330, r:500, q:900, k:20000 };
+
+function evalBoard(g) {
+    let score = 0;
+    const board = g.board();
+    for (const row of board) {
+        for (const sq of row) {
+            if (!sq) continue;
+            const v = PIECE_VALUES[sq.type] || 0;
+            score += sq.color === 'w' ? v : -v;
+        }
+    }
+    return score;
+}
+
+function minimax(g, depth, alpha, beta, maximizing) {
+    if (depth === 0 || g.game_over()) return evalBoard(g);
+    const moves = g.moves();
+    if (maximizing) {
+        let best = -Infinity;
+        for (const m of moves) {
+            g.move(m);
+            best = Math.max(best, minimax(g, depth-1, alpha, beta, false));
+            g.undo();
+            alpha = Math.max(alpha, best);
+            if (beta <= alpha) break;
+        }
+        return best;
+    } else {
+        let best = Infinity;
+        for (const m of moves) {
+            g.move(m);
+            best = Math.min(best, minimax(g, depth-1, alpha, beta, true));
+            g.undo();
+            beta = Math.min(beta, best);
+            if (beta <= alpha) break;
+        }
+        return best;
+    }
+}
+
+function fallbackBotMove() {
+    const cfg   = BOT_DIFFICULTIES[botDifficulty];
+    const moves = game.moves({ verbose: true });
+    if (!moves.length) return;
+
+    // At very low skill, just random
+    if (cfg.skillLevel <= 3) {
+        const m = moves[Math.floor(Math.random() * moves.length)];
+        applyBotMove(m.san);
+        return;
+    }
+
+    const depth = Math.min(cfg.depth, 3); // cap fallback depth for performance
+    let bestScore = botColor === 'b' ? Infinity : -Infinity;
+    let bestMoves = [];
+    const maximizing = (botColor !== 'b');
+
+    for (const m of moves) {
+        game.move(m);
+        const score = minimax(game, depth-1, -Infinity, Infinity, maximizing);
+        game.undo();
+        if (maximizing ? score > bestScore : score < bestScore) {
+            bestScore = score; bestMoves = [m];
+        } else if (score === bestScore) {
+            bestMoves.push(m);
+        }
+    }
+    const chosen = bestMoves[Math.floor(Math.random() * bestMoves.length)];
+    applyBotMove(chosen.san);
+}
+
+function requestBotMove() {
+    if (!isBotGame || game.game_over()) return;
+    if (game.turn() !== botColor) return;
+
+    botThinking = true;
+    document.getElementById('bot-think-overlay').classList.add('visible');
+
+    const cfg = BOT_DIFFICULTIES[botDifficulty];
+
+    if (stockfishWorker) {
+        stockfishWorker.postMessage('position fen ' + game.fen());
+        stockfishWorker.postMessage(`go depth ${cfg.depth} movetime ${cfg.moveTime}`);
+
+        let resolved = false;
+        stockfishWorker.onmessage = (e) => {
+            const line = e.data;
+            if (line.startsWith('bestmove') && !resolved) {
+                resolved = true;
+                const parts = line.split(' ');
+                const uciMove = parts[1];
+                if (!uciMove || uciMove === '(none)') { fallbackBotMove(); return; }
+                const from = uciMove.slice(0,2), to = uciMove.slice(2,4), promo = uciMove[4] || 'q';
+                const move = game.move({ from, to, promotion: promo });
+                if (move) {
+                    board.position(game.fen());
+                    handleBotMoveResult(move);
+                } else {
+                    fallbackBotMove();
+                }
+            }
+        };
+        // Safety timeout
+        botMoveTimeout = setTimeout(() => {
+            if (!resolved) { resolved = true; fallbackBotMove(); }
+        }, cfg.moveTime + 3000);
+    } else {
+        // Use fallback with slight delay to show "thinking"
+        botMoveTimeout = setTimeout(() => fallbackBotMove(), cfg.moveTime * 0.6 + 200);
+    }
+}
+
+function applyBotMove(san) {
+    // san already applied in minimax path via game.move(m) — use verbose move object
+    // Actually for fallback we pass san from the chosen move object
+    // (Stockfish path applies directly; this is just the final UI step)
+    board.position(game.fen());
+    const hist = game.history({ verbose: true });
+    const move = hist[hist.length - 1];
+    if (move) handleBotMoveResult(move);
+}
+
+function handleBotMoveResult(move) {
+    clearTimeout(botMoveTimeout);
+    botThinking = false;
+    document.getElementById('bot-think-overlay').classList.remove('visible');
+    updateUI();
+    if (game.game_over()) checkBotGameEnd();
+}
+
+/* ═══════════════════════════════════════════════════════
+   START BOT GAME
+═══════════════════════════════════════════════════════ */
+function startBotGame() {
+    let playerColorChoice = botColorChoice;
+    if (playerColorChoice === 'random') playerColorChoice = Math.random() < 0.5 ? 'white' : 'black';
+
+    myColor  = playerColorChoice === 'white' ? 'w' : 'b';
+    botColor = myColor === 'w' ? 'b' : 'w';
+    isBotGame = true;
+    matchReady = true;
+    winCoinAwarded = false;
+    game = new Chess();
+
+    const cfg = BOT_DIFFICULTIES[botDifficulty];
+    setOpponent(`🤖 ${cfg.name} Bot (${cfg.elo})`, BOT_AVATAR);
+    setMatchStatus('bot-game', `vs Bot — ${cfg.name}`);
+
+    _showViewInternal('view-game');
+    $('#board-idle-msg').addClass('hidden');
+    $('#board-lock-overlay').addClass('hidden');
+    $('#game-result-overlay').addClass('hidden');
+    $('#cancel-mm-btn').addClass('hidden');
+    $('#resign-btn').removeClass('hidden');
+    $('#chat-locked-hint').addClass('hidden');
+    $('#chat-logs').removeClass('locked').empty();
+    $('#chat-input').prop('disabled', true).attr('placeholder', 'No chat in bot games');
+
+    board = Chessboard('board', {
+        draggable: true,
+        position: 'start',
+        orientation: myColor === 'w' ? 'white' : 'black',
+        pieceTheme: pieceStyle,
+        onDragStart, onDrop, onSnapEnd
+    });
+
+    updateUI();
+    initStockfish();
+
+    // If player is black, bot goes first
+    if (myColor === 'b') {
+        setTimeout(() => requestBotMove(), 400);
+    }
+}
+
+function checkBotGameEnd() {
+    if (!game.game_over()) return;
+    if (game.in_checkmate()) {
+        const winner = game.turn() === 'w' ? 'b' : 'w'; // who just moved
+        // Actually in_checkmate means the CURRENT player (game.turn()) is in checkmate
+        // So the winner is the OTHER side
+        const loser = game.turn(); // side that's in checkmate
+        const iWon  = loser === botColor;
+        if (iWon) {
+            showResult('win', '🏆', 'You Win!', 'Checkmate!');
+        } else {
+            showResult('lose', '☠', 'You Lose', 'Checkmate by the bot');
+        }
+    } else if (game.in_draw()) {
+        let reason = 'Draw';
+        if (game.in_stalemate())    reason = 'Stalemate';
+        else if (game.in_threefold_repetition()) reason = 'Threefold Repetition';
+        else if (game.insufficient_material())   reason = 'Insufficient Material';
+        showResult('draw', '½', 'Draw', reason);
+    }
+}
 
 /* ═══════════════════════════════════════════════════════
    SAVE INDICATOR
@@ -897,21 +1368,21 @@ function showSaveIndicator(msg, isError) {
 ═══════════════════════════════════════════════════════ */
 async function loadPlayerData() {
     if (!user) return;
-    const { data, error } = await sb
+    const { data } = await sb
         .from('player_inventory')
         .select('coins, owned_sets, equipped_set, free_crates, crate_inventory')
         .eq('id', user.id)
         .maybeSingle();
 
     if (data) {
-        const fc  = data.free_crates    || {};
-        const ci  = data.crate_inventory || {};
+        const fc = data.free_crates    || {};
+        const ci = data.crate_inventory || {};
         playerData = {
-            coins:           typeof data.coins === 'number' ? data.coins : 0,
-            ownedSets:       Array.isArray(data.owned_sets) ? data.owned_sets : ['wikipedia'],
-            equippedSet:     data.equipped_set || 'wikipedia',
-            freeCrates:      { bronze: fc.bronze||0, silver: fc.silver||0, gold: fc.gold||0 },
-            crateInventory:  { bronze: ci.bronze||0, silver: ci.silver||0, gold: ci.gold||0 },
+            coins:          typeof data.coins === 'number' ? data.coins : 0,
+            ownedSets:      Array.isArray(data.owned_sets) ? data.owned_sets : ['wikipedia'],
+            equippedSet:    data.equipped_set || 'wikipedia',
+            freeCrates:     { bronze: fc.bronze||0, silver: fc.silver||0, gold: fc.gold||0 },
+            crateInventory: { bronze: ci.bronze||0, silver: ci.silver||0, gold: ci.gold||0 },
         };
     } else {
         playerData = { coins:0, ownedSets:['wikipedia'], equippedSet:'wikipedia', freeCrates:{bronze:0,silver:0,gold:0}, crateInventory:{bronze:0,silver:0,gold:0} };
@@ -928,15 +1399,15 @@ function savePlayerData(immediate) {
     const doSave = async () => {
         showSaveIndicator('Saving…', false);
         const { error } = await sb.from('player_inventory').upsert({
-            id:               user.id,
-            coins:            playerData.coins,
-            owned_sets:       playerData.ownedSets,
-            equipped_set:     playerData.equippedSet,
-            free_crates:      playerData.freeCrates,
-            crate_inventory:  playerData.crateInventory,
+            id:              user.id,
+            coins:           playerData.coins,
+            owned_sets:      playerData.ownedSets,
+            equipped_set:    playerData.equippedSet,
+            free_crates:     playerData.freeCrates,
+            crate_inventory: playerData.crateInventory,
         });
-        if (error) { showSaveIndicator('Save failed', true); }
-        else       { showSaveIndicator('Saved ✓', false); }
+        if (error) showSaveIndicator('Save failed', true);
+        else       showSaveIndicator('Saved ✓', false);
     };
     if (immediate) doSave(); else _saveTimer = setTimeout(doSave, 400);
 }
@@ -983,13 +1454,13 @@ function stopCollectionCycle() {
     if (collectionCycleTimer) { clearInterval(collectionCycleTimer); collectionCycleTimer = null; }
 }
 function updateCollectionPreviews() {
-    const type = PIECE_TYPES[collectionPieceIdx];
     $('#collection-piece-bar .piece-bar-cell img').each(function() {
         $(this).attr('src', pieceUrl(playerData.equippedSet, 'w', $(this).data('type')));
     });
     $('#collection-piece-bar .piece-bar-col').each(function(i) {
         $(this).css('opacity', i === collectionPieceIdx ? '1' : '0.45');
     });
+    const type = PIECE_TYPES[collectionPieceIdx];
     $('#collection-content .set-card').each(function() {
         const img = $(this).find('.set-card-piece-img')[0];
         if (img) img.src = pieceUrl($(this).data('set-id'), 'w', type);
@@ -1008,13 +1479,12 @@ function renderCollection() {
         col.append(cell).append(lbl);
         $bar.append(col);
     });
-
     const $c = $('#collection-content').empty();
     playerData.ownedSets.forEach(setId => {
         const set = PIECE_SETS[setId]; if (!set) return;
-        const isEquipped   = playerData.equippedSet === setId;
-        const isLegendary  = set.rarity === 'Legendary';
-        const extraClass   = isEquipped ? 'equipped' : (isLegendary ? 'legendary-owned' : '');
+        const isEquipped  = playerData.equippedSet === setId;
+        const isLegendary = set.rarity === 'Legendary';
+        const extraClass  = isEquipped ? 'equipped' : (isLegendary ? 'legendary-owned' : '');
         $c.append($(`<div class="set-card ${extraClass}" data-set-id="${setId}">
             <img class="set-card-piece-img" src="" alt="${set.name}">
             <div class="set-card-name">${isLegendary ? '✨ ' : ''}${set.name}</div>
@@ -1029,9 +1499,6 @@ function renderCollection() {
     startCollectionCycle();
 }
 
-/* ═══════════════════════════════════════════════════════
-   EQUIP PIECE SET
-═══════════════════════════════════════════════════════ */
 function equipSet(setId) {
     if (!playerData.ownedSets.includes(setId)) return;
     playerData.equippedSet = setId;
@@ -1039,7 +1506,7 @@ function equipSet(setId) {
     savePlayerData(true);
     if (board) {
         const pos = game.fen(), orient = (myColor === 'b') ? 'black' : 'white';
-        if (currentMatchId) {
+        if (currentMatchId || isBotGame) {
             board = Chessboard('board', { draggable:true, position:pos, orientation:orient, pieceTheme:pieceStyle, onDragStart, onDrop, onSnapEnd });
         } else {
             board = Chessboard('board', { position:'start', draggable:false, pieceTheme:pieceStyle });
@@ -1054,72 +1521,49 @@ function equipSet(setId) {
 function renderCrateInventory() {
     const $c = $('#crate-inv-content').empty();
     let hasAny = false;
-
-    // Show free crates (admin-gifted) first
     Object.entries(CRATES).forEach(([crateId, crate]) => {
         const freeCount = playerData.freeCrates[crateId] || 0;
         if (freeCount > 0) {
             hasAny = true;
-            $c.append(`
-                <div class="inv-crate-card" style="border-color:${crate.color};">
-                    <div class="inv-crate-icon">${crate.icon}</div>
-                    <div class="inv-crate-body">
-                        <div class="inv-crate-name" style="color:${crate.color}">${crate.name}</div>
-                        <div class="inv-crate-count">★ Free — ${freeCount} remaining</div>
-                        <button class="inv-crate-open-btn" style="background:${crate.color};color:#1a1917;border:none;" onclick="openFromInventory('${crateId}', true)">
-                            Open Free Crate
-                        </button>
-                    </div>
+            $c.append(`<div class="inv-crate-card" style="border-color:${crate.color};">
+                <div class="inv-crate-icon">${crate.icon}</div>
+                <div class="inv-crate-body">
+                    <div class="inv-crate-name" style="color:${crate.color}">${crate.name}</div>
+                    <div class="inv-crate-count">★ Free — ${freeCount} remaining</div>
+                    <button class="inv-crate-open-btn" style="background:${crate.color};color:#1a1917;border:none;" onclick="openFromInventory('${crateId}', true)">Open Free Crate</button>
                 </div>
-            `);
+            </div>`);
         }
     });
-
-    // Then purchased crates
     Object.entries(CRATES).forEach(([crateId, crate]) => {
         const count = playerData.crateInventory[crateId] || 0;
         if (count > 0) {
             hasAny = true;
-            $c.append(`
-                <div class="inv-crate-card">
-                    <div class="inv-crate-icon">${crate.icon}</div>
-                    <div class="inv-crate-body">
-                        <div class="inv-crate-name" style="color:${crate.color}">${crate.name}</div>
-                        <div class="inv-crate-count">${count}× in inventory</div>
-                        <button class="inv-crate-open-btn" style="background:${crate.color};color:#1a1917;border:none;" onclick="openFromInventory('${crateId}', false)">
-                            Open Crate
-                        </button>
-                    </div>
+            $c.append(`<div class="inv-crate-card">
+                <div class="inv-crate-icon">${crate.icon}</div>
+                <div class="inv-crate-body">
+                    <div class="inv-crate-name" style="color:${crate.color}">${crate.name}</div>
+                    <div class="inv-crate-count">${count}× in inventory</div>
+                    <button class="inv-crate-open-btn" style="background:${crate.color};color:#1a1917;border:none;" onclick="openFromInventory('${crateId}', false)">Open Crate</button>
                 </div>
-            `);
+            </div>`);
         }
     });
-
     if (!hasAny) {
-        $c.append(`<div style="color:var(--muted);font-size:0.78rem;text-align:center;padding:24px 0;border:2px dashed var(--border);">
-            No crates in inventory.<br><br>
-            <span style="font-size:0.68rem;">Buy some from the <b style="color:white">Shop</b> or earn free ones from admins.</span>
-        </div>`);
+        $c.append(`<div style="color:var(--muted);font-size:0.78rem;text-align:center;padding:24px 0;border:2px dashed var(--border);">No crates in inventory.<br><br><span style="font-size:0.68rem;">Buy some from the <b style="color:white">Shop</b>.</span></div>`);
     }
 }
 
 function openFromInventory(crateId, isFree) {
-    const crate = CRATES[crateId];
-    if (!crate) return;
-    if (isFree) {
-        if ((playerData.freeCrates[crateId] || 0) < 1) return;
-    } else {
-        if ((playerData.crateInventory[crateId] || 0) < 1) return;
-    }
+    const crate = CRATES[crateId]; if (!crate) return;
+    if (isFree) { if ((playerData.freeCrates[crateId] || 0) < 1) return; }
+    else        { if ((playerData.crateInventory[crateId] || 0) < 1) return; }
 
     openCrateAnimation(crateId, () => {
-        if (isFree) {
-            playerData.freeCrates[crateId]--;
-        } else {
-            playerData.crateInventory[crateId]--;
-        }
+        if (isFree) playerData.freeCrates[crateId]--;
+        else        playerData.crateInventory[crateId]--;
 
-        const picked = crate.drops ? weightedRandom(crate.drops) : crate.pool[Math.floor(Math.random() * crate.pool.length)];
+        const picked    = crate.drops ? weightedRandom(crate.drops) : crate.pool[Math.floor(Math.random() * crate.pool.length)];
         const pickedSet = PIECE_SETS[picked];
         const isLegendary = pickedSet?.rarity === 'Legendary';
         let isDupe = false, msg = '';
@@ -1142,7 +1586,7 @@ function openFromInventory(crateId, isFree) {
    CRATE OPENING ANIMATION
 ═══════════════════════════════════════════════════════ */
 function openCrateAnimation(crateId, onDone) {
-    const crate = CRATES[crateId];
+    const crate    = CRATES[crateId];
     const overlay  = document.getElementById('crate-opening-overlay');
     const iconWrap = document.getElementById('crate-icon-wrap');
     const burst    = document.getElementById('crate-burst');
@@ -1199,10 +1643,10 @@ function openCrateAnimation(crateId, onDone) {
             document.getElementById('crate-reveal-set-name').style.color = set.rarityColor;
             document.getElementById('crate-reveal-set-name').style.textShadow = isLeg ? '0 0 20px #c084fc, 0 0 40px #a855f7' : 'none';
             document.getElementById('crate-reveal-set-name').style.fontSize = isLeg ? '1.7rem' : '1.4rem';
-            document.getElementById('crate-reveal-rarity').textContent   = (isLeg ? '✨ ' : '') + set.rarity + (isLeg ? ' ✨' : '');
-            document.getElementById('crate-reveal-rarity').style.color   = set.rarityColor;
+            document.getElementById('crate-reveal-rarity').textContent = (isLeg ? '✨ ' : '') + set.rarity + (isLeg ? ' ✨' : '');
+            document.getElementById('crate-reveal-rarity').style.color = set.rarityColor;
             document.getElementById('crate-reveal-rarity').style.letterSpacing = isLeg ? '0.3em' : '0.2em';
-            document.getElementById('crate-reveal-msg').textContent      = result.msg;
+            document.getElementById('crate-reveal-msg').textContent = result.msg;
             revInfo.style.display = 'block';
             void revInfo.offsetWidth;
             revInfo.style.animation = 'revealInfoDrop 0.4s cubic-bezier(.2,1.4,.5,1) forwards';
@@ -1216,20 +1660,15 @@ function dismissCrateOverlay() {
 }
 
 /* ═══════════════════════════════════════════════════════
-   SHOP RENDER  (buy = add to inventory)
+   SHOP RENDER
 ═══════════════════════════════════════════════════════ */
 function renderShop() {
     const $c = $('#shop-content').empty();
-    $c.append(`
-        <div style="font-size:0.68rem;color:var(--muted);margin-bottom:14px;text-transform:uppercase;letter-spacing:0.07em;border:1px solid var(--border);padding:8px 10px;background:#1a1917;">
-            Earn 🪙 by capturing pieces&nbsp;
-            <span style="color:white">(p=1&nbsp;·&nbsp;n/b=3&nbsp;·&nbsp;r=5&nbsp;·&nbsp;q=9)</span>
-            &nbsp;and winning matches <span style="color:var(--gold)">(+15)</span>
-        </div>
-    `);
+    $c.append(`<div style="font-size:0.68rem;color:var(--muted);margin-bottom:14px;text-transform:uppercase;letter-spacing:0.07em;border:1px solid var(--border);padding:8px 10px;background:#1a1917;">
+        Earn 🪙 by capturing pieces <span style="color:white">(p=1 · n/b=3 · r=5 · q=9)</span> and winning <span style="color:var(--gold)">(+15)</span>
+    </div>`);
     Object.entries(CRATES).forEach(([crateId, crate]) => {
         const canAfford = playerData.coins >= crate.cost;
-        // Build pool display — for gold show weighted rarities
         let poolHtml;
         if (crate.drops) {
             const rareNames = crate.drops.filter(d => PIECE_SETS[d.setId]?.rarity === 'Rare').map(d => PIECE_SETS[d.setId].name).join(' · ');
@@ -1238,26 +1677,20 @@ function renderShop() {
         } else {
             poolHtml = crate.pool.map(s => PIECE_SETS[s].name).join(' · ');
         }
-        $c.append(`
-            <div class="crate-card">
-                <div class="crate-card-body">
-                    <div class="crate-card-name" style="color:${crate.color}">${crate.name}</div>
-                    <div class="crate-card-pool" style="line-height:1.6;">${poolHtml}</div>
-                    <div class="crate-card-price">${crate.cost} 🪙</div>
-                    <button class="crate-card-btn" style="background:${crate.color};color:#1a1917;border:none;"
-                            onclick="buyCrate('${crateId}')"
-                            ${canAfford ? '' : 'disabled'}>
-                        ${canAfford ? 'Buy & Add to Inventory' : 'Not enough coins'}
-                    </button>
-                </div>
+        $c.append(`<div class="crate-card">
+            <div class="crate-card-body">
+                <div class="crate-card-name" style="color:${crate.color}">${crate.name}</div>
+                <div class="crate-card-pool" style="line-height:1.6;">${poolHtml}</div>
+                <div class="crate-card-price">${crate.cost} 🪙</div>
+                <button class="crate-card-btn" style="background:${crate.color};color:#1a1917;border:none;"
+                        onclick="buyCrate('${crateId}')" ${canAfford ? '' : 'disabled'}>
+                    ${canAfford ? 'Buy & Add to Inventory' : 'Not enough coins'}
+                </button>
             </div>
-        `);
+        </div>`);
     });
 }
 
-/* ═══════════════════════════════════════════════════════
-   BUY CRATE  (adds to crateInventory, doesn't open yet)
-═══════════════════════════════════════════════════════ */
 function buyCrate(crateId) {
     const crate = CRATES[crateId];
     if (!crate || playerData.coins < crate.cost) return;
@@ -1266,7 +1699,7 @@ function buyCrate(crateId) {
     savePlayerData(true);
     updateCoinDisplay();
     renderShop();
-    showBanner('Shop', `${crate.name} added to your inventory! Open it in My Crates.`, '');
+    showBanner('Shop', `${crate.name} added to your inventory!`, '');
 }
 
 /* ═══════════════════════════════════════════════════════
@@ -1282,390 +1715,534 @@ function copyProfileId() {
 }
 
 /* ═══════════════════════════════════════════════════════
-   TRADING SYSTEM
+   TRADE STATE
 ═══════════════════════════════════════════════════════ */
-let currentTradeType = 'pieces';
+let tradeRequests = { outgoing:[] };
 
-function switchTradeType(type) {
-    currentTradeType = type;
-    document.getElementById('ttype-pieces').classList.toggle('active', type === 'pieces');
-    document.getElementById('ttype-crates').classList.toggle('active', type === 'crates');
-    document.getElementById('trade-pieces-form').classList.toggle('hidden', type !== 'pieces');
-    document.getElementById('trade-crates-form').classList.toggle('hidden', type !== 'crates');
-    if (type === 'crates') updateCrateOfferAvail();
+let activeTrade   = null;
+let myTradeRole   = null;
+let myOffer       = { pieces:[], crates:{}, coins:0 };
+let theirOffer    = { pieces:[], crates:{}, coins:0 };
+let myReady       = false;
+let theirReady    = false;
+let activeTradeChannel = null;
+let currentAimTab = 'pieces';
+
+let pendingPopupTrade  = null;
+let popupCountdownTimer = null;
+let popupSecondsLeft   = 30;
+const POPUP_SECONDS    = 30;
+
+/* ═══════════════════════════════════════════════════════
+   NAV GUARD
+═══════════════════════════════════════════════════════ */
+function isTradeActive() { return activeTrade !== null; }
+
+function showView(id) {
+    if (isTradeActive()) { showBanner('Trade', 'Finish or cancel your trade first!', ''); return; }
+    _showViewInternal(id);
 }
 
-function updateCrateOfferAvail() {
-    const crateId = $('#trade-offer-crate').val();
-    const inv = (playerData.crateInventory[crateId] || 0) + (playerData.freeCrates[crateId] || 0);
-    $('#trade-offer-crate-avail').text(`You have: ${inv}× ${CRATES[crateId]?.name || crateId}`);
+function _showViewInternal(id) {
+    if (id !== 'view-collection') stopCollectionCycle();
+    $('.tab-content').addClass('hidden');
+    $('#'+id).removeClass('hidden');
+    if (id === 'view-admin')           { updateBroadcastPreview(); loadSoundList(); }
+    if (id === 'view-shop')            { renderShop(); }
+    if (id === 'view-collection')      { renderCollection(); }
+    if (id === 'view-crate-inventory') { renderCrateInventory(); }
+    if (id === 'view-trade')           { renderOutgoingList(); }
 }
 
-let currentTradeTab = 'incoming';
+/* ═══════════════════════════════════════════════════════
+   TRADE REQUEST POPUP
+═══════════════════════════════════════════════════════ */
+function showTradePopup(req) {
+    pendingPopupTrade = req;
+    const note = req.messages?.find(m => !m.system)?.text || '';
+    $('#trp-from-name').text(req.from_display || req.from_username);
+    $('#trp-note').text(note ? `"${note}"` : '');
+    popupSecondsLeft = POPUP_SECONDS;
+    $('#trp-timer-label').text(`${POPUP_SECONDS}s to respond`);
 
-function switchTradeTab(tab) {
-    currentTradeTab = tab;
-    document.querySelectorAll('.trade-tab').forEach(t => t.classList.remove('active'));
-    document.getElementById('ttab-'+tab).classList.add('active');
-    ['incoming','outgoing','new'].forEach(t => {
-        document.getElementById('trade-tab-'+t).classList.toggle('hidden', t !== tab);
-    });
-    if (tab === 'new') { renderTradeNewForm(); switchTradeType('pieces'); }
-    if (tab === 'incoming') renderTradeIncoming();
-    if (tab === 'outgoing') renderTradeOutgoing();
+    const bar = document.getElementById('trp-timer-bar');
+    bar.style.transition = 'none'; bar.style.width = '100%';
+    bar.style.setProperty('--timer-dur', POPUP_SECONDS + 's');
+    $('#trade-request-popup').addClass('show');
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+        bar.style.transition = `width ${POPUP_SECONDS}s linear`;
+        bar.style.width = '0%';
+    }));
+
+    clearInterval(popupCountdownTimer);
+    popupCountdownTimer = setInterval(() => {
+        popupSecondsLeft--;
+        $('#trp-timer-label').text(`${popupSecondsLeft}s to respond`);
+        if (popupSecondsLeft <= 0) { clearInterval(popupCountdownTimer); denyTradePopup(true); }
+    }, 1000);
 }
 
-function renderTradeNewForm() {
-    // Offer: sets you own (excluding default)
-    const $offer = $('#trade-offer-grid').empty();
-    const $want  = $('#trade-want-grid').empty();
-    playerData.ownedSets.filter(s => s !== 'wikipedia').forEach(setId => {
-        const set = PIECE_SETS[setId]; if (!set) return;
-        $offer.append(`<div class="trade-set-opt" data-setid="${setId}" onclick="toggleTradeSelect(this,'offer')">
-            <img src="${pieceUrl(setId,'w','K')}" onerror="this.style.opacity=0.3">
-            <div class="trade-set-opt-name">${set.name}</div>
-            <div class="trade-set-opt-rarity" style="color:${set.rarityColor}">${set.rarity}</div>
-        </div>`);
-    });
-    if ($offer.children().length === 0) {
-        $offer.append(`<div style="grid-column:span 2;color:var(--muted);font-size:0.72rem;padding:10px;">You have no tradeable sets. Open crates to get some!</div>`);
-    }
-
-    // Want: all sets except wikipedia
-    Object.entries(PIECE_SETS).filter(([id]) => id !== 'wikipedia').forEach(([setId, set]) => {
-        $want.append(`<div class="trade-set-opt" data-setid="${setId}" onclick="toggleTradeSelect(this,'want')">
-            <img src="${pieceUrl(setId,'w','K')}" onerror="this.style.opacity=0.3">
-            <div class="trade-set-opt-name">${set.name}</div>
-            <div class="trade-set-opt-rarity" style="color:${set.rarityColor}">${set.rarity}</div>
-        </div>`);
-    });
+function hideTradePopup() {
+    clearInterval(popupCountdownTimer);
+    $('#trade-request-popup').removeClass('show');
+    pendingPopupTrade = null;
 }
 
-function toggleTradeSelect(el, group) {
-    // Single-select per group
-    $(el).closest('.trade-set-select').find('.trade-set-opt').removeClass('selected');
-    $(el).toggleClass('selected');
+async function acceptTradePopup() {
+    if (!pendingPopupTrade) return;
+    const req = pendingPopupTrade;
+    hideTradePopup();
+    globalChannel.send({ type:'broadcast', event:'trade_accepted', payload:{ tradeId: req.id, target: req.from_user_id }});
+    await openActiveTrade(req.id, 'to');
 }
 
-async function sendTradeRequest() {
+async function denyTradePopup(isAuto) {
+    if (!pendingPopupTrade) return;
+    const req = pendingPopupTrade;
+    hideTradePopup();
+    await sb.from('trade_requests').update({ status: 'declined' }).eq('id', req.id);
+    globalChannel.send({ type:'broadcast', event:'trade_declined', payload:{ tradeId: req.id, target: req.from_user_id }});
+    if (!isAuto) showBanner('Trade', 'Request declined.', '');
+    loadTradeRequests();
+}
+
+/* ═══════════════════════════════════════════════════════
+   SEND BLANK REQUEST
+═══════════════════════════════════════════════════════ */
+async function sendBlankTradeRequest() {
     const targetUsername = $('#trade-target-username').val().trim().toLowerCase();
     const initMsg        = $('#trade-init-msg').val().trim();
-
     $('#trade-send-err').addClass('hidden').text('');
-    if (!targetUsername)            { showTradeErr('Enter a username to trade with.'); return; }
-    if (targetUsername === myUsername) { showTradeErr("You can't trade with yourself."); return; }
 
-    let tradePayload = { type: currentTradeType };
+    if (!targetUsername)              { showTradeErr('Enter a username.'); return; }
+    if (targetUsername === myUsername) { showTradeErr("Can't trade with yourself."); return; }
 
-    if (currentTradeType === 'pieces') {
-        const offerSetId = $('#trade-offer-grid .selected').data('setid');
-        const wantSetId  = $('#trade-want-grid .selected').data('setid');
-        if (!offerSetId) { showTradeErr('Select a set to offer.'); return; }
-        if (!wantSetId)  { showTradeErr('Select a set you want.'); return; }
-        tradePayload.offer_set  = offerSetId;
-        tradePayload.want_set   = wantSetId;
-    } else {
-        const offerCrate    = $('#trade-offer-crate').val();
-        const offerCrateQty = parseInt($('#trade-offer-crate-qty').val(), 10) || 1;
-        const wantCrate     = $('#trade-want-crate').val();
-        const wantCrateQty  = parseInt($('#trade-want-crate-qty').val(), 10) || 1;
-        const myTotal = (playerData.crateInventory[offerCrate] || 0) + (playerData.freeCrates[offerCrate] || 0);
-        if (myTotal < offerCrateQty) { showTradeErr(`You only have ${myTotal}× ${CRATES[offerCrate]?.name}.`); return; }
-        tradePayload.offer_crate     = offerCrate;
-        tradePayload.offer_crate_qty = offerCrateQty;
-        tradePayload.want_crate      = wantCrate;
-        tradePayload.want_crate_qty  = wantCrateQty;
-    }
-
-    // Look up target user
     const { data:targetProf } = await sb.from('profiles').select('id,display_name,username').eq('username', targetUsername).maybeSingle();
-    if (!targetProf) { showTradeErr(`No player found with username "${targetUsername}".`); return; }
+    if (!targetProf) { showTradeErr(`No player "${targetUsername}" found.`); return; }
 
-    const { error } = await sb.from('trade_requests').insert({
-        from_user_id:   user.id,
-        from_username:  myUsername,
-        from_display:   $('#my-display-name').text(),
-        to_user_id:     targetProf.id,
-        to_username:    targetUsername,
-        to_display:     targetProf.display_name || targetUsername,
-        // piece fields (null if crate trade)
-        offer_set:      tradePayload.offer_set  || null,
-        want_set:       tradePayload.want_set   || null,
-        // crate fields (null if piece trade)
-        offer_crate:     tradePayload.offer_crate     || null,
-        offer_crate_qty: tradePayload.offer_crate_qty || null,
-        want_crate:      tradePayload.want_crate      || null,
-        want_crate_qty:  tradePayload.want_crate_qty  || null,
-        trade_type:     currentTradeType,
-        status:         'pending',
-        messages:       initMsg ? [{ from: myUsername, text: initMsg, ts: Date.now() }] : [],
-    });
+    const { data:inserted, error } = await sb.from('trade_requests').insert({
+        from_user_id:  user.id, from_username: myUsername, from_display:  $('#my-display-name').text(),
+        to_user_id:    targetProf.id, to_username:   targetUsername, to_display:    targetProf.display_name || targetUsername,
+        status:        'pending',
+        from_offer:    { pieces:[], crates:{}, coins:0 }, to_offer: { pieces:[], crates:{}, coins:0 },
+        from_ready: false, to_ready: false,
+        messages: initMsg ? [{ from: myUsername, text: initMsg, ts: Date.now(), system: false }] : [],
+    }).select().maybeSingle();
 
-    if (error) { showTradeErr('Failed to send request: ' + error.message); return; }
+    if (error) { showTradeErr('Failed: ' + error.message); return; }
 
-    globalChannel.send({ type:'broadcast', event:'trade_notification', payload:{ target: targetProf.id, from: myUsername } });
-
-    $('#trade-target-username').val('');
-    $('#trade-init-msg').val('');
-    $('#trade-offer-grid .selected, #trade-want-grid .selected').removeClass('selected');
-    switchTradeTab('outgoing');
+    globalChannel.send({ type:'broadcast', event:'trade_notification', payload:{ target:targetProf.id, from:myUsername, tradeId:inserted?.id }});
+    $('#trade-target-username').val(''); $('#trade-init-msg').val('');
     await loadTradeRequests();
-    showBanner('Trade', `Trade request sent to ${targetProf.display_name || targetUsername}!`, '');
+    showBanner('Trade', `Request sent to ${targetProf.display_name || targetUsername}!`, '');
 }
 
-function showTradeErr(msg) {
-    $('#trade-send-err').text(msg).removeClass('hidden');
-}
+function showTradeErr(msg) { $('#trade-send-err').text(msg).removeClass('hidden'); }
 
 async function loadTradeRequests() {
     if (!user) return;
-    const [{ data: incoming }, { data: outgoing }] = await Promise.all([
-        sb.from('trade_requests').select('*').eq('to_user_id', user.id).in('status', ['pending','counter']).order('created_at', {ascending:false}),
-        sb.from('trade_requests').select('*').eq('from_user_id', user.id).in('status', ['pending','counter']).order('created_at', {ascending:false}),
-    ]);
-    tradeRequests.incoming = incoming || [];
+    const { data: outgoing } = await sb.from('trade_requests').select('*').eq('from_user_id', user.id).in('status', ['pending','active']).order('created_at', {ascending:false});
     tradeRequests.outgoing = outgoing || [];
-    updateTradeBadge();
-    if (currentTradeTab === 'incoming') renderTradeIncoming();
-    if (currentTradeTab === 'outgoing') renderTradeOutgoing();
+    renderOutgoingList();
+    const { data: inCount } = await sb.from('trade_requests').select('id').eq('to_user_id', user.id).eq('status', 'pending');
+    const cnt = inCount?.length || 0;
+    $('#trade-badge-lobby').toggleClass('hidden', cnt === 0).text(cnt > 0 ? '!' : '');
 }
 
-function updateTradeBadge() {
-    const count = tradeRequests.incoming.length;
-    $('#trade-badge-lobby').toggleClass('hidden', count === 0).text(count > 0 ? '!' : '');
-}
-
-function tradeItemsHtml(req) {
-    if (req.trade_type === 'crates' || req.offer_crate) {
-        const oc = CRATES[req.offer_crate], wc = CRATES[req.want_crate];
-        return `
-            <div class="trade-item-pill" style="border-color:${oc?.color||'var(--border)'}">
-                ${oc?.icon||'📦'} ${req.offer_crate_qty||1}× ${oc?.name||req.offer_crate}
-            </div>
-            <span class="trade-arrow">→</span>
-            <div class="trade-item-pill" style="border-color:${wc?.color||'var(--border)'}">
-                ${wc?.icon||'📦'} ${req.want_crate_qty||1}× ${wc?.name||req.want_crate}
-            </div>`;
-    }
-    const offerSet = PIECE_SETS[req.offer_set], wantSet = PIECE_SETS[req.want_set];
-    return `
-        <div class="trade-item-pill" style="border-color:${offerSet?.rarityColor||'var(--border)'}">
-            <img src="${pieceUrl(req.offer_set,'w','K')}" style="width:18px;height:18px;object-fit:contain;">
-            ${escHtml(offerSet?.name||req.offer_set)}
-        </div>
-        <span class="trade-arrow">→</span>
-        <div class="trade-item-pill" style="border-color:${wantSet?.rarityColor||'var(--border)'}">
-            <img src="${pieceUrl(req.want_set,'w','K')}" style="width:18px;height:18px;object-fit:contain;">
-            ${escHtml(wantSet?.name||req.want_set)}
-        </div>`;
-}
-
-function canAcceptTrade(req) {
-    if (req.trade_type === 'crates' || req.offer_crate) {
-        const myTotal = (playerData.crateInventory[req.want_crate] || 0) + (playerData.freeCrates[req.want_crate] || 0);
-        return myTotal >= (req.want_crate_qty || 1);
-    }
-    return playerData.ownedSets.includes(req.want_set);
-}
-
-function acceptBlockReason(req) {
-    if (req.trade_type === 'crates' || req.offer_crate) {
-        const myTotal = (playerData.crateInventory[req.want_crate] || 0) + (playerData.freeCrates[req.want_crate] || 0);
-        if (myTotal < (req.want_crate_qty || 1)) return `You only have ${myTotal}× ${CRATES[req.want_crate]?.name}`;
-        return null;
-    }
-    if (!playerData.ownedSets.includes(req.want_set)) return `You don't own ${PIECE_SETS[req.want_set]?.name||req.want_set}`;
-    return null;
-}
-
-function renderTradeIncoming() {
-    const $c = $('#trade-tab-incoming').empty();
-    if (!tradeRequests.incoming.length) {
-        $c.append(`<div style="color:var(--muted);font-size:0.76rem;padding:16px 0;text-align:center;">No incoming trade requests.</div>`);
-        return;
-    }
-    tradeRequests.incoming.forEach(req => {
-        const blockReason = acceptBlockReason(req);
-        const canAccept   = !blockReason;
-        const typeLabel   = (req.trade_type === 'crates' || req.offer_crate) ? '📦 Crate Trade' : '♟ Piece Trade';
-        $c.append(`
-        <div class="trade-request-card incoming" id="trade-card-${req.id}">
-            <div class="trade-request-card-header">
-                <span class="trade-from">⇄ ${escHtml(req.from_display || req.from_username)}</span>
-                <span class="trade-time" style="display:flex;flex-direction:column;align-items:flex-end;gap:2px;">
-                    <span style="font-size:0.58rem;color:var(--trade);text-transform:uppercase;letter-spacing:0.06em;">${typeLabel}</span>
-                    <span>${timeAgo(req.created_at)}</span>
-                </span>
-            </div>
-            <div class="trade-items">${tradeItemsHtml(req)}</div>
-            <div class="trade-chat-box" id="tchat-${req.id}"></div>
-            <div style="display:flex;gap:6px;margin-bottom:6px;">
-                <input type="text" placeholder="Reply…" id="tchat-input-${req.id}" style="margin-bottom:0;font-size:0.72rem;padding:6px 8px;" onkeypress="if(event.key==='Enter')sendTradeMsg('${req.id}',this.value)">
-            </div>
-            <div class="trade-actions">
-                <button onclick="acceptTrade('${req.id}')" ${canAccept ? '' : 'disabled'} style="background:var(--accent);">Accept</button>
-                <button onclick="declineTrade('${req.id}')" class="sec-btn danger-btn">Decline</button>
-            </div>
-            ${blockReason ? `<div style="font-size:0.62rem;color:var(--muted);margin-top:4px;text-transform:uppercase;letter-spacing:0.06em;">${escHtml(blockReason)} — can't accept</div>` : ''}
-        </div>`);
-        renderTradeChat(req);
-    });
-}
-
-function renderTradeOutgoing() {
-    const $c = $('#trade-tab-outgoing').empty();
-    if (!tradeRequests.outgoing.length) {
-        $c.append(`<div style="color:var(--muted);font-size:0.76rem;padding:16px 0;text-align:center;">No outgoing trade requests.</div>`);
-        return;
-    }
+function renderOutgoingList() {
+    const $c = $('#outgoing-trade-list').empty();
+    if (!tradeRequests.outgoing.length) { $c.append(`<div style="color:var(--muted);font-size:0.72rem;padding:10px 0;">No pending requests.</div>`); return; }
     tradeRequests.outgoing.forEach(req => {
-        const typeLabel = (req.trade_type === 'crates' || req.offer_crate) ? '📦 Crate Trade' : '♟ Piece Trade';
-        $c.append(`
-        <div class="trade-request-card" id="trade-card-${req.id}">
-            <div class="trade-request-card-header">
-                <span class="trade-from" style="color:var(--muted);">→ ${escHtml(req.to_display || req.to_username)}</span>
-                <span class="trade-time" style="display:flex;flex-direction:column;align-items:flex-end;gap:2px;">
-                    <span style="font-size:0.58rem;color:var(--trade);text-transform:uppercase;letter-spacing:0.06em;">${typeLabel}</span>
-                    <span>${timeAgo(req.created_at)}</span>
-                </span>
+        const note = req.messages?.find(m => !m.system)?.text || '';
+        const isActive = req.status === 'active';
+        $c.append(`<div class="outgoing-trade-card">
+            <div class="otc-info">
+                <div class="otc-to">→ ${escHtml(req.to_display || req.to_username)}</div>
+                ${note ? `<div class="otc-note">"${escHtml(note)}"</div>` : ''}
+                <div style="font-size:0.58rem;color:${isActive?'var(--trade)':'var(--muted)'};text-transform:uppercase;letter-spacing:0.06em;margin-top:3px;">${isActive ? '● Active' : '● Pending'}</div>
             </div>
-            <div class="trade-items">${tradeItemsHtml(req)}</div>
-            <div class="trade-chat-box" id="tchat-${req.id}"></div>
-            <div style="display:flex;gap:6px;margin-bottom:6px;">
-                <input type="text" placeholder="Add message…" id="tchat-input-${req.id}" style="margin-bottom:0;font-size:0.72rem;padding:6px 8px;" onkeypress="if(event.key==='Enter')sendTradeMsg('${req.id}',this.value)">
-            </div>
-            <div class="trade-actions">
-                <button onclick="cancelTrade('${req.id}')" class="sec-btn">Cancel Request</button>
-            </div>
+            ${isActive
+                ? `<button style="background:var(--trade);color:#1a1917;border:none;padding:6px 10px;font-size:0.68rem;width:auto;margin-bottom:0;cursor:pointer;" onclick="openActiveTrade('${req.id}','from')">Open</button>`
+                : `<button class="otc-cancel" onclick="cancelOutgoingTrade('${req.id}')">Cancel</button>`
+            }
         </div>`);
-        renderTradeChat(req);
     });
 }
 
-function renderTradeChat(req) {
-    const $box = $(`#tchat-${req.id}`);
-    if (!$box.length) return;
-    $box.empty();
-    const msgs = Array.isArray(req.messages) ? req.messages : [];
-    msgs.forEach(m => {
-        const isMe = m.from === myUsername;
-        $box.append(`<div class="tc-line"><span class="tc-from" style="color:${isMe?'#b5d97a':'var(--trade)'}">${escHtml(m.from)}:</span>${escHtml(m.text)}</div>`);
-    });
-    $box[0].scrollTop = $box[0].scrollHeight;
-}
-
-async function sendTradeMsg(tradeId, text, otherUsername) {
-    text = (typeof text === 'string' ? text : $(`#tchat-input-${tradeId}`).val()).trim();
-    if (!text) return;
-    $(`#tchat-input-${tradeId}`).val('');
-
-    const { data:req } = await sb.from('trade_requests').select('messages').eq('id', tradeId).maybeSingle();
-    if (!req) return;
-    const msgs = Array.isArray(req.messages) ? req.messages : [];
-    msgs.push({ from: myUsername, text, ts: Date.now() });
-    await sb.from('trade_requests').update({ messages: msgs }).eq('id', tradeId);
-
-    // Notify the other party
-    globalChannel.send({ type:'broadcast', event:'trade_message', payload:{ tradeId, from: myUsername } });
-
-    await loadTradeRequests();
-}
-
-async function acceptTrade(tradeId) {
-    const req = tradeRequests.incoming.find(r => r.id === tradeId);
-    if (!req) return;
-
-    const isCrateTrade = req.trade_type === 'crates' || !!req.offer_crate;
-
-    if (isCrateTrade) {
-        // Validate I have enough of the wanted crate
-        const wantQty = req.want_crate_qty || 1;
-        const offerQty = req.offer_crate_qty || 1;
-        const myTotal = (playerData.crateInventory[req.want_crate] || 0) + (playerData.freeCrates[req.want_crate] || 0);
-        if (myTotal < wantQty) {
-            showBanner('Trade', `You don't have enough ${CRATES[req.want_crate]?.name}.`, ''); return;
-        }
-
-        // Check sender has enough
-        const { data:senderInv } = await sb.from('player_inventory').select('crate_inventory,free_crates').eq('id', req.from_user_id).maybeSingle();
-        const senderTotal = ((senderInv?.crate_inventory||{})[req.offer_crate]||0) + ((senderInv?.free_crates||{})[req.offer_crate]||0);
-        if (senderTotal < offerQty) {
-            showBanner('Trade', "Sender no longer has enough crates.", '');
-            await sb.from('trade_requests').update({ status:'cancelled' }).eq('id', tradeId);
-            loadTradeRequests(); return;
-        }
-
-        // Deduct from my inventory (use free first, then purchased)
-        let remaining = wantQty;
-        const myFree = playerData.freeCrates[req.want_crate] || 0;
-        const deductFree = Math.min(myFree, remaining);
-        playerData.freeCrates[req.want_crate] = myFree - deductFree;
-        remaining -= deductFree;
-        playerData.crateInventory[req.want_crate] = Math.max(0, (playerData.crateInventory[req.want_crate]||0) - remaining);
-
-        // Add the crates I'm getting
-        playerData.crateInventory[req.offer_crate] = (playerData.crateInventory[req.offer_crate]||0) + offerQty;
-        savePlayerData(true);
-
-        // Update sender's crate inventory
-        const sci = { ...(senderInv?.crate_inventory || {}) };
-        const sfc = { ...(senderInv?.free_crates || {}) };
-        let sRemaining = offerQty;
-        const sFree = sfc[req.offer_crate] || 0;
-        const sDeductFree = Math.min(sFree, sRemaining);
-        sfc[req.offer_crate] = sFree - sDeductFree; sRemaining -= sDeductFree;
-        sci[req.offer_crate] = Math.max(0, (sci[req.offer_crate]||0) - sRemaining);
-        sci[req.want_crate]  = (sci[req.want_crate]||0) + wantQty;
-        await sb.from('player_inventory').update({ crate_inventory: sci, free_crates: sfc }).eq('id', req.from_user_id);
-
-        await sb.from('trade_requests').update({ status: 'completed' }).eq('id', tradeId);
-        globalChannel.send({ type:'broadcast', event:'trade_completed', payload:{ tradeId, target: req.from_user_id, fromDisplay: $('#my-display-name').text() } });
-        showBanner('Trade', `Crate trade complete! Got ${offerQty}× ${CRATES[req.offer_crate]?.name}!`, '');
-
-    } else {
-        // Piece trade
-        if (!playerData.ownedSets.includes(req.want_set)) {
-            showBanner('Trade', "You don't own the requested set.", ''); return;
-        }
-        const { data:senderInv } = await sb.from('player_inventory').select('owned_sets').eq('id', req.from_user_id).maybeSingle();
-        if (!senderInv?.owned_sets?.includes(req.offer_set)) {
-            showBanner('Trade', "Sender no longer owns their offered set.", '');
-            await sb.from('trade_requests').update({ status:'cancelled' }).eq('id', tradeId);
-            loadTradeRequests(); return;
-        }
-
-        const myNew = playerData.ownedSets.filter(s => s !== req.want_set);
-        myNew.push(req.offer_set);
-        playerData.ownedSets = [...new Set(myNew)];
-        if (playerData.equippedSet === req.want_set) { playerData.equippedSet = 'wikipedia'; pieceStyle = PIECE_SETS.wikipedia.url; }
-        savePlayerData(true);
-
-        const senderNew = senderInv.owned_sets.filter(s => s !== req.offer_set);
-        senderNew.push(req.want_set);
-        await sb.from('player_inventory').update({ owned_sets: [...new Set(senderNew)] }).eq('id', req.from_user_id);
-
-        await sb.from('trade_requests').update({ status: 'completed' }).eq('id', tradeId);
-        globalChannel.send({ type:'broadcast', event:'trade_completed', payload:{ tradeId, target: req.from_user_id, fromDisplay: $('#my-display-name').text() } });
-        showBanner('Trade', `Trade completed! You got ${PIECE_SETS[req.offer_set]?.name || req.offer_set}!`, '');
-    }
-
-    await loadTradeRequests();
-}
-
-async function declineTrade(tradeId) {
-    const req = tradeRequests.incoming.find(r => r.id === tradeId);
-    await sb.from('trade_requests').update({ status: 'declined' }).eq('id', tradeId);
-    if (req) globalChannel.send({ type:'broadcast', event:'trade_declined', payload:{ tradeId, target: req.from_user_id } });
-    await loadTradeRequests();
-}
-
-async function cancelTrade(tradeId) {
+async function cancelOutgoingTrade(tradeId) {
     await sb.from('trade_requests').update({ status: 'cancelled' }).eq('id', tradeId);
     await loadTradeRequests();
 }
 
 /* ═══════════════════════════════════════════════════════
-   ADMIN — GIVE COINS / CRATES
+   ACTIVE TRADE WINDOW
+═══════════════════════════════════════════════════════ */
+async function openActiveTrade(tradeId, role) {
+    const { data:req } = await sb.from('trade_requests').select('*').eq('id', tradeId).maybeSingle();
+    if (!req) { showBanner('Trade', 'Trade not found.', ''); return; }
+
+    activeTrade  = req; myTradeRole  = role;
+    const theirRole = role === 'from' ? 'to' : 'from';
+    myOffer    = JSON.parse(JSON.stringify(req[role+'_offer']      || { pieces:[], crates:{}, coins:0 }));
+    theirOffer = JSON.parse(JSON.stringify(req[theirRole+'_offer'] || { pieces:[], crates:{}, coins:0 }));
+    myReady    = req[role+'_ready']      || false;
+    theirReady = req[theirRole+'_ready'] || false;
+
+    if (req.status === 'pending') await sb.from('trade_requests').update({ status:'active' }).eq('id', tradeId);
+
+    const myName    = role === 'from' ? (req.from_display || req.from_username) : (req.to_display   || req.to_username);
+    const theirName = role === 'from' ? (req.to_display   || req.to_username)   : (req.from_display || req.from_username);
+    $('#my-offer-name').text(myName || 'You');
+    $('#their-offer-name').text(theirName || 'Them');
+    renderTradeWindow();
+
+    if (activeTradeChannel) sb.removeChannel(activeTradeChannel);
+    activeTradeChannel = sb.channel(`trade_active_${tradeId}`)
+        .on('broadcast', { event: 'trade_offer_update' }, (p) => {
+            if (p.payload.tradeId !== tradeId) return;
+            if (p.payload.role !== myTradeRole) {
+                theirOffer = p.payload.offer; theirReady = p.payload.ready;
+                renderTheirOfferGrid(); updateReadyStatus();
+                if (p.payload.ready) checkBothReady();
+            }
+        })
+        .on('broadcast', { event: 'trade_chat_msg' }, (p) => {
+            if (p.payload.tradeId !== tradeId) return;
+            appendTradeChatMsg(p.payload.from, p.payload.text, p.payload.from === myUsername, p.payload.system);
+        })
+        .on('broadcast', { event: 'trade_cancelled' }, (p) => {
+            if (p.payload.tradeId !== tradeId) return;
+            _forceCloseTradeWindow();
+            showBanner('Trade', 'Trade was cancelled by the other party.', '');
+            loadTradeRequests();
+        })
+        .subscribe();
+
+    document.getElementById('trade-window-overlay').style.display = 'flex';
+    $('#trade-chat-messages').empty();
+    (req.messages || []).forEach(m => appendTradeChatMsg(m.from, m.text, m.from === myUsername, m.system));
+    loadTradeRequests();
+}
+
+function renderTradeWindow() {
+    renderMyOfferGrid(); renderTheirOfferGrid(); updateReadyStatus();
+    $('#my-offer-coin-display').text(myOffer.coins || 0);
+    $('#their-offer-coin-display').text(theirOffer.coins || 0);
+}
+
+function renderMyOfferGrid() {
+    const $g = $('#my-offer-grid').empty();
+    (myOffer.pieces || []).forEach(setId => {
+        const set = PIECE_SETS[setId]; if (!set) return;
+        $g.append(`<div class="trade-item-slot mine-slot">
+            <img src="${pieceUrl(setId,'w','K')}" onerror="this.style.opacity=0.3">
+            <div class="slot-label">${set.name}</div>
+            <div class="slot-remove" onclick="removeMyPiece('${setId}')">✕</div>
+        </div>`);
+    });
+    Object.entries(myOffer.crates || {}).forEach(([crateId, qty]) => {
+        if (!qty || qty < 1) return;
+        const crate = CRATES[crateId]; if (!crate) return;
+        $g.append(`<div class="trade-item-slot mine-slot">
+            <div style="font-size:1.6rem;">${crate.icon}</div>
+            <div class="slot-count">${qty}×</div>
+            <div class="slot-label">${crate.name}</div>
+            <div class="slot-remove" onclick="removeMyCrate('${crateId}')">✕</div>
+        </div>`);
+    });
+    if (myOffer.coins > 0) {
+        $g.append(`<div class="trade-item-slot mine-slot">
+            <div style="font-size:1.4rem;">🪙</div>
+            <div class="slot-count">${myOffer.coins}</div>
+            <div class="slot-label">Coins</div>
+            <div class="slot-remove" onclick="removeMyCoins()">✕</div>
+        </div>`);
+    }
+    if (!myReady) $g.append(`<div class="trade-item-slot add-slot" onclick="openAddItemModal()">+</div>`);
+    $('#my-offer-coin-display').text(myOffer.coins || 0);
+}
+
+function renderTheirOfferGrid() {
+    const $g = $('#their-offer-grid').empty();
+    const offer = theirOffer || { pieces:[], crates:{}, coins:0 };
+    (offer.pieces || []).forEach(setId => {
+        const set = PIECE_SETS[setId]; if (!set) return;
+        $g.append(`<div class="trade-item-slot">
+            <img src="${pieceUrl(setId,'w','K')}" onerror="this.style.opacity=0.3">
+            <div class="slot-label">${set.name}</div>
+        </div>`);
+    });
+    Object.entries(offer.crates || {}).forEach(([crateId, qty]) => {
+        if (!qty || qty < 1) return;
+        const crate = CRATES[crateId]; if (!crate) return;
+        $g.append(`<div class="trade-item-slot">
+            <div style="font-size:1.6rem;">${crate.icon}</div>
+            <div class="slot-count">${qty}×</div>
+            <div class="slot-label">${crate.name}</div>
+        </div>`);
+    });
+    if (offer.coins > 0) {
+        $g.append(`<div class="trade-item-slot">
+            <div style="font-size:1.4rem;">🪙</div>
+            <div class="slot-count">${offer.coins}</div>
+            <div class="slot-label">Coins</div>
+        </div>`);
+    }
+    if (!offer.pieces?.length && !offer.coins && !Object.values(offer.crates||{}).some(v=>v>0)) {
+        $g.append(`<div style="color:var(--muted);font-size:0.7rem;padding:16px;text-align:center;width:100%;">Nothing added yet</div>`);
+    }
+    $('#their-offer-coin-display').text(offer.coins || 0);
+}
+
+function updateReadyStatus() {
+    const $btn = $('#my-ready-btn');
+    $btn.toggleClass('is-ready', myReady);
+    $btn.text(myReady ? '✓ Ready!' : '✓ Ready');
+    $('#their-ready-status').text(theirReady ? "✓ They're ready!" : 'Waiting for them…');
+    $('#their-ready-status').css('color', theirReady ? 'var(--accent)' : 'var(--muted)');
+}
+
+function removeMyPiece(setId)  { myOffer.pieces = (myOffer.pieces||[]).filter(p=>p!==setId); myReady=false; pushMyOfferUpdate(); renderMyOfferGrid(); updateReadyStatus(); }
+function removeMyCrate(crateId){ if(myOffer.crates) delete myOffer.crates[crateId]; myReady=false; pushMyOfferUpdate(); renderMyOfferGrid(); updateReadyStatus(); }
+function removeMyCoins()       { myOffer.coins=0; myReady=false; pushMyOfferUpdate(); renderMyOfferGrid(); updateReadyStatus(); }
+
+async function pushMyOfferUpdate() {
+    if (!activeTrade) return;
+    const colOffer = myTradeRole + '_offer', colReady = myTradeRole + '_ready';
+    await sb.from('trade_requests').update({ [colOffer]: myOffer, [colReady]: myReady }).eq('id', activeTrade.id);
+    activeTradeChannel?.send({ type:'broadcast', event:'trade_offer_update', payload:{ tradeId: activeTrade.id, role: myTradeRole, offer: myOffer, ready: myReady }});
+}
+
+async function toggleReady() {
+    myReady = !myReady;
+    await pushMyOfferUpdate(); updateReadyStatus(); renderMyOfferGrid();
+    if (myReady) {
+        appendTradeChatMsg('System', `${$('#my-offer-name').text()} is ready!`, false, true);
+        activeTradeChannel?.send({ type:'broadcast', event:'trade_chat_msg', payload:{ tradeId: activeTrade.id, from:'System', text:`${$('#my-offer-name').text()} is ready!`, system:true }});
+    }
+    checkBothReady();
+}
+
+async function checkBothReady() {
+    if (!myReady || !theirReady) return;
+    const { data:req } = await sb.from('trade_requests').select('*').eq('id', activeTrade.id).maybeSingle();
+    if (!req || !req.from_ready || !req.to_ready) return;
+    await executeTrade(req);
+}
+
+async function executeTrade(req) {
+    const fromId = req.from_user_id, toId = req.to_user_id;
+    const fromOffer = req.from_offer || { pieces:[], crates:{}, coins:0 };
+    const toOffer   = req.to_offer   || { pieces:[], crates:{}, coins:0 };
+
+    const [{ data:fromInv }, { data:toInv }] = await Promise.all([
+        sb.from('player_inventory').select('coins,owned_sets,crate_inventory,free_crates').eq('id', fromId).maybeSingle(),
+        sb.from('player_inventory').select('coins,owned_sets,crate_inventory,free_crates').eq('id', toId).maybeSingle(),
+    ]);
+    if (!fromInv || !toInv) { abortTrade('Error loading inventories. Trade cancelled.'); return; }
+
+    const fi = { coins:fromInv.coins||0, ownedSets:[...(fromInv.owned_sets||[])], ci:{...(fromInv.crate_inventory||{})}, fc:{...(fromInv.free_crates||{})} };
+    const ti = { coins:toInv.coins||0,   ownedSets:[...(toInv.owned_sets||[])],   ci:{...(toInv.crate_inventory||{})},   fc:{...(toInv.free_crates||{})} };
+
+    for (const setId of (fromOffer.pieces||[])) { if (!fi.ownedSets.includes(setId)) { abortTrade('Trade failed: sender no longer owns offered pieces.'); return; } }
+    for (const [crateId, qty] of Object.entries(fromOffer.crates||{})) {
+        if (qty < 1) continue;
+        if (((fi.ci[crateId]||0) + (fi.fc[crateId]||0)) < qty) { abortTrade(`Trade failed: sender doesn't have enough ${CRATES[crateId]?.name}.`); return; }
+    }
+    if ((fromOffer.coins||0) > fi.coins) { abortTrade("Trade failed: sender doesn't have enough coins."); return; }
+    for (const setId of (toOffer.pieces||[])) { if (!ti.ownedSets.includes(setId)) { abortTrade('Trade failed: recipient no longer owns offered pieces.'); return; } }
+    for (const [crateId, qty] of Object.entries(toOffer.crates||{})) {
+        if (qty < 1) continue;
+        if (((ti.ci[crateId]||0) + (ti.fc[crateId]||0)) < qty) { abortTrade(`Trade failed: recipient doesn't have enough ${CRATES[crateId]?.name}.`); return; }
+    }
+    if ((toOffer.coins||0) > ti.coins) { abortTrade("Trade failed: recipient doesn't have enough coins."); return; }
+
+    function applyOffer(giverInv, receiverInv, offer) {
+        for (const setId of (offer.pieces||[])) {
+            giverInv.ownedSets = giverInv.ownedSets.filter(s => s !== setId);
+            if (!receiverInv.ownedSets.includes(setId)) receiverInv.ownedSets.push(setId);
+        }
+        for (const [crateId, qty] of Object.entries(offer.crates||{})) {
+            if (!qty) continue;
+            let rem = qty;
+            const gFree = giverInv.fc[crateId] || 0;
+            const deductFree = Math.min(gFree, rem);
+            giverInv.fc[crateId] = gFree - deductFree; rem -= deductFree;
+            giverInv.ci[crateId] = Math.max(0, (giverInv.ci[crateId]||0) - rem);
+            receiverInv.ci[crateId] = (receiverInv.ci[crateId]||0) + qty;
+        }
+        giverInv.coins    -= (offer.coins||0);
+        receiverInv.coins += (offer.coins||0);
+    }
+
+    applyOffer(fi, ti, fromOffer);
+    applyOffer(ti, fi, toOffer);
+
+    await Promise.all([
+        sb.from('player_inventory').update({ coins:fi.coins, owned_sets:fi.ownedSets, crate_inventory:fi.ci, free_crates:fi.fc }).eq('id', fromId),
+        sb.from('player_inventory').update({ coins:ti.coins, owned_sets:ti.ownedSets, crate_inventory:ti.ci, free_crates:ti.fc }).eq('id', toId),
+    ]);
+    await sb.from('trade_requests').update({ status: 'completed' }).eq('id', req.id);
+    await loadPlayerData();
+    globalChannel.send({ type:'broadcast', event:'trade_completed_v2', payload:{ tradeId: req.id, fromId, toId }});
+    _forceCloseTradeWindow();
+    showBanner('Trade', '✓ Trade completed!', '');
+    loadTradeRequests();
+}
+
+async function abortTrade(reason) {
+    if (activeTrade) {
+        await sb.from('trade_requests').update({ status:'cancelled', from_ready:false, to_ready:false }).eq('id', activeTrade.id);
+        activeTradeChannel?.send({ type:'broadcast', event:'trade_cancelled', payload:{ tradeId: activeTrade.id }});
+    }
+    _forceCloseTradeWindow();
+    showBanner('Trade', reason, '');
+    loadTradeRequests();
+}
+
+function _forceCloseTradeWindow() {
+    document.getElementById('trade-window-overlay').style.display = 'none';
+    if (activeTradeChannel) { sb.removeChannel(activeTradeChannel); activeTradeChannel = null; }
+    activeTrade = null; myTradeRole = null; myReady = false; theirReady = false;
+    myOffer    = { pieces:[], crates:{}, coins:0 };
+    theirOffer = { pieces:[], crates:{}, coins:0 };
+}
+
+async function confirmCancelActiveTrade() {
+    if (!activeTrade) { _forceCloseTradeWindow(); return; }
+    const confirmed = confirm('Cancel this trade? The other player will be notified.');
+    if (!confirmed) return;
+    await sb.from('trade_requests').update({ status:'cancelled' }).eq('id', activeTrade.id);
+    activeTradeChannel?.send({ type:'broadcast', event:'trade_cancelled', payload:{ tradeId: activeTrade.id }});
+    _forceCloseTradeWindow();
+    loadTradeRequests();
+}
+
+function appendTradeChatMsg(from, text, isMe, isSystem) {
+    const $msgs = $('#trade-chat-messages');
+    if (isSystem) {
+        $msgs.append(`<div class="trade-chat-msg system-msg"><div class="tcm-text">— ${escHtml(text)} —</div></div>`);
+    } else {
+        $msgs.append(`<div class="trade-chat-msg">
+            <div class="tcm-from ${isMe?'mine':'theirs'}">${escHtml(from)}</div>
+            <div class="tcm-text">${escHtml(text)}</div>
+        </div>`);
+    }
+    const el = document.getElementById('trade-chat-messages');
+    if (el) el.scrollTop = el.scrollHeight;
+}
+
+async function sendActiveTradeChat() {
+    const text = $('#trade-chat-input').val().trim(); if (!text || !activeTrade) return;
+    $('#trade-chat-input').val('');
+    appendTradeChatMsg(myUsername, text, true, false);
+    const { data:req } = await sb.from('trade_requests').select('messages').eq('id', activeTrade.id).maybeSingle();
+    const msgs = Array.isArray(req?.messages) ? req.messages : [];
+    msgs.push({ from: myUsername, text, ts: Date.now(), system: false });
+    await sb.from('trade_requests').update({ messages: msgs }).eq('id', activeTrade.id);
+    activeTradeChannel?.send({ type:'broadcast', event:'trade_chat_msg', payload:{ tradeId: activeTrade.id, from: myUsername, text, system: false }});
+}
+
+/* ═══════════════════════════════════════════════════════
+   ADD ITEM MODAL
+═══════════════════════════════════════════════════════ */
+function openAddItemModal() { document.getElementById('add-item-modal').style.display = 'flex'; switchAimTab('pieces'); }
+function closeAddItemModal() { document.getElementById('add-item-modal').style.display = 'none'; }
+
+function switchAimTab(tab) {
+    currentAimTab = tab;
+    ['pieces','crates','coins'].forEach(t => { document.getElementById('aim-tab-'+t).classList.toggle('active', t === tab); });
+    renderAimContent();
+}
+
+function renderAimContent() {
+    const $c = $('#add-item-modal-content').empty();
+    if (currentAimTab === 'pieces') {
+        const $grid = $('<div class="aim-piece-grid"></div>');
+        const tradeable = playerData.ownedSets.filter(s => s !== 'wikipedia');
+        if (!tradeable.length) { $c.append(`<div style="color:var(--muted);font-size:0.76rem;text-align:center;padding:24px;">You have no tradeable sets.</div>`); return; }
+        tradeable.forEach(setId => {
+            const set = PIECE_SETS[setId]; if (!set) return;
+            const alreadyOffered = (myOffer.pieces||[]).includes(setId);
+            $grid.append(`<div class="aim-piece-opt ${alreadyOffered?'disabled-opt':''}" onclick="${alreadyOffered?'':'addMyPiece(\''+setId+'\')'}">
+                <img src="${pieceUrl(setId,'w','K')}" onerror="this.style.opacity=0.3">
+                <div class="aim-piece-opt-name">${set.name}</div>
+                <div class="aim-piece-opt-rarity" style="color:${set.rarityColor}">${set.rarity}</div>
+                ${alreadyOffered ? '<div style="font-size:0.58rem;color:var(--muted);">Added</div>' : ''}
+            </div>`);
+        });
+        $c.append($grid);
+    } else if (currentAimTab === 'crates') {
+        Object.entries(CRATES).forEach(([crateId, crate]) => {
+            const totalHave = (playerData.crateInventory[crateId]||0) + (playerData.freeCrates[crateId]||0);
+            const offered   = myOffer.crates?.[crateId] || 0;
+            const available = totalHave - offered;
+            const disabled  = available < 1;
+            _modalCrateQty[crateId] = 0;
+            $c.append(`<div class="aim-crate-row ${disabled?'disabled-opt':''}">
+                <div class="aim-crate-icon">${crate.icon}</div>
+                <div class="aim-crate-info">
+                    <div class="aim-crate-name" style="color:${crate.color}">${crate.name}</div>
+                    <div class="aim-crate-have">You have: ${totalHave} (${available} available)</div>
+                </div>
+                <div class="aim-crate-qty">
+                    <button class="aim-qty-btn" onclick="changeCrateQty('${crateId}',-1)">−</button>
+                    <span class="aim-qty-val" id="crate-qty-${crateId}">0</span>
+                    <button class="aim-qty-btn" onclick="changeCrateQty('${crateId}',1)" ${disabled?'disabled':''}>+</button>
+                </div>
+            </div>`);
+        });
+        $c.append(`<button onclick="confirmCrateAdd()" style="margin-top:8px;">Add Crates to Offer</button>`);
+    } else if (currentAimTab === 'coins') {
+        const alreadyOffered = myOffer.coins || 0;
+        const maxCoins = Math.max(0, playerData.coins - alreadyOffered);
+        $c.append(`<div class="aim-coins-area">
+            <div class="aim-coins-have">You have: ${playerData.coins} 🪙${alreadyOffered > 0 ? ` (${alreadyOffered} already offered)` : ''}</div>
+            <div class="aim-coins-big-display" id="aim-coins-val">0</div>
+            <input type="range" class="aim-coins-slider" id="aim-coins-slider" min="0" max="${maxCoins}" value="0" oninput="document.getElementById('aim-coins-val').textContent=this.value">
+            <br>
+            <button class="aim-confirm-btn" onclick="confirmCoinsAdd()">Add Coins to Offer</button>
+        </div>`);
+    }
+}
+
+function addMyPiece(setId) {
+    if ((myOffer.pieces||[]).includes(setId)) return;
+    myOffer.pieces = [...(myOffer.pieces||[]), setId];
+    myReady = false; pushMyOfferUpdate(); renderMyOfferGrid(); updateReadyStatus();
+    closeAddItemModal();
+}
+
+const _modalCrateQty = {};
+function changeCrateQty(crateId, delta) {
+    const totalHave = (playerData.crateInventory[crateId]||0) + (playerData.freeCrates[crateId]||0);
+    const offered   = myOffer.crates?.[crateId] || 0;
+    const available = totalHave - offered;
+    if (!_modalCrateQty[crateId]) _modalCrateQty[crateId] = 0;
+    _modalCrateQty[crateId] = Math.max(0, Math.min(available, _modalCrateQty[crateId] + delta));
+    const el = document.getElementById('crate-qty-'+crateId);
+    if (el) el.textContent = _modalCrateQty[crateId];
+}
+function confirmCrateAdd() {
+    Object.entries(_modalCrateQty).forEach(([crateId, extra]) => {
+        if (extra > 0) {
+            myOffer.crates = myOffer.crates || {};
+            myOffer.crates[crateId] = (myOffer.crates[crateId]||0) + extra;
+            _modalCrateQty[crateId] = 0;
+        }
+    });
+    myReady = false; pushMyOfferUpdate(); renderMyOfferGrid(); updateReadyStatus();
+    closeAddItemModal();
+}
+function confirmCoinsAdd() {
+    const val = parseInt(document.getElementById('aim-coins-slider')?.value||0, 10);
+    myOffer.coins = (myOffer.coins || 0) + val;
+    myReady = false; pushMyOfferUpdate(); renderMyOfferGrid(); updateReadyStatus();
+    closeAddItemModal();
+}
+
+/* ═══════════════════════════════════════════════════════
+   ADMIN
 ═══════════════════════════════════════════════════════ */
 function showGiftCrateMsg(msg, success) {
     $('#gift-crate-msg').text(msg).removeClass('hidden inline-error inline-success').addClass(success ? 'inline-success' : 'inline-error');
@@ -1678,16 +2255,14 @@ async function giveCrates() {
     if (!targetRaw)            { showGiftCrateMsg('Enter a profile ID or "all".', false); return; }
     if (!amount || amount < 1) { showGiftCrateMsg('Enter a valid quantity (min 1).', false); return; }
     if (!CRATES[crateType])    { showGiftCrateMsg('Select a valid crate type.', false); return; }
-
     if (targetRaw.toLowerCase() === 'all') {
-        const { data:profiles } = await sb.from('profiles').select('id');
-        await globalChannel.send({ type:'broadcast', event:'crate_grant', payload:{ target:'all', crateType, amount } });
-        showGiftCrateMsg(`Sent ${amount}× ${CRATES[crateType].name} to all ${profiles?.length||'?'} players.`, true);
+        await globalChannel.send({ type:'broadcast', event:'crate_grant', payload:{ target:'all', crateType, amount }});
+        showGiftCrateMsg(`Sent ${amount}× ${CRATES[crateType].name} to all players.`, true);
         $('#gift-crate-user-id').val(''); $('#gift-crate-amount').val('1'); return;
     }
     const { data:profile } = await sb.from('profiles').select('id,display_name').eq('id', targetRaw).maybeSingle();
     if (!profile) { showGiftCrateMsg('Profile not found.', false); return; }
-    await globalChannel.send({ type:'broadcast', event:'crate_grant', payload:{ target:profile.id, crateType, amount } });
+    await globalChannel.send({ type:'broadcast', event:'crate_grant', payload:{ target:profile.id, crateType, amount }});
     showGiftCrateMsg(`Sent ${amount}× ${CRATES[crateType].name} to ${profile.display_name||profile.id}.`, true);
     $('#gift-crate-user-id').val(''); $('#gift-crate-amount').val('1');
 }
@@ -1701,16 +2276,14 @@ async function giveCoins() {
     const amount    = parseInt($('#gift-amount').val(), 10);
     if (!targetRaw)            { showGiftMsg('Enter a profile ID or "all".', false); return; }
     if (!amount || amount < 1) { showGiftMsg('Enter a valid coin amount (min 1).', false); return; }
-
     if (targetRaw.toLowerCase() === 'all') {
-        const { data:profiles } = await sb.from('profiles').select('id');
-        await globalChannel.send({ type:'broadcast', event:'coin_grant', payload:{ target:'all', amount } });
-        showGiftMsg(`Broadcast +${amount} coins to all ${profiles?.length||'?'} players.`, true);
+        await globalChannel.send({ type:'broadcast', event:'coin_grant', payload:{ target:'all', amount }});
+        showGiftMsg(`Broadcast +${amount} coins to all players.`, true);
         $('#gift-user-id').val(''); $('#gift-amount').val(''); return;
     }
     const { data:profile } = await sb.from('profiles').select('id,display_name').eq('id', targetRaw).maybeSingle();
     if (!profile) { showGiftMsg('Profile not found.', false); return; }
-    await globalChannel.send({ type:'broadcast', event:'coin_grant', payload:{ target:profile.id, amount } });
+    await globalChannel.send({ type:'broadcast', event:'coin_grant', payload:{ target:profile.id, amount }});
     showGiftMsg(`Sent +${amount} coins to ${profile.display_name||profile.id}.`, true);
     $('#gift-user-id').val(''); $('#gift-amount').val('');
 }
@@ -1740,7 +2313,7 @@ function subscribeGlobal() {
             if (!user) return;
             if (p.payload.target === 'all' || p.payload.target === user.id) {
                 addCoins(p.payload.amount);
-                showBanner('Admin', `+${p.payload.amount} coins granted to you!`, '');
+                showBanner('Admin', `+${p.payload.amount} coins granted!`, '');
             }
         })
         .on('broadcast', { event:'crate_grant' }, (p) => {
@@ -1753,25 +2326,31 @@ function subscribeGlobal() {
                 showBanner('Admin', `You received ${amt}× ${CRATES[ct]?.name || ct}! Check My Crates.`, '');
             }
         })
-        .on('broadcast', { event:'trade_notification' }, (p) => {
+        .on('broadcast', { event:'trade_notification' }, async (p) => {
             if (!user || p.payload.target !== user.id) return;
+            if (p.payload.tradeId) {
+                const { data:req } = await sb.from('trade_requests').select('*').eq('id', p.payload.tradeId).maybeSingle();
+                if (req && req.status === 'pending') showTradePopup(req);
+            }
             loadTradeRequests();
-            showBanner('Trade', `New trade request from ${p.payload.from}!`, '');
         })
-        .on('broadcast', { event:'trade_message' }, (p) => {
+        .on('broadcast', { event:'trade_accepted' }, async (p) => {
+            if (!user || p.payload.target !== user.id) return;
+            if (activeTrade) return;
+            const { data:req } = await sb.from('trade_requests').select('*').eq('id', p.payload.tradeId).maybeSingle();
+            if (req && (req.status === 'pending' || req.status === 'active')) {
+                showBanner('Trade', 'Your trade request was accepted!', '');
+                await openActiveTrade(req.id, 'from');
+            }
+        })
+        .on('broadcast', { event:'trade_completed_v2' }, (p) => {
             if (!user) return;
-            loadTradeRequests();
-        })
-        .on('broadcast', { event:'trade_completed' }, (p) => {
-            if (!user || p.payload.target !== user.id) return;
-            // Reload their inventory to get the new set
-            loadPlayerData();
-            showBanner('Trade', `${p.payload.fromDisplay} accepted your trade!`, '');
+            if (p.payload.fromId === user.id || p.payload.toId === user.id) { loadPlayerData(); loadTradeRequests(); }
         })
         .on('broadcast', { event:'trade_declined' }, (p) => {
             if (!user || p.payload.target !== user.id) return;
             loadTradeRequests();
-            showBanner('Trade', `Your trade request was declined.`, '');
+            showBanner('Trade', 'Your trade request was declined.', '');
         })
         .subscribe();
 }
@@ -1795,10 +2374,10 @@ function updateBroadcastPreview() {
 }
 async function sendBroadcast() {
     const msg = $('#admin-msg').val().trim(); if (!msg) return;
-    await globalChannel.send({ type:'broadcast', event:'announcement', payload:{ name:$('#my-display-name').text(), msg, pfp:$('#my-pfp').attr('src')||'' } });
+    await globalChannel.send({ type:'broadcast', event:'announcement', payload:{ name:$('#my-display-name').text(), msg, pfp:$('#my-pfp').attr('src')||'' }});
     $('#admin-msg').val(''); $('#broadcast-preview-text').text('—');
 }
-async function togglePartyMode() { await globalChannel.send({ type:'broadcast', event:'party_mode', payload:{ active:!isPartyModeActive } }); }
+async function togglePartyMode() { await globalChannel.send({ type:'broadcast', event:'party_mode', payload:{ active:!isPartyModeActive }}); }
 
 async function loadSoundList() {
     const { data:files } = await sb.storage.from('avatars').list('global_sounds');
@@ -1825,7 +2404,7 @@ async function broadcastSound() {
         $('#admin-sound-file').val('');
     }
     if (!url) { showSoundMsg('Select or upload a sound first.', false); return; }
-    await globalChannel.send({ type:'broadcast', event:'play_sound', payload:{ url } });
+    await globalChannel.send({ type:'broadcast', event:'play_sound', payload:{ url }});
 }
 function showSoundMsg(msg, ok) {
     $('#sound-upload-msg').text(msg).removeClass('hidden inline-error inline-success').addClass(ok?'inline-success':'inline-error');
@@ -1834,21 +2413,13 @@ function showSoundMsg(msg, ok) {
 async function stopAllSounds() { await globalChannel.send({ type:'broadcast', event:'stop_sound' }); }
 
 /* ═══════════════════════════════════════════════════════
-   AUTH — PURE USERNAME + PASSWORD, NO EMAIL
-   Uses Supabase anon sessions + custom credential check.
-   Passwords are hashed with SHA-256 + username salt via
-   Web Crypto API. Session persists in localStorage.
+   AUTH
 ═══════════════════════════════════════════════════════ */
-
 async function sha256(str) {
     const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
     return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
 }
-
-async function hashPassword(username, password) {
-    // Salt with username so same password = different hash per user
-    return sha256('suocial::' + username.toLowerCase() + '::' + password);
-}
+async function hashPassword(username, password) { return sha256('suocial::' + username.toLowerCase() + '::' + password); }
 
 async function handleAuth(type) {
     const rawUsername = $('#auth-username').val().trim();
@@ -1856,66 +2427,39 @@ async function handleAuth(type) {
     $('#auth-error').addClass('hidden').text('');
 
     if (!rawUsername || !pass) { showAuthError('Please fill in both fields.'); return; }
-    if (!/^[a-zA-Z0-9_]{3,20}$/.test(rawUsername)) {
-        showAuthError('Username must be 3–20 characters (letters, numbers, underscores only).');
-        return;
-    }
+    if (!/^[a-zA-Z0-9_]{3,20}$/.test(rawUsername)) { showAuthError('Username must be 3–20 characters (letters, numbers, underscores only).'); return; }
 
     const cleanUsername = rawUsername.toLowerCase();
     const hash          = await hashPassword(cleanUsername, pass);
 
     if (type === 'signup') {
-        const { data:existing } = await sb.from('profiles')
-            .select('id').eq('username', cleanUsername).maybeSingle();
-        if (existing) { showAuthError('Username already taken. Choose another.'); return; }
-
+        const { data:existing } = await sb.from('profiles').select('id').eq('username', cleanUsername).maybeSingle();
+        if (existing) { showAuthError('Username already taken.'); return; }
         const uid = crypto.randomUUID();
         user = { id: uid };
-
-        const { error:profErr } = await sb.from('profiles').upsert({
-            id:            uid,
-            username:      cleanUsername,
-            display_name:  rawUsername,
-            password_hash: hash,
-            pfp_url:       '',
-        });
+        const { error:profErr } = await sb.from('profiles').upsert({ id: uid, username: cleanUsername, display_name: rawUsername, password_hash: hash, pfp_url: '' });
         if (profErr) { showAuthError('Profile creation failed: ' + profErr.message); return; }
-
         localStorage.setItem('sc_uid', uid);
         localStorage.setItem('sc_username', cleanUsername);
-
     } else {
-        const { data:prof } = await sb.from('profiles')
-            .select('id, password_hash, display_name, username')
-            .eq('username', cleanUsername)
-            .maybeSingle();
-
-        if (!prof)                     { showAuthError('Username not found.'); return; }
-        if (prof.password_hash !== hash) { showAuthError('Incorrect password.'); return; }
-
+        const { data:prof } = await sb.from('profiles').select('id, password_hash, display_name, username').eq('username', cleanUsername).maybeSingle();
+        if (!prof)                       { showAuthError('Username not found.'); return; }
+        if (prof.password_hash !== hash)  { showAuthError('Incorrect password.'); return; }
         user = { id: prof.id };
         localStorage.setItem('sc_uid', prof.id);
         localStorage.setItem('sc_username', cleanUsername);
     }
-
     checkSession();
 }
 function showAuthError(msg) { $('#auth-error').text(msg).removeClass('hidden'); }
 
 async function checkSession() {
     const storedUid = localStorage.getItem('sc_uid');
-    if (!storedUid) { showView('view-auth'); return; }
+    if (!storedUid) { _showViewInternal('view-auth'); return; }
     user = { id: storedUid };
 
-    const { data:prof } = await sb.from('profiles')
-        .select('*').eq('id', user.id).maybeSingle();
-
-    if (!prof) {
-        // Stale stored id — clear and show auth
-        localStorage.removeItem('sc_uid');
-        localStorage.removeItem('sc_username');
-        showView('view-auth'); return;
-    }
+    const { data:prof } = await sb.from('profiles').select('*').eq('id', user.id).maybeSingle();
+    if (!prof) { localStorage.removeItem('sc_uid'); localStorage.removeItem('sc_username'); _showViewInternal('view-auth'); return; }
 
     const displayName = prof.display_name || prof.username || 'Player';
     const pfpUrl      = prof.pfp_url || DEFAULT_AVATAR;
@@ -1939,7 +2483,7 @@ async function checkSession() {
     await loadTradeRequests();
 
     $('#user-profile-bar').removeClass('hidden');
-    showView('view-lobby');
+    _showViewInternal('view-lobby');
 }
 
 function previewPfp(event) {
@@ -1961,7 +2505,6 @@ async function updateProfile() {
         pfpUrl = sb.storage.from('avatars').getPublicUrl(path).data.publicUrl + '?t=' + Date.now();
         $('#pfp-upload-status').text('Uploaded ✓');
     }
-    // Keep password_hash intact — only update display fields
     const { error } = await sb.from('profiles').update({ display_name: name, pfp_url: pfpUrl }).eq('id', user.id);
     if (error) { showProfileMsg('Save failed: '+error.message, false); return; }
     showProfileMsg('Profile saved!', true);
@@ -1973,14 +2516,12 @@ function showProfileMsg(msg, ok) {
     setTimeout(() => $('#profile-msg').addClass('hidden'), 4000);
 }
 async function signOut() {
-    localStorage.removeItem('sc_uid');
-    localStorage.removeItem('sc_username');
-    await sb.auth.signOut();
-    location.reload();
+    localStorage.removeItem('sc_uid'); localStorage.removeItem('sc_username');
+    await sb.auth.signOut(); location.reload();
 }
 
 /* ═══════════════════════════════════════════════════════
-   MATCHMAKING LOCK / UNLOCK
+   MATCHMAKING
 ═══════════════════════════════════════════════════════ */
 function lockForMatchmaking() {
     matchReady = false;
@@ -2006,12 +2547,12 @@ async function cancelMatchmaking() {
         await sb.from('matches').delete().eq('id', currentMatchId).eq('status', 'waiting');
         currentMatchId = null;
     }
-    matchReady = false;
+    matchReady = false; isBotGame = false;
     game = new Chess();
     if (board) board.position('start');
     $('#board-lock-overlay').addClass('hidden');
     $('#board-idle-msg').removeClass('hidden');
-    showView('view-lobby');
+    _showViewInternal('view-lobby');
 }
 
 /* ═══════════════════════════════════════════════════════
@@ -2029,6 +2570,7 @@ function addGreyDots(sq) {
 ═══════════════════════════════════════════════════════ */
 function onDragStart(source, piece) {
     if (!matchReady) return false;
+    if (isBotGame && botThinking) return false;  // block dragging while bot thinks
     if (game.game_over() || game.turn() !== myColor || piece[0] !== myColor) return false;
     addGreyDots(source);
 }
@@ -2043,10 +2585,11 @@ function onSnapEnd() { removeGreyDots(); board.position(game.fen()); }
    MATCHMAKING & GAME
 ═══════════════════════════════════════════════════════ */
 function setOpponent(name, pfp) { $('#opp-name-display').text(name||'Opponent'); $('#opp-pfp').attr('src', pfp||DEFAULT_AVATAR); }
-function setMatchStatus(state, text) { $('#match-status').removeClass('searching playing').addClass(state); $('#match-status-text').text(text); }
+function setMatchStatus(state, text) { $('#match-status').removeClass('searching playing bot-game').addClass(state); $('#match-status-text').text(text); }
 
 async function findMatch() {
-    showView('view-game');
+    isBotGame = false;
+    _showViewInternal('view-game');
     setMatchStatus('searching', 'Searching for opponent...');
     $('#board-idle-msg').addClass('hidden');
     $('#opp-pfp').attr('src', DEFAULT_AVATAR);
@@ -2072,8 +2615,8 @@ async function findMatch() {
             white_player:user.id, white_display:myName, white_pfp:myPfp, status:'waiting', fen:new Chess().fen()
         }]).select();
         if (insertErr || !created?.length) {
-            $('#match-error').text('Could not create match: '+(insertErr?.message||'Unknown error')).removeClass('hidden');
-            showView('view-lobby'); return;
+            $('#match-error').text('Could not create match.').removeClass('hidden');
+            _showViewInternal('view-lobby'); return;
         }
         currentMatchId = created[0].id; myColor = 'w';
         subscribe(currentMatchId); initGame('white');
@@ -2090,12 +2633,20 @@ function initGame(orient) {
 async function handleMove(source, target) {
     const move = game.move({from:source, to:target, promotion:'q'});
     if (!move) return 'snapback';
+
     if (move.captured) {
         const c = COIN_VALUES[move.captured] || 0;
         if (c > 0) { addCoins(c); showCoinFloater(move.to, c); }
     }
     updateUI();
-    await sb.from('matches').update({fen:game.fen()}).eq('id', currentMatchId);
+
+    if (isBotGame) {
+        if (game.game_over()) { checkBotGameEnd(); return; }
+        // Slight delay so the board renders the player's move first
+        setTimeout(() => requestBotMove(), 150);
+    } else {
+        await sb.from('matches').update({fen:game.fen()}).eq('id', currentMatchId);
+    }
 }
 
 function subscribe(id) {
@@ -2130,7 +2681,7 @@ function appendChat(name, text, isMe) {
     const b = document.getElementById('chat-logs'); b.scrollTop = b.scrollHeight;
 }
 async function sendChat() {
-    if (!matchReady) return;
+    if (!matchReady || isBotGame) return;
     const text = $('#chat-input').val().trim(); if (!text) return;
     sb.channel(`chat_${currentMatchId}`).send({type:'broadcast', event:'msg', payload:{user:$('#my-display-name').text(), text}});
     appendChat('', text, true); $('#chat-input').val('');
@@ -2139,11 +2690,20 @@ function promptResign()  { $('#resign-confirm').removeClass('hidden'); }
 function cancelResign()  { $('#resign-confirm').addClass('hidden'); }
 async function confirmResign() {
     $('#resign-confirm').addClass('hidden');
+    if (isBotGame) {
+        // Clean up bot
+        clearTimeout(botMoveTimeout);
+        if (stockfishWorker) { stockfishWorker.terminate(); stockfishWorker = null; }
+        botThinking = false;
+        document.getElementById('bot-think-overlay').classList.remove('visible');
+        showResult('lose', '☠', 'You Resigned', 'Better luck next time');
+        return;
+    }
     await sb.from('matches').update({status:'resigned'}).eq('id', currentMatchId);
     showResult('lose', '☠', 'You Resigned', 'Better luck next time');
 }
 window.addEventListener('beforeunload', () => {
-    if (currentMatchId) sb.from('matches').update({status:'resigned'}).eq('id', currentMatchId);
+    if (currentMatchId && !isBotGame) sb.from('matches').update({status:'resigned'}).eq('id', currentMatchId);
 });
 
 /* ═══════════════════════════════════════════════════════
@@ -2156,11 +2716,20 @@ function updateUI() {
         const winner = isWhiteTurn ? 'Black' : 'White';
         const iWon   = (winner==='White'&&myColor==='w') || (winner==='Black'&&myColor==='b');
         $('#turn-display').text(`☠ Checkmate — ${winner} wins!`);
-        endMatch('checkmate', iWon); return;
+        if (!isBotGame) endMatch('checkmate', iWon);
+        else checkBotGameEnd();
+        return;
     }
-    if (game.in_draw()) { $('#turn-display').text('½ Draw'); endMatch('draw', null); return; }
+    if (game.in_draw()) {
+        $('#turn-display').text('½ Draw');
+        if (!isBotGame) endMatch('draw', null);
+        else checkBotGameEnd();
+        return;
+    }
     if (game.in_check()) txt += ' ⚠ CHECK';
-    $('#turn-display').text(txt).toggleClass('your-turn-glow', isMyTurn);
+    if (isBotGame && game.turn() === botColor) txt += ' 🤖';
+    $('#turn-display').text(txt).toggleClass('your-turn-glow', isMyTurn && !isBotGame);
+
     const hist = document.getElementById('move-history'); hist.innerHTML = '';
     const moves = game.history();
     for (let i = 0; i < moves.length; i += 2) {
@@ -2186,24 +2755,17 @@ async function endMatch(reason, iWon) {
     } else showResult('lose', '☠', 'You Lose', 'Checkmate');
 }
 function leaveGame() {
+    // Clean up bot resources
+    clearTimeout(botMoveTimeout);
+    if (stockfishWorker) { stockfishWorker.terminate(); stockfishWorker = null; }
+    botThinking = false;
+    document.getElementById('bot-think-overlay').classList.remove('visible');
+    isBotGame = false;
+
     currentMatchId = null; matchReady = false; winCoinAwarded = false;
     game = new Chess(); board.position('start');
     $('#game-result-overlay').addClass('hidden'); $('#board-idle-msg').removeClass('hidden');
-    showView('view-lobby');
-}
-
-/* ═══════════════════════════════════════════════════════
-   VIEW MANAGER
-═══════════════════════════════════════════════════════ */
-function showView(id) {
-    if (id !== 'view-collection') stopCollectionCycle();
-    $('.tab-content').addClass('hidden');
-    $('#'+id).removeClass('hidden');
-    if (id === 'view-admin')           { updateBroadcastPreview(); loadSoundList(); }
-    if (id === 'view-shop')            { renderShop(); }
-    if (id === 'view-collection')      { renderCollection(); }
-    if (id === 'view-crate-inventory') { renderCrateInventory(); }
-    if (id === 'view-trade')           { switchTradeTab('incoming'); }
+    _showViewInternal('view-lobby');
 }
 
 /* ═══════════════════════════════════════════════════════
@@ -2212,15 +2774,6 @@ function showView(id) {
 function escHtml(str) {
     return String(str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
-function timeAgo(ts) {
-    if (!ts) return '';
-    const diff = Date.now() - new Date(ts).getTime();
-    if (diff < 60000)    return 'just now';
-    if (diff < 3600000)  return Math.floor(diff/60000) + 'm ago';
-    if (diff < 86400000) return Math.floor(diff/3600000) + 'h ago';
-    return Math.floor(diff/86400000) + 'd ago';
-}
-// Strip our fake email domain so it never shows in UI
 function cleanDisplayName(raw) {
     if (!raw) return 'Player';
     return raw.replace(/@suocial\.chess$/i, '').replace(/@.*$/, '');
@@ -2236,156 +2789,5 @@ $(document).ready(() => {
     checkSession();
 });
 </script>
-
-<!--
-╔══════════════════════════════════════════════════════════════════╗
-║  SUPABASE SETUP — paste this entire block into the SQL Editor   ║
-║  Database → SQL Editor → New Query → Paste → Run               ║
-╚══════════════════════════════════════════════════════════════════╝
-
--- ─────────────────────────────────────────────────────────────────
--- 1. PROFILES  (stores username, hashed password, display info)
--- ─────────────────────────────────────────────────────────────────
-create table if not exists public.profiles (
-  id            uuid primary key default gen_random_uuid(),
-  username      text unique not null,
-  display_name  text,
-  password_hash text,          -- SHA-256(salt + username + password)
-  pfp_url       text default '',
-  is_admin      boolean default false,
-  created_at    timestamptz default now()
-);
-
--- Everyone can read profiles (needed for username lookups, trade targets)
-alter table public.profiles enable row level security;
-drop policy if exists "Public read profiles" on public.profiles;
-create policy "Public read profiles"
-  on public.profiles for select using (true);
-
--- Anyone can insert their own profile (signup)
-drop policy if exists "Insert own profile" on public.profiles;
-create policy "Insert own profile"
-  on public.profiles for insert with check (true);
-
--- Update: anyone can update any profile row (we rely on app-level auth)
--- For a production app you'd tighten this, but for this game it's fine
-drop policy if exists "Update own profile" on public.profiles;
-create policy "Update own profile"
-  on public.profiles for update using (true);
-
-
--- ─────────────────────────────────────────────────────────────────
--- 2. PLAYER INVENTORY
--- ─────────────────────────────────────────────────────────────────
-create table if not exists public.player_inventory (
-  id               uuid primary key references public.profiles(id) on delete cascade,
-  coins            integer not null default 0,
-  owned_sets       text[]  not null default array['wikipedia'],
-  equipped_set     text    not null default 'wikipedia',
-  free_crates      jsonb   not null default '{"bronze":0,"silver":0,"gold":0}'::jsonb,
-  crate_inventory  jsonb   not null default '{"bronze":0,"silver":0,"gold":0}'::jsonb,
-  updated_at       timestamptz default now()
-);
-
--- Disable RLS on inventory — access controlled by app logic using profile id
-alter table public.player_inventory disable row level security;
-
--- Auto-update timestamp
-create or replace function update_updated_at()
-returns trigger language plpgsql as $$
-begin new.updated_at = now(); return new; end; $$;
-
-drop trigger if exists inventory_updated_at on public.player_inventory;
-create trigger inventory_updated_at
-  before update on public.player_inventory
-  for each row execute procedure update_updated_at();
-
-
--- ─────────────────────────────────────────────────────────────────
--- 3. MATCHES
--- ─────────────────────────────────────────────────────────────────
-create table if not exists public.matches (
-  id            uuid primary key default gen_random_uuid(),
-  white_player  uuid,
-  white_display text,
-  white_pfp     text,
-  black_player  uuid,
-  black_display text,
-  black_pfp     text,
-  status        text default 'waiting',
-  fen           text,
-  result        text,
-  created_at    timestamptz default now()
-);
-
-alter table public.matches disable row level security;
-
-
--- ─────────────────────────────────────────────────────────────────
--- 4. TRADE REQUESTS
--- ─────────────────────────────────────────────────────────────────
-create table if not exists public.trade_requests (
-  id               uuid primary key default gen_random_uuid(),
-  from_user_id     uuid references public.profiles(id) on delete cascade,
-  from_username    text,
-  from_display     text,
-  to_user_id       uuid references public.profiles(id) on delete cascade,
-  to_username      text,
-  to_display       text,
-  trade_type       text not null default 'pieces',
-  offer_set        text,
-  want_set         text,
-  offer_crate      text,
-  offer_crate_qty  integer,
-  want_crate       text,
-  want_crate_qty   integer,
-  status           text not null default 'pending',
-  messages         jsonb not null default '[]'::jsonb,
-  created_at       timestamptz default now()
-);
-
-alter table public.trade_requests disable row level security;
-
-
--- ─────────────────────────────────────────────────────────────────
--- 5. STORAGE BUCKET  (avatars + global sounds)
--- ─────────────────────────────────────────────────────────────────
--- Run this separately if the bucket doesn't exist yet:
--- insert into storage.buckets (id, name, public)
---   values ('avatars', 'avatars', true)
---   on conflict (id) do nothing;
-
--- Allow anyone to read from the avatars bucket (public CDN)
-drop policy if exists "Public avatar read" on storage.objects;
-create policy "Public avatar read"
-  on storage.objects for select using (bucket_id = 'avatars');
-
--- Allow anyone to upload to avatars (app controls paths)
-drop policy if exists "Anyone upload avatars" on storage.objects;
-create policy "Anyone upload avatars"
-  on storage.objects for insert with check (bucket_id = 'avatars');
-
-drop policy if exists "Anyone update avatars" on storage.objects;
-create policy "Anyone update avatars"
-  on storage.objects for update using (bucket_id = 'avatars');
-
-
--- ─────────────────────────────────────────────────────────────────
--- 6. REALTIME  (enable for matches + trade_requests)
--- ─────────────────────────────────────────────────────────────────
--- In Supabase Dashboard → Database → Replication:
--- Enable realtime for: public.matches, public.trade_requests
---
--- Or run:
--- alter publication supabase_realtime add table public.matches;
--- alter publication supabase_realtime add table public.trade_requests;
-
--- ─────────────────────────────────────────────────────────────────
--- DONE! No email required. Auth is username + SHA-256 password
--- stored in profiles.password_hash. Sessions use Supabase anon
--- auth for realtime/storage, with the real profile id stored in
--- localStorage for data queries.
--- ─────────────────────────────────────────────────────────────────
--->
 </body>
 </html>
