@@ -1124,32 +1124,36 @@ function selectColor(c) {
 /* ═══════════════════════════════════════════════════════
    STOCKFISH WORKER (via CDN)
 ═══════════════════════════════════════════════════════ */
-function createStockfishWorker() {
-    // Use a blob worker that loads Stockfish from CDN
-    const workerCode = `
-        importScripts('https://cdn.jsdelivr.net/npm/stockfish@16.0.0/src/stockfish.js');
-        var sf = Stockfish();
-        sf.addMessageListener(function(msg) { postMessage(msg); });
-        onmessage = function(e) { sf.postMessage(e.data); };
-    `;
-    const blob = new Blob([workerCode], { type: 'application/javascript' });
-    const url  = URL.createObjectURL(blob);
-    return new Worker(url);
+async function createStockfishWorker() {
+    const STOCKFISH_URL = 'https://cdn.jsdelivr.net/npm/stockfish.js@10.0.2/stockfish.js';
+    try {
+        const res = await fetch(STOCKFISH_URL);
+        if (!res.ok) throw new Error('fetch failed');
+        const code = await res.text();
+        const blob = new Blob([code], { type: 'application/javascript' });
+        const url  = URL.createObjectURL(blob);
+        return new Worker(url);
+    } catch(e) {
+        console.warn('Could not fetch Stockfish:', e);
+        return null;
+    }
 }
 
-function initStockfish() {
+async function initStockfish() {
     if (stockfishWorker) { stockfishWorker.terminate(); stockfishWorker = null; }
-    try {
-        stockfishWorker = createStockfishWorker();
-        stockfishWorker.onerror = (e) => { console.warn('Stockfish worker error, falling back:', e); stockfishWorker = null; };
-        stockfishWorker.postMessage('uci');
-        const cfg = BOT_DIFFICULTIES[botDifficulty];
-        stockfishWorker.postMessage(`setoption name Skill Level value ${cfg.skillLevel}`);
-        stockfishWorker.postMessage('ucinewgame');
-    } catch(e) {
-        console.warn('Stockfish unavailable, using fallback engine:', e);
-        stockfishWorker = null;
+    stockfishWorker = await createStockfishWorker();
+    if (!stockfishWorker) {
+        console.warn('Stockfish unavailable, using fallback engine.');
+        return;
     }
+    stockfishWorker.onerror = (e) => {
+        console.warn('Stockfish worker error, using fallback:', e);
+        stockfishWorker = null;
+    };
+    const cfg = BOT_DIFFICULTIES[botDifficulty];
+    stockfishWorker.postMessage('uci');
+    stockfishWorker.postMessage(`setoption name Skill Level value ${cfg.skillLevel}`);
+    stockfishWorker.postMessage('ucinewgame');
 }
 
 /* ── Fallback: simple minimax engine ── */
@@ -1239,23 +1243,23 @@ function requestBotMove() {
         stockfishWorker.postMessage(`go depth ${cfg.depth} movetime ${cfg.moveTime}`);
 
         let resolved = false;
-        stockfishWorker.onmessage = (e) => {
-            const line = e.data;
-            if (line.startsWith('bestmove') && !resolved) {
-                resolved = true;
-                const parts = line.split(' ');
-                const uciMove = parts[1];
-                if (!uciMove || uciMove === '(none)') { fallbackBotMove(); return; }
-                const from = uciMove.slice(0,2), to = uciMove.slice(2,4), promo = uciMove[4] || 'q';
-                const move = game.move({ from, to, promotion: promo });
-                if (move) {
-                    board.position(game.fen());
-                    handleBotMoveResult(move);
-                } else {
-                    fallbackBotMove();
-                }
-            }
-        };
+stockfishWorker.onmessage = (e) => {
+    const line = typeof e.data === 'string' ? e.data : '';
+    if (line.startsWith('bestmove') && !resolved) {
+        resolved = true;
+        const parts = line.split(' ');
+        const uciMove = parts[1];
+        if (!uciMove || uciMove === '(none)') { fallbackBotMove(); return; }
+        const from = uciMove.slice(0,2), to = uciMove.slice(2,4), promo = uciMove[4] || 'q';
+        const move = game.move({ from, to, promotion: promo });
+        if (move) {
+            board.position(game.fen());
+            handleBotMoveResult(move);
+        } else {
+            fallbackBotMove();
+        }
+    }
+};
         // Safety timeout
         botMoveTimeout = setTimeout(() => {
             if (!resolved) { resolved = true; fallbackBotMove(); }
@@ -2789,5 +2793,17 @@ $(document).ready(() => {
     checkSession();
 });
 </script>
+
+<!--
+╔══════════════════════════════════════════════════════════════════╗
+║  SUPABASE SQL — run this in Database → SQL Editor               ║
+╚══════════════════════════════════════════════════════════════════╝
+
+ALTER TABLE public.trade_requests
+  ADD COLUMN IF NOT EXISTS from_offer jsonb NOT NULL DEFAULT '{"pieces":[],"crates":{},"coins":0}'::jsonb,
+  ADD COLUMN IF NOT EXISTS to_offer   jsonb NOT NULL DEFAULT '{"pieces":[],"crates":{},"coins":0}'::jsonb,
+  ADD COLUMN IF NOT EXISTS from_ready boolean NOT NULL DEFAULT false,
+  ADD COLUMN IF NOT EXISTS to_ready   boolean NOT NULL DEFAULT false;
+-->
 </body>
 </html>
